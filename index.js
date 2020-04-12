@@ -2,10 +2,10 @@
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT | 8000
-
-app.get('/', (req, res)=>{'Arquidiocesis Backend'})
-
-app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})
+const login = require('./routes/login')
+const cors = require('cors')
+app.use(cors())
+app.use(express.json())
 
 //init firebase
 const admin = require('firebase-admin')
@@ -13,25 +13,9 @@ const serviceAccount = require('./ServiceAccountKey')
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
-const db = admin.firestore()
+const firestore = admin.firestore()
 
-// TEST WRITE
-// let aTuringRef = db.collection('users').doc('aturing');
+app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
+app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
-// let setAlan = aTuringRef.set({
-//   'first': 'Alan',
-//   'middle': 'Mathison',
-//   'last': 'Turing',
-//   'born': 1912
-// });
-
-// TEST READ
-// db.collection('users').get()
-//     .then((snapshot)=>{
-//         snapshot.forEach((doc)=>{
-//             console.log(doc.id, '=>', doc.data())
-//         })
-//     })
-//     .catch((err)=>{
-//         console.log('Error getting documents', err)
-//     })
+app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})
