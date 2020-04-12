@@ -4,6 +4,7 @@ const app = express()
 const PORT = process.env.PORT | 8000
 const cors = require('cors')
 const parroquias = require('./routes/parroquia')
+const decanato = require('./routes/decanato')
 app.use(cors())
 app.use(express.json())
 app.get('/', (req, res)=>{'Arquidiocesis Backend'})
@@ -20,3 +21,5 @@ admin.initializeApp({
 const firestore = admin.firestore() 
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
+app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
+app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
