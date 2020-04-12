@@ -11,7 +11,12 @@ const authenticate = async (firestore, req, res)=>{
         if (snapshot.exists){ // since id is email, this validates email 
             const data = snapshot.data() //read the doc data 
             if (data.contraseña == req.body.contraseña){ //validate password 
-                res.send('logged in...').status(200) // user authenticated
+                const result = JSON.stringify({
+                    id: data.id, 
+                    tipo: data.tipo
+                })
+                console.log(result)
+                res.send(result).status(200) // user authenticated
             }else{
                 console.log(data.contraseña)
                 console.log(REQ.body.contraseña)
