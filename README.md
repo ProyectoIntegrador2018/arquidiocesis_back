@@ -52,25 +52,46 @@ You should ask for access to this tools if you don't have it already:
 ## Development
 
 ### Setup the project
+1. Download [Node](https://nodejs.org). Node comes with the latest [npm](npmjs.com). 
 
-1. Clone this repository into your local machine
+2. Clone the repository using ssh: 
+```bash
+$ git clone git@github.com:ProyectoIntegrador2018/arquidiocesis-back.git
+```
+3. Install [nodemon](https://www.npmjs.com/package/nodemon):
 
 ```bash
-$ git clone git@github.com:ProyectoIntegrador2018/arquidiocesis-app.git
+$ npm i nodemon --save-dev
 ```
 
-2. Open a terminal and run:
-
-```bash
-$ npm install
-```
 
 ### Running the stack for Development
-
+#### MacOS
 1. Open a terminal and run: 
-
+```bash
+$ export NODE_ENV=development
 ```
-node app.js
+2. Then run the project using [nodemon](https://www.npmjs.com/package/nodemon): 
+```bash
+$ nodemon index.js
 ```
 
-That command will open the server on port 8080 by default.
+That command will open the server on port 8000 by default.
+
+### Set your own port number 
+#### MacOS
+1. Open the terminal and run: 
+```bash
+$ export PORT=<your port number here> 
+```
+
+### Running the stack for Production 
+#### MacOS
+1. Open terminal and run: 
+```bash 
+$ export NODE_ENV=production
+```
+2. Then run the project: 
+```bash
+$ node index.js 
+```
