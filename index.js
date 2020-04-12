@@ -13,25 +13,6 @@ const serviceAccount = require('./ServiceAccountKey')
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
-const db = admin.firestore()
 
-// TEST WRITE
-// let aTuringRef = db.collection('users').doc('aturing');
-
-// let setAlan = aTuringRef.set({
-//   'first': 'Alan',
-//   'middle': 'Mathison',
-//   'last': 'Turing',
-//   'born': 1912
-// });
-
-// TEST READ
-// db.collection('users').get()
-//     .then((snapshot)=>{
-//         snapshot.forEach((doc)=>{
-//             console.log(doc.id, '=>', doc.data())
-//         })
-//     })
-//     .catch((err)=>{
-//         console.log('Error getting documents', err)
-//     })
+const firestore = admin.firestore() 
+app.get('/api/parroquias', (req, res)=>{})
