@@ -2,7 +2,10 @@
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT | 8000
-
+const cors = require('cors')
+const parroquias = require('./routes/parroquia')
+app.use(cors())
+app.use(express.json())
 app.get('/', (req, res)=>{'Arquidiocesis Backend'})
 
 app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})
@@ -15,4 +18,5 @@ admin.initializeApp({
 })
 
 const firestore = admin.firestore() 
-app.get('/api/parroquias', (req, res)=>{})
+app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
+app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
