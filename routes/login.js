@@ -18,8 +18,6 @@ const authenticate = async (firestore, req, res)=>{
                 console.log(result)
                 res.send(result).status(200) // user authenticated
             }else{
-                console.log(data.contraseña)
-                console.log(REQ.body.contraseña)
                 res.send('wrong password').status(401)
             }
         }else{
