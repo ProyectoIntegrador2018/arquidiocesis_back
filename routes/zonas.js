@@ -26,12 +26,12 @@ const add = async (firebase, req, res)=>{
         nombre: req.body.nombre, 
         decanatos: req.body.decanatos
     }
+
     const collrectionref = await firebase.collection('zonas')
     try {
         const docref = await collrectionref.add(nuevaZona)
         res.send({
             error: false, 
-            /**@description the id of the zona that was just added to the firestore */
             id: docref.id
         })
     }catch(err){
