@@ -6,7 +6,7 @@ const getall = async (firestore, req, res)=>{
         const docs = snapshot.docs.map(doc =>{
             return {
                 id: doc.id, 
-                name: doc.data().nombre
+                nombre: doc.data().nombre
             }
 		  })
         res.send({
