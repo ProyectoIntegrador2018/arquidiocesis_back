@@ -26,7 +26,7 @@ const firestore = admin.firestore()
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-// app.all('*', login.verifyToken(firestore)) -- commented for testing
+app.all('*', login.verifyToken(firestore));
 
 // =======================
 // Logged in section below
