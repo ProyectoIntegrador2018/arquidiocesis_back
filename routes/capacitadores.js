@@ -21,6 +21,24 @@ const getall = async (firestore, req, res)=>{
     }
 }
 
+const getone = async (firestore, req, res) => {
+    const snapshot = await firestore.collection('capacitadores').doc(req.params.id).get()
+    if (!snapshot.exists) {
+        return res.send({
+            error: true,
+            message: 'No capacitador with that ID.'
+        })
+    }
+    var capacitador = snapshot.data();
+    res.send({
+        error: false,
+        data: {
+            nombre: capacitador.nombre,
+            correo: capacitador.correo
+        }
+    })
+}
+
 const add = async (firebase, req, res)=>{
     const nuevoCapacitador = {
         correo: req.body.correo,

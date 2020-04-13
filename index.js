@@ -21,5 +21,6 @@ admin.initializeApp({
 })
 
 app.get('/api/capacitadores', (req, res) => { capacitadores.getall(firestore, req, res) })
+app.get('/api/capacitadores/:id', (req, res) => { capacitadores.getone(firestore, req, res) })
 app.post('/api/capacitadores', (req, res) => { capacitadores.add(firestore, req, res) })
 
