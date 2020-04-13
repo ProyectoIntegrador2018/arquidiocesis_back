@@ -45,7 +45,7 @@ const add = async (firestore, req, res)=>{
     // validate request
     try{ 
         snapshot = await firestore.collection('miembros').doc(coordinator).get() 
-        if(!snapshot.exists) throw {message: 'no hay coordinador registrado con ese id'}
+        if(!snapshot.exists || !snapshot.data().coordinador) throw {message: 'no hay coordinador registrado con ese id'}
         if ((!parroquia && !capilla)|| (parroquia && capilla)) throw {message: 'group needs capilla OR parroquia'}
     } 
     catch(err){
