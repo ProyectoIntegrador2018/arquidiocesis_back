@@ -6,9 +6,9 @@ const getall = async (firestore, req, res)=>{
         const docs = snapshot.docs.map(doc =>{
             return {
                 id: doc.id, 
-                name: doc.data().name
+                name: doc.data().nombre
             }
-        })
+		  })
         res.send({
             error: false, 
             data: docs
