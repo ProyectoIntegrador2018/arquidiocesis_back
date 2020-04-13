@@ -38,13 +38,9 @@ const getone = async (firestore, req, res)=>{
 }
 
 const add = async (firestore, req, res)=>{
-    let snapshot = undefined
-    const parroquia = req.body.parroquia
-    const capilla = req.body.capilla
-    const coordinator = req.body.coordinator
-    // validate request
+    var { name, parroquia, capilla, coordinador } = req.body;
     try{ 
-        snapshot = await firestore.collection('miembros').doc(coordinator).get() 
+        const snapshot = await firestore.collection('miembros').doc(coordinador).get() 
         if(!snapshot.exists || !snapshot.data().coordinador) throw {message: 'no hay coordinador registrado con ese id'}
         if ((!parroquia && !capilla)|| (parroquia && capilla)) throw {message: 'group needs capilla OR parroquia'}
     } 
@@ -76,8 +72,9 @@ const add = async (firestore, req, res)=>{
         }
     }
     let newGroup = {
-        coordinator,
-        members: []
+        nombre: name,
+        coordinador,
+        miembros: []
     }
     if (capilla)
         newGroup.capilla = capilla
@@ -86,9 +83,10 @@ const add = async (firestore, req, res)=>{
         newGroup.parroquia = parroquia
 
     const docref = await firestore.collection('grupos').add(newGroup)
+    newGroup.id = docref.id;
     res.send({
         error: false, 
-        data: docref.id
+        data: newGroup
     })
 }
 

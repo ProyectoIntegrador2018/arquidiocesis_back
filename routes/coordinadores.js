@@ -9,10 +9,11 @@ const add = async(firestore, req, res)=>{
 
 	var newCoordinador = {
 		nombre: name,
+		email: email.toLowerCase(),
 		edad: age,
 		coordinador: true,
 		sexo: gender,
-		coordinador: true
+		coordinador: true,
 	}
 
 	var newLogin = {
