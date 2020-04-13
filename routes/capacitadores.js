@@ -49,7 +49,7 @@ const add = async (firebase, req, res)=>{
         const docref = await collrectionref.add(nuevoCapacitador)
         res.send({
             error: false, 
-            /**@description the id of the parroquia that was just added to the firestore */
+            /**@description the id of the capacitador that was just added to the firestore */
             id: docref.id
         })
     }catch(err){
