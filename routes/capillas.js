@@ -1,6 +1,3 @@
-const express = require('express')
-const parroquia = require('./parroquia')
-
 const add = async (firestore, req, res)=>{
     const newCapilla = {
         nombre: req.body.name, 
