@@ -21,13 +21,17 @@ const getall = async (firestore, req, res)=>{
     }
 }
 
-const add = async (firebase, req, res)=>{
+// const getone = async(firestore, req, res)=>{
+//     const snapshot = firestore
+// }
+
+const add = async (firestore, req, res)=>{
     const nuevaParroquia = {
         name: req.body.name, 
         address: req.body.address, 
         decanato: req.body.decanato
     }
-    const collrectionref = await firebase.collection('parroquias')
+    const collrectionref = await firestore.collection('parroquias')
     try{ 
         const docref = await collrectionref.add(nuevaParroquia)
         res.send({
