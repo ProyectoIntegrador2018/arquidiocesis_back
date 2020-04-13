@@ -7,6 +7,9 @@ const bodyParser = require('body-parser');
 const parroquias = require('./routes/parroquia')
 const decanato = require('./routes/decanato')
 const login = require('./routes/login')
+const capacitadores = require('./routes/capacitadores')
+const zonas = require('./routes/zonas')
+
 app.use(cors())
 app.use(express.json())
 app.get('/', (req, res)=>{'Arquidiocesis Backend'})
@@ -35,8 +38,10 @@ app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
 app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
-app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
+app.get('/api/decanatos/:id', (req, res) => { decanato.getone(firestore, req, res) })
 
+app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
+app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 
 
 // No route found
