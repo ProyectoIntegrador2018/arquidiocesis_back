@@ -48,8 +48,8 @@ const getone = async(firestore, req, res)=>{
         error: false, 
         data: {
 			nombre: parroquia.nombre,
-			address: parroquia['dirección'],
-			decanato: '',
+			address: parroquia.address,
+			decanato: parroquia.decanato,
 			capillas
 		}
     })
@@ -57,7 +57,7 @@ const getone = async(firestore, req, res)=>{
 
 const add = async (firestore, req, res)=>{
     const nuevaParroquia = {
-        name: req.body.name, 
+        nombre: req.body.name, 
         address: req.body.address, 
         decanato: req.body.decanato
     }
@@ -72,15 +72,19 @@ const add = async (firestore, req, res)=>{
         })
     }
     
-    // --- Add new decanato --- // 
+    // --- Add new parroquia --- // 
    // ----VVVVVVVVVVVVVVVV---- //
     const collrectionref = await firestore.collection('parroquias')
     try{ 
         const docref = await collrectionref.add(nuevaParroquia)
         res.send({
-            error: false, 
-            /**@description the id of the parroquia that was just added to the firestore */
-            id: docref.id
+            error: false,
+			data: {
+				id: docref.id,
+				nombre: req.body.name, 
+				address: req.body.address, 
+				decanato: req.body.decanato
+			}
         })
     }catch(err){
         res.send({
