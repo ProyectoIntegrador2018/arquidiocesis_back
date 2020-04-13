@@ -3,8 +3,9 @@ const parroquia = require('./parroquia')
 
 const add = async (firestore, req, res)=>{
     const newCapilla = {
-        name: req.body.name, 
-        parroquia: req.body.parroquia
+        nombre: req.body.name, 
+		parroquia: req.body.parroquia,
+		address: req.body.address
     }
     const collectionref = await firestore.collection('capillas')
     const parroquiaref = await firestore.collection('parroquias').doc(req.body.parroquia)
@@ -38,7 +39,11 @@ const add = async (firestore, req, res)=>{
     // ----------VVVVVVV-----------//
     res.send({
         error: false, 
-        id: docref.id
+        data: {
+			id: docref.id,
+			nombre: req.body.name, 
+        	parroquia: req.body.parroquia
+		}
     })
 }
 
