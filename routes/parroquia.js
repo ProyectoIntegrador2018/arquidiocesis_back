@@ -6,7 +6,7 @@ const getall = async (firestore, req, res)=>{
         const docs = snapshot.docs.map(doc =>{
             return {
                 id: doc.id, 
-                name: doc.data().nombre
+                name: doc.data().name
             }
         })
         res.send({
@@ -23,8 +23,8 @@ const getall = async (firestore, req, res)=>{
 
 const add = async (firebase, req, res)=>{
     const nuevaParroquia = {
-        name: req.body.nombre, 
-        address: req.body.dirección, 
+        name: req.body.name, 
+        address: req.body.address, 
         decanato: req.body.decanato
     }
     const collrectionref = await firebase.collection('parroquias')
