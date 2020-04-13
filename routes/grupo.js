@@ -20,3 +20,22 @@ const getone = async (firestore, req, res)=>{
         data: snapshot.data()
     })
 }
+
+const add = async (firestore, req, res)=>{
+    //validate coordinador 
+    let snapshot = firestore.collection('miembros').doc(req.body.coordinator)
+    if (!snapshot){
+        res.send({
+            error: true, 
+            message: 'no hay coordinador registrado con ese id'
+        })
+    }
+    const miembros  = req.body.members
+    console.log(miembros)
+}
+
+module.exports = {
+    getall: getall, 
+    getone: getone, 
+    add: add
+}
