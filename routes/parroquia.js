@@ -42,6 +42,19 @@ const add = async (firestore, req, res)=>{
         address: req.body.address, 
         decanato: req.body.decanato
     }
+
+    // --- validate decanato --- // 
+   // ---VVVVVVVVVVVVVVVVVV---- //
+    const snapshot = await firestore.collection('decanatos').doc(req.body.decanato).get()
+    if (!snapshot.exists) {
+        return res.send({
+            error: true, 
+            message: 'there is no decanato with that id'
+        })
+    }
+    
+    // --- Add new decanato --- // 
+   // ----VVVVVVVVVVVVVVVV---- //
     const collrectionref = await firestore.collection('parroquias')
     try{ 
         const docref = await collrectionref.add(nuevaParroquia)
