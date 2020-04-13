@@ -21,9 +21,20 @@ const getall = async (firestore, req, res)=>{
     }
 }
 
-// const getone = async(firestore, req, res)=>{
-//     const snapshot = firestore
-// }
+const getone = async(firestore, req, res)=>{
+    const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
+    //validate parroquia 
+    if (!snapshot.exists){
+        return res.send({
+            error: true, 
+            message: 'couldn\'t find parroquia with that id'
+        })
+    }
+    res.send({
+        error: false, 
+        data: snapshot.data()
+    })
+}
 
 const add = async (firestore, req, res)=>{
     const nuevaParroquia = {
@@ -49,6 +60,7 @@ const add = async (firestore, req, res)=>{
 
 module.exports = {
     getall: getall, 
+    getone: getone,
     add: add
 }
 
