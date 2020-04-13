@@ -3,13 +3,22 @@ const express = require('express')
 const app = express()
 const PORT = process.env.PORT | 8000
 const cors = require('cors')
+<<<<<<< HEAD
 const parroquias = require('./routes/parroquia')
 const decanato = require('./routes/decanato')
+=======
+const bodyParser = require('body-parser');
+const parroquias = require('./routes/parroquia')
+const decanato = require('./routes/decanato')
+const login = require('./routes/login')
+const capillas  = require('./routes/capillas')
+
+>>>>>>> 03a6d27acfb6839d8d1dc48bca0045ddb37e7a62
 app.use(cors())
 app.use(express.json())
-app.get('/', (req, res)=>{'Arquidiocesis Backend'})
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})
+app.get('/', (req, res)=>{res.send('Arquidiocesis Backend')})
 
 //init firebase
 const admin = require('firebase-admin')
@@ -19,7 +28,37 @@ admin.initializeApp({
 })
 
 const firestore = admin.firestore() 
+<<<<<<< HEAD
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
+=======
+app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
+
+// Check valid token
+// app.all('*', login.verifyToken(firestore)) -- commented for testing
+
+// =======================
+// Logged in section below
+// ========VVVVVVV========
+
+app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
+
+app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
+app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
+
+>>>>>>> 03a6d27acfb6839d8d1dc48bca0045ddb37e7a62
 app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
 app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
+
+app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
+
+
+// No route found
+app.all('*', (req, res)=>{
+    return res.send({
+        error: true,
+        message: 'Mensaje inesperado.'
+    });
+})
+
+app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})
