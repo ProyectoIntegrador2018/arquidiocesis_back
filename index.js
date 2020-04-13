@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const parroquias = require('./routes/parroquia')
 const decanato = require('./routes/decanato')
 const login = require('./routes/login')
+
 app.use(cors())
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
