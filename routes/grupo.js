@@ -22,16 +22,61 @@ const getone = async (firestore, req, res)=>{
 }
 
 const add = async (firestore, req, res)=>{
-    //validate coordinador 
-    let snapshot = firestore.collection('miembros').doc(req.body.coordinator)
-    if (!snapshot){
-        res.send({
+    let snapshot = undefined
+    let members = [] 
+    const parroquia = req.body.parroquia
+    const capilla = req.body.capilla
+    const coordinator = req.body.coordinator
+    // validate request
+    try{ 
+        snapshot = await firestore.collection('miembros').doc(coordinator).get() 
+        if(!snapshot.exists) throw {message: 'no hay coordinador registrado con ese id'}
+        members  = req.body.members
+        if (!members.includes(req.body.coordinator)) throw {message: 'coordinator must be a member'}
+        if ((!parroquia && !capilla)|| (parroquia && capilla)) throw {message: 'group needs capilla OR parroquia'}
+    } 
+    catch(err){
+        return res.send({
             error: true, 
-            message: 'no hay coordinador registrado con ese id'
+            message: err.message
         })
     }
-    const miembros  = req.body.members
-    console.log(miembros)
+
+    //validate parroquia
+    if (parroquia){
+        const snapshot = await firestore.collection('parroquias').doc(parroquia).get()
+        if (!snapshot.exists){
+            return res.send({
+                error: true, 
+                message: 'no hay parroquia con ese id'
+            })
+        }
+    }
+    //validate capilla
+    if(capilla){
+        const snapshot = await firestore.collection('capillas').doc(capilla).get()
+        if(!snapshot.exists){
+            return res.send({
+                error: true, 
+                message: 'no hay capilla con ese id'
+            })
+        }
+    }
+    let newGroup = {
+        coordinator,
+        members
+    }
+    if (capilla)
+        newGroup.capilla = capilla
+
+    if (parroquia)
+        newGroup.parroquia = parroquia
+
+    const docref = await firestore.collection('grupos').add(newGroup)
+    res.send({
+        error: false, 
+        data: docref.id
+    })
 }
 
 module.exports = {
