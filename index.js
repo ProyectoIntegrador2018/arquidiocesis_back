@@ -46,7 +46,7 @@ app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
-app.post('/api/grupos/', (req, res)=>{grupos.add(firestore, req, res)})
+app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
 
 
 // No route found
