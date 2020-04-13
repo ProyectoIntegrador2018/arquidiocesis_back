@@ -1,7 +1,7 @@
 const express = require('express')
 
 const getall = async (firestore, req, res)=>{
-    const snapshot = await firestore.collection('zonas').get()
+    const snapshot = await firestore.collection('capacitadores').get()
     try{
         const docs = snapshot.docs.map(doc =>{
             return {
@@ -11,7 +11,7 @@ const getall = async (firestore, req, res)=>{
         })
         res.send({
             error: false, 
-            zonas: docs
+            capacitadores: docs
         })
     }catch(err){
         res.send({
@@ -22,16 +22,16 @@ const getall = async (firestore, req, res)=>{
 }
 
 const add = async (firebase, req, res)=>{
-    const nuevaZona = {
-        nombre: req.body.nombre, 
-        decanato: req.body.decanato
+    const nuevoCapacitador = {
+        correo: req.body.correo,
+        nombre: req.body.nombre
     }
-    const collrectionref = await firebase.collection('zonas')
+    const collrectionref = await firebase.collection('capacitadores')
     try {
-        const docref = await collrectionref.add(nuevaZona)
+        const docref = await collrectionref.add(nuevoCapacitador)
         res.send({
             error: false, 
-            /**@description the id of the zona that was just added to the firestore */
+            /**@description the id of the parroquia that was just added to the firestore */
             id: docref.id
         })
     }catch(err){

@@ -24,5 +24,6 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
 
-app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
-app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
+app.get('/api/capacitadores', (req, res) => { zonas.getall(firestore, req, res) })
+app.post('/api/capacitadores', (req, res) => { zonas.add(firestore, req, res) })
+
