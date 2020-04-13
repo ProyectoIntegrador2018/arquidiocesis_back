@@ -22,13 +22,13 @@ const authenticate = async (firestore, req, res)=>{
                     data: {
                         token,
                         email,
-                        tipo: data.tipo
+                        type: data.tipo
                     }
                 });
             }else{
                 return res.end({
                     error: true,
-                    message: 'No se encontró el usuario.'
+                    message: 'Contraseña equivocada'
                 });
             }
         }else{

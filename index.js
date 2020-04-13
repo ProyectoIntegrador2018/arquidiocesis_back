@@ -7,12 +7,13 @@ const bodyParser = require('body-parser');
 const parroquias = require('./routes/parroquia')
 const decanato = require('./routes/decanato')
 const login = require('./routes/login')
+const capillas  = require('./routes/capillas')
+
 app.use(cors())
 app.use(express.json())
-app.get('/', (req, res)=>{'Arquidiocesis Backend'})
-
-app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.get('/', (req, res)=>{res.send('Arquidiocesis Backend')})
 
 //init firebase
 const admin = require('firebase-admin')
@@ -25,18 +26,22 @@ const firestore = admin.firestore()
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-app.all('*', login.verifyToken(firestore))
+// app.all('*', login.verifyToken(firestore)) -- commented for testing
 
 // =======================
 // Logged in section below
 // ========VVVVVVV========
 
 app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
+
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
+app.get('/api/parroquias/:id', (req, res)=>{parroquias.getone(firestore, req, res)})
+
 app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
 app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
 
+app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 
 
 // No route found
@@ -46,4 +51,5 @@ app.all('*', (req, res)=>{
         message: 'Mensaje inesperado.'
     });
 })
+
 app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})

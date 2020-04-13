@@ -5,13 +5,13 @@ const getall = async (firestore, req, res) =>{
     const docs = snapshot.docs.map(doc => {
         const result = {
             id: doc.id, 
-            nombre: doc.data().nombre, 
+            name: doc.data().nombre, 
         }
         return result
     })
     res.send({
         error: false, 
-        decanatos: docs
+        data: docs
     }).status(200) 
 }
 
@@ -24,7 +24,7 @@ const getone = async (firestore, req, res)=>{
         if (snapshot.exists){
             res.send({
                 error: false, 
-                decanato: snapshot.data()
+                data: snapshot.data()
             })
         }else{
             res.send({
