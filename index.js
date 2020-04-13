@@ -4,11 +4,7 @@ const app = express()
 const PORT = process.env.PORT | 8000
 const cors = require('cors')
 const bodyParser = require('body-parser');
-const parroquias = require('./routes/parroquia')
-const decanato = require('./routes/decanato')
-const login = require('./routes/login')
 const capacitadores = require('./routes/capacitadores')
-const zonas = require('./routes/zonas')
 
 app.use(cors())
 app.use(express.json())
@@ -24,6 +20,6 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
 
-app.get('/api/capacitadores', (req, res) => { zonas.getall(firestore, req, res) })
-app.post('/api/capacitadores', (req, res) => { zonas.add(firestore, req, res) })
+app.get('/api/capacitadores', (req, res) => { capacitadores.getall(firestore, req, res) })
+app.post('/api/capacitadores', (req, res) => { capacitadores.add(firestore, req, res) })
 
