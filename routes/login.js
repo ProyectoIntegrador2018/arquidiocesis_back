@@ -4,16 +4,16 @@ const jwt = require('jsonwebtoken');
 const SECRET = 'R?<=2vYPXm)n*_kd,Hp.W2GG[hD3b2D/';
 
 const authenticate = async (firestore, req, res)=>{
-    var { password, email } = req.body;
+	 var { password, email } = req.body;
     try{
         // get collection reference 
         const collection = await firestore.collection('logins')
         // get document reference 
-        const user = await collection.doc(`${email}`)
+		  const user = await collection.doc(`${email.toLowerCase()}`)
         // validate document
-        const snapshot = await user.get()
+		  const snapshot = await user.get()
         if (snapshot.exists){ // since id is email, this validates email 
-            const data = snapshot.data() //read the doc data 
+				const data = snapshot.data() //read the doc data 
 
             if (data.contraseña == password){ //validate password 
                 var token = jwt.sign({ id: data.id }, SECRET);
@@ -47,8 +47,13 @@ const authenticate = async (firestore, req, res)=>{
 
 const verifyToken = (firestore)=>{
     return (req, res, next)=>{
-        var { token } = req.body;
-        
+        var token;
+        if(req.method=='POST'){
+            token = req.body.token;
+        }else{
+            token = req.query.token;
+        }
+
         // No token sent.
         if(!token) return res.send({
             error: true,
