@@ -4,10 +4,6 @@ const app = express()
 const PORT = process.env.PORT | 8000
 const cors = require('cors')
 const bodyParser = require('body-parser');
-const parroquias = require('./routes/parroquia')
-const decanato = require('./routes/decanato')
-const login = require('./routes/login')
-const capacitadores = require('./routes/capacitadores')
 const zonas = require('./routes/zonas')
 
 app.use(cors())

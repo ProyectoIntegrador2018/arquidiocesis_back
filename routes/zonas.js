@@ -24,7 +24,7 @@ const getall = async (firestore, req, res)=>{
 const add = async (firebase, req, res)=>{
     const nuevaZona = {
         nombre: req.body.nombre, 
-        decanato: req.body.decanato
+        decanatos: req.body.decanato
     }
     const collrectionref = await firebase.collection('zonas')
     try {
