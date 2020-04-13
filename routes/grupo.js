@@ -38,13 +38,9 @@ const getone = async (firestore, req, res)=>{
 }
 
 const add = async (firestore, req, res)=>{
-    let snapshot = undefined
-    const parroquia = req.body.parroquia
-    const capilla = req.body.capilla
-    const coordinator = req.body.coordinator
-    // validate request
+    var { name, parroquia, capilla, coordinador } = req.body;
     try{ 
-        snapshot = await firestore.collection('miembros').doc(coordinator).get() 
+        const snapshot = await firestore.collection('miembros').doc(coordinador).get() 
         if(!snapshot.exists || !snapshot.data().coordinador) throw {message: 'no hay coordinador registrado con ese id'}
         if ((!parroquia && !capilla)|| (parroquia && capilla)) throw {message: 'group needs capilla OR parroquia'}
     } 
@@ -76,8 +72,9 @@ const add = async (firestore, req, res)=>{
         }
     }
     let newGroup = {
-        coordinator,
-        members: []
+        nombre: name,
+        coordinador,
+        miembros: []
     }
     if (capilla)
         newGroup.capilla = capilla
@@ -86,14 +83,48 @@ const add = async (firestore, req, res)=>{
         newGroup.parroquia = parroquia
 
     const docref = await firestore.collection('grupos').add(newGroup)
+    newGroup.id = docref.id;
     res.send({
         error: false, 
-        data: docref.id
+        data: newGroup
     })
 }
 
+const addMember = async (firestore, req, res)=>{
+    var { name, grupo, age, gender, email } = req.body;
+    try{
+        var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
+        if(!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+        var new_member = {
+            nombre: name,
+            edad: parseInt(age),
+            grupo,
+            sexo: gender,
+            email,
+            coordinador: false
+        }
+        var memberRef = await firestore.collection('miembros').add(new_member);
+        new_member.id = memberRef.id;
+        await firestore.collection("grupos").doc(grupo).update({
+            miembros: [...groupSnap.get('miembros'), new_member.id]
+        });
+
+        return res.send({
+            error: false,
+            data: new_member
+        })
+    }catch(err){
+        console.log(err);
+        return res.send({
+            error: true, 
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 module.exports = {
-    getall: getall, 
-    getone: getone, 
-    add: add
+    getall, 
+    getone, 
+    add,
+    addMember
 }
