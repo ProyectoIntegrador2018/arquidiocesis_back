@@ -6,9 +6,9 @@ const getall = async (firestore, req, res)=>{
         const docs = snapshot.docs.map(doc =>{
             return {
                 id: doc.id, 
-                name: doc.data().name
+                nombre: doc.data().nombre
             }
-        })
+		  })
         res.send({
             error: false, 
             data: docs
@@ -16,7 +16,7 @@ const getall = async (firestore, req, res)=>{
     }catch(err){
         res.send({
             error: true, 
-            message: error.message
+            message: 'Error inesperado.'
         })
     }
 }
@@ -27,12 +27,31 @@ const getone = async(firestore, req, res)=>{
     if (!snapshot.exists){
         return res.send({
             error: true, 
-            message: 'couldn\'t find parroquia with that id'
+            message: 'No parroquia with that ID.'
         })
-    }
+	 }
+	var parroquia = snapshot.data();
+	var capillas = []
+	if(parroquia.capillas && parroquia.capillas.length>0){
+		var ref = parroquia.capillas.map(a=>firestore.doc('capillas/'+a));
+		const cap = await firestore.getAll(...ref);
+		capillas = cap.map(a=>{
+			return {...a.data(), id: a.id}
+		});
+	}
+	if(parroquia.decanato){
+		const dec = await firestore.doc('decanatos/'+parroquia.decanato).get();
+		if(dec.exists) parroquia.decanato = dec.data().nombre;
+		else parroquia.decanato = null;
+	}
     res.send({
         error: false, 
-        data: snapshot.data()
+        data: {
+			nombre: parroquia.nombre,
+			address: parroquia['dirección'],
+			decanato: '',
+			capillas
+		}
     })
 }
 
