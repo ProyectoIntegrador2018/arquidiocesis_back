@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const parroquias = require('./routes/parroquia')
 const decanato = require('./routes/decanato')
 const login = require('./routes/login')
+const capillas  = require('./routes/capillas')
 
 app.use(cors())
 app.use(express.json())
@@ -38,6 +39,8 @@ app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
 
 app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
 app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
+
+app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 
 
 // No route found
