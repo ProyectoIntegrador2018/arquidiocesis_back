@@ -6,12 +6,12 @@ const getall = async (firestore, req, res)=>{
         const docs = snapshot.docs.map(doc =>{
             return {
                 id: doc.id, 
-                nombre: doc.data().nombre
+                name: doc.data().name
             }
         })
         res.send({
             error: false, 
-            parroquias: docs
+            data: docs
         })
     }catch(err){
         res.send({
@@ -21,13 +21,41 @@ const getall = async (firestore, req, res)=>{
     }
 }
 
-const add = async (firebase, req, res)=>{
+const getone = async(firestore, req, res)=>{
+    const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
+    //validate parroquia 
+    if (!snapshot.exists){
+        return res.send({
+            error: true, 
+            message: 'couldn\'t find parroquia with that id'
+        })
+    }
+    res.send({
+        error: false, 
+        data: snapshot.data()
+    })
+}
+
+const add = async (firestore, req, res)=>{
     const nuevaParroquia = {
-        nombre: req.body.nombre, 
-        dirección: req.body.dirección, 
+        name: req.body.name, 
+        address: req.body.address, 
         decanato: req.body.decanato
     }
-    const collrectionref = await firebase.collection('parroquias')
+
+    // --- validate decanato --- // 
+   // ---VVVVVVVVVVVVVVVVVV---- //
+    const snapshot = await firestore.collection('decanatos').doc(req.body.decanato).get()
+    if (!snapshot.exists) {
+        return res.send({
+            error: true, 
+            message: 'there is no decanato with that id'
+        })
+    }
+    
+    // --- Add new decanato --- // 
+   // ----VVVVVVVVVVVVVVVV---- //
+    const collrectionref = await firestore.collection('parroquias')
     try{ 
         const docref = await collrectionref.add(nuevaParroquia)
         res.send({
@@ -45,6 +73,7 @@ const add = async (firebase, req, res)=>{
 
 module.exports = {
     getall: getall, 
+    getone: getone,
     add: add
 }
 
