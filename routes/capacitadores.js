@@ -39,7 +39,7 @@ const getone = async (firestore, req, res) => {
     })
 }
 
-const add = async (firebase, req, res)=>{
+const add = async (firebase, req, res)=> {
     const nuevoCapacitador = {
         correo: req.body.correo,
         nombre: req.body.nombre
