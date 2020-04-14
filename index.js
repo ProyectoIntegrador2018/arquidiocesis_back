@@ -10,6 +10,7 @@ const login = require('./routes/login')
 const capillas  = require('./routes/capillas')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
+const miembros = require('./routes/miembro')
 
 app.use(cors())
 app.use(express.json())
@@ -48,7 +49,8 @@ app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
 app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
-app.post('/api/grupos/register', (req, res)=>{grupos.addMember(firestore, req, res)})
+
+app.post('/api/miembros', (req, res)=>{miembros.add(firestore, req, res)})
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
