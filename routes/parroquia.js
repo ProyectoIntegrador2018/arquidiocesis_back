@@ -1,53 +1,62 @@
-const express = require('express')
-
+/**  
+ * @module parroquia
+ * @description  retrieves all documents from collection 'parroquias'
+ * @param {firestore} firestore is an admin.firebase() instance from the firebase-admin module.
+ * @returns {Object[]} { error, data: {id, nombre}[] } on success
+ * @returns {Object} { error, message } on fail
+*/
 const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').get()
-    try{
-        const docs = snapshot.docs.map(doc =>{
-            return {
-                id: doc.id, 
-                nombre: doc.data().nombre
-            }
-		  })
-        res.send({
-            error: false, 
-            data: docs
-        })
-    }catch(err){
-        res.send({
-            error: true, 
-            message: 'Error inesperado.'
-        })
-    }
+    const docs = snapshot.docs.map(doc =>{
+        return {
+            id: doc.id, 
+            nombre: doc.data().nombre
+        }
+    })
+    // --- success -- // 
+   // --- VVVVVVV -- //
+    res.send({
+        error: false, 
+        data: docs
+    })
 }
 
+/**
+ * @module parroquia
+ * @description retrieves a single doc from collection 'parroquia'
+ * @param {firestore} firestore is an admin.firebase() instance from the firebase-admin module
+ * @returns {Object} {name, address, decanato, capilla} on success
+ * @returns {Object} { error, message } on fail
+ */
 const getone = async(firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
-    //validate parroquia 
-    if (!snapshot.exists){
+    if (!snapshot.exists){ //validate parroquia
         return res.send({
             error: true, 
             message: 'No parroquia with that ID.'
         })
 	 }
-	var parroquia = snapshot.data();
+    var parroquia = snapshot.data();
 	var capillas = []
-	if(parroquia.capillas && parroquia.capillas.length>0){
-		var ref = parroquia.capillas.map(a=>firestore.doc('capillas/'+a));
+	if(parroquia.capillas && parroquia.capillas.length>0){ //validate capilla
+		var ref = parroquia.capillas.map(a=>firestore.doc('capillas/'+a)); //retrieve capillas
 		const cap = await firestore.getAll(...ref);
 		capillas = cap.map(a=>{
 			return {...a.data(), id: a.id}
 		});
 	}
-	if(parroquia.decanato){
-		const dec = await firestore.doc('decanatos/'+parroquia.decanato).get();
+	if(parroquia.decanato){ //validate decanato 
+		const dec = await firestore.doc('decanatos/'+parroquia.decanato).get(); //retrieve decanatos 
 		if(dec.exists) parroquia.decanato = dec.data().nombre;
 		else parroquia.decanato = null;
-	}
+    }
+
+    // --- success --- // 
+   // --- VVVVVVV --- // 
     res.send({
         error: false, 
         data: {
-			nombre: parroquia.nombre,
+			name: parroquia.nombre,
 			address: parroquia.address,
 			decanato: parroquia.decanato,
 			capillas
@@ -55,9 +64,16 @@ const getone = async(firestore, req, res)=>{
     })
 }
 
+/**
+ * @module parroquia
+ * @description creates a new document in 'parroquia' collection 
+ * @param {firestore} firestore is an admin.firebase() instance from the firebase-admin module
+ * @returns {Object} {id, name, address, decanato} on success
+ * @returns {Object} { error, message } on fail 
+ */
 const add = async (firestore, req, res)=>{
     const nuevaParroquia = {
-        nombre: req.body.name, 
+        name: req.body.name, 
         address: req.body.address, 
         decanato: req.body.decanato
     }
@@ -81,7 +97,7 @@ const add = async (firestore, req, res)=>{
             error: false,
 			data: {
 				id: docref.id,
-				nombre: req.body.name, 
+				name: req.body.name, 
 				address: req.body.address, 
 				decanato: req.body.decanato
 			}
