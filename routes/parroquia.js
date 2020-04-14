@@ -10,7 +10,7 @@ const getall = async (firestore, req, res)=>{
     const docs = snapshot.docs.map(doc =>{
         return {
             id: doc.id, 
-            nombre: doc.data().nombre
+            name: doc.data().nombre
         }
     })
     // --- success -- // 
@@ -30,12 +30,9 @@ const getall = async (firestore, req, res)=>{
  */
 const getone = async(firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
-    if (!snapshot.exists){ //validate parroquia
-        return res.send({
-            error: true, 
-            message: 'No parroquia with that ID.'
-        })
-	 }
+    //validate snapshot
+    if (!snapshot.exists){ return res.send({ error: true, message: 'No parroquia with that ID.' }) }
+
     var parroquia = snapshot.data();
 	var capillas = []
 	if(parroquia.capillas && parroquia.capillas.length>0){ //validate capilla
