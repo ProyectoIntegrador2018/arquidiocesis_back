@@ -155,6 +155,8 @@ const editMemberGroup = async (firestore, req, res) => {
     try {
         var groupSnap = await firestore.collection('grupos').doc(newGroup).get('miembros');
         if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+        var memberSnap = await firestore.collection('miembros').doc(memberID).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
         await firestore.collection('miembros').doc(memberID).update({
             "grupo": newGroup
             }
@@ -178,5 +180,6 @@ module.exports = {
     add,
     addMember,
     editMember,
-    editMemberGroup
+    editMemberGroup,
+    editMemberStatus
 }
