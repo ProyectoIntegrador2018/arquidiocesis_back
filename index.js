@@ -19,7 +19,11 @@ const serviceAccount = require('./ServiceAccountKey')
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
+const firestore = admin.firestore() 
+
 
 app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
 app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
 app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
+
+app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})
