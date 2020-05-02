@@ -26,13 +26,25 @@ const getone = async (firestore, req, res) => {
         const snapshot = await docref.get()
 
         if (snapshot.exists) {
-            var parroquias = await firestore.collection('decanatos').where('zona', '==', snapshot.id);
-            var snapParroquias = await parroquias.get();
+            var dec = await firestore.collection('decanatos').where('zona', '==', snapshot.id);
+            var snapDecanatos = await dec.get();
             var decanatos = []
-            var parroquias = []
-            snapParroquias.forEach(doc => {
+            snapDecanatos.forEach(doc => {
                 var d = doc.data();
                 decanatos.push({
+                    id: doc.id,
+                    nombre: d.nombre
+                });
+            });
+
+
+            var parroquias = []
+            var parr = await firestore.collection('parroquias').where('decanato', 'in', decanatos.map(a=>a.id));
+            var parrSnap = await parr.get();
+            
+            parrSnap.forEach(doc => {
+                var d = doc.data();
+                parroquias.push({
                     id: doc.id,
                     nombre: d.nombre
                 });
@@ -43,7 +55,8 @@ const getone = async (firestore, req, res) => {
                 data: {
                     id: snapshot.id,
                     ...snapshot.data(),
-                    decanatos
+                    decanatos,
+                    parroquias
                 }
             })
         } else {
