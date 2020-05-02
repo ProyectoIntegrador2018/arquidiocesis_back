@@ -11,7 +11,7 @@ const getall = async (firestore, req, res) =>{
     })
     res.send({
         error: false, 
-        decanatos: docs
+        data: docs
     }).status(200) 
 }
 
@@ -20,11 +20,26 @@ const getone = async (firestore, req, res)=>{
     try{
         const docref = await collectionref.doc(req.params.id)
         const snapshot = await docref.get()
-        console.log(snapshot)
+        
         if (snapshot.exists){
+            var parr = await firestore.collection('parroquias').where('decanato', '==', snapshot.id);
+            var snapParr = await parr.get();
+
+            var parroquias = []
+            snapParr.forEach(doc => {
+                var d = doc.data();
+                parroquias.push({
+                    id: doc.id,
+                    nombre: d.nombre
+                });
+            });
+
             res.send({
                 error: false, 
-                decanato: snapshot.data()
+                data: {
+                    ...snapshot.data(),
+                    parroquias
+                }
             })
         }else{
             res.send({
