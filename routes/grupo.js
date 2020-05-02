@@ -124,7 +124,6 @@ const addMember = async (firestore, req, res)=>{
 
 const editMember = async (firestore, req, res) => {
     var { name, grupo, age, gender, email, id } = req.body;
-    console.log(req.body);
     try {
         var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
         if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
@@ -146,7 +145,29 @@ const editMember = async (firestore, req, res) => {
         console.log(err);
         return res.send({
             error: true,
-            message: 'Error esperado.'
+            message: 'Error inesperado.'
+        })
+    }
+}
+
+const editMemberGroup = async (firestore, req, res) => {
+    var { newGroup, memberID} = req.body;
+    try {
+        var groupSnap = await firestore.collection('grupos').doc(newGroup).get('miembros');
+        if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+        await firestore.collection('miembros').doc(memberID).update({
+            "grupo": newGroup
+            }
+        );
+        return res.send({
+            error: false,
+            data: req.body
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
         })
     }
 }
@@ -156,5 +177,6 @@ module.exports = {
     getone, 
     add,
     addMember,
-    editMember
+    editMember,
+    editMemberGroup
 }
