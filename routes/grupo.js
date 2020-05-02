@@ -123,7 +123,7 @@ const addMember = async (firestore, req, res)=>{
 }
 
 const editMember = async (firestore, req, res) => {
-    var { name, grupo, age, gender, email, id, newStatus} = req.body;
+    var { name, grupo, age, gender, email, id, estatus} = req.body;
     try {
         var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
         if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
@@ -137,7 +137,7 @@ const editMember = async (firestore, req, res) => {
             email,
             coordinador: false,
             id,
-            newStatus
+            estatus
         }
         await firestore.collection('miembros').doc(id).set(edited_member);
         return res.send({
