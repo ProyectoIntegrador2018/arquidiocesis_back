@@ -4,7 +4,7 @@ const getall = async (firestore, req, res) =>{
     const snapshot = await firestore.collection('decanatos').get()
     const docs = snapshot.docs.map(doc => {
         const result = {
-            id: doc.id, 
+            id: doc.id,
             nombre: doc.data().nombre, 
         }
         return result
@@ -20,7 +20,6 @@ const getone = async (firestore, req, res)=>{
     try{
         const docref = await collectionref.doc(req.params.id)
         const snapshot = await docref.get()
-        
         if (snapshot.exists){
             var parr = await firestore.collection('parroquias').where('decanato', '==', snapshot.id);
             var snapParr = await parr.get();
