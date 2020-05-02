@@ -127,6 +127,8 @@ const editMember = async (firestore, req, res) => {
     try {
         var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
         if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+        var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
         var edited_member = {
             nombre: name,
             edad: parseInt(age),
@@ -177,8 +179,8 @@ const editMemberGroup = async (firestore, req, res) => {
 const editMemberStatus = async (firestore, req, res) => {
     var { newStatus, memberID } = req.body;
     try {
-        var memberSnap = await firestore.collection('miembros').doc(memberID).get('nombre');
-        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var memberSnap = await firestore.collection('miembros').doc(memberID).get('estatus');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe o no tiene un campo de estatus', code: 1 });
         await firestore.collection('miembros').doc(memberID).update({
             "estatus": newStatus
         }
