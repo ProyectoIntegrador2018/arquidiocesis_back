@@ -2,7 +2,7 @@ const express = require('express')
 
 const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').get()
-    try{
+    try {
         const docs = snapshot.docs.map(doc =>{
             return {
                 id: doc.id, 

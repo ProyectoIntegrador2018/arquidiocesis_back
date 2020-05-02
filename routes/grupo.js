@@ -122,9 +122,39 @@ const addMember = async (firestore, req, res)=>{
     }
 }
 
+const editMember = async (firestore, req, res) => {
+    var { name, grupo, age, gender, email, id } = req.body;
+    console.log(req.body);
+    try {
+        var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
+        if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+        var edited_member = {
+            nombre: name,
+            edad: parseInt(age),
+            grupo,
+            sexo: gender,
+            email,
+            coordinador: false,
+            id
+        }
+        await firestore.collection('miembros').doc(id).set(edited_member);
+        return res.send({
+            error: false,
+            data: edited_member
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error esperado.'
+        })
+    }
+}
+
 module.exports = {
     getall, 
     getone, 
     add,
-    addMember
+    addMember,
+    editMember
 }

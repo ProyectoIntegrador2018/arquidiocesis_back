@@ -28,7 +28,7 @@ const firestore = admin.firestore()
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-app.all('*', login.verifyToken(firestore));
+//app.all('*', login.verifyToken(firestore));
 
 // =======================
 // Logged in section below
@@ -48,7 +48,8 @@ app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
 app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
-app.post('/api/grupos/register', (req, res)=>{grupos.addMember(firestore, req, res)})
+app.post('/api/grupos/register', (req, res) => { grupos.addMember(firestore, req, res) })
+app.post('/api/grupos/edit', (req, res) => { grupos.editMember(firestore, req, res) })
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
