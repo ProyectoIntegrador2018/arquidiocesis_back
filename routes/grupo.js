@@ -174,6 +174,28 @@ const editMemberGroup = async (firestore, req, res) => {
     }
 }
 
+const editMemberStatus = async (firestore, req, res) => {
+    var { newStatus, memberID } = req.body;
+    try {
+        var memberSnap = await firestore.collection('miembros').doc(memberID).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        await firestore.collection('miembros').doc(memberID).update({
+            "estatus": newStatus
+        }
+        );
+        return res.send({
+            error: false,
+            data: req.body
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 module.exports = {
     getall, 
     getone, 
