@@ -44,6 +44,39 @@ const add = async (firestore, req, res)=>{
     })
 }
 
+
+const remove = async (firestore, req, res)=>{
+    const snapshot = await firestore.collection('capillas').doc(req.params.id).get()
+    if (!snapshot.exists)
+        return res.send({
+            error: true, 
+            message: 'la capilla con ese ID no existe'
+        })
+    await firestore.collection('capillas').doc(req.params.id).delete()
+    res.send({
+        error: false, 
+        data: snapshot.data()
+    })
+}
+
+const getone = async (firestore, req, res)=>{
+    // validate capilla 
+    const snapshot = await firestore.collection('capillas').doc(req.params.id).get()
+    if(!snapshot){
+        return res.send({
+            error: true, 
+            message: 'no existe una capilla con ese id'
+        })
+    }
+    res.send({
+        error: false, 
+        data: snapshot.data()
+    })
+
+}
+
 module.exports = {
-    add: add
+    add: add, 
+    remove: remove,
+    getone: getone
 }

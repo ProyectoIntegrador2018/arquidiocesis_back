@@ -1,5 +1,3 @@
-const express = require('express')
-
 const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').get()
     try{
@@ -94,9 +92,43 @@ const add = async (firestore, req, res)=>{
     }
 }
 
+const remove = async (firestore, req, res)=>{
+    //validate parroquia 
+    const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
+    if (!snapshot.exists){
+        return res.send({
+            error: true, 
+            message: 'no existe un aparroquia con ese id'
+        })
+    }
+    const capillas = snapshot.data().capillas // lista de ids de capilla
+    const capillas_borradas = [] 
+    if (capillas){
+        for (let capilla of capillas){
+            //validate capilla 
+            const snapshot = await firestore.collection('capillas').doc(capilla).get()
+            if (snapshot.exists){
+                capillas_borradas.push({id: snapshot.id, ...snapshot.data()})
+                await firestore.collection('capillas').doc(capilla).delete()
+            }
+        }
+    }
+    await firestore.collection('parroquias').doc(req.params.id).delete() 
+    const parroquia = snapshot.data() 
+    parroquia.capillas_borradas = capillas_borradas
+    res.send({
+        error: false, 
+        data: {
+            id: req.params.id, 
+            ...parroquia
+        }
+    })
+}
+
 module.exports = {
     getall: getall, 
     getone: getone,
-    add: add
+    add: add, 
+    remove: remove
 }
 
