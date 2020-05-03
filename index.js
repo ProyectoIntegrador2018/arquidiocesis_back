@@ -10,6 +10,7 @@ const login = require('./routes/login')
 const capillas  = require('./routes/capillas')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
+const zonas = require('./routes/zonas')
 
 app.use(cors())
 app.use(express.json())
@@ -23,18 +24,13 @@ const serviceAccount = require('./ServiceAccountKey')
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
-
 const firestore = admin.firestore() 
+app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
 app.all('*', login.verifyToken(firestore));
 
-// =======================
-// Logged in section below
-// ========VVVVVVV========
-
-app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
@@ -53,6 +49,10 @@ app.post('/api/grupos/register', (req, res)=>{grupos.addMember(firestore, req, r
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
 app.post('/api/coordinadores', (req, res)=>coordinadores.add(firestore, req, res));
+
+app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
+app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
+app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 
 
 // No route found
