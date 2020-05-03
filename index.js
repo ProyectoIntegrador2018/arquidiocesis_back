@@ -46,7 +46,9 @@ app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)}
 app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
-app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
+app.get('/api/grupos/:id', (req, res) => { grupos.getone(firestore, req, res) })
+app.get('/api/grupos/getMember/:id', (req, res) => { grupos.getMember(firestore, req, res) })
+app.get('/api/grupos/getMemberFicha/:id', (req, res) => { grupos.getMemberFicha(firestore, req, res) })
 app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
 app.post('/api/grupos/register', (req, res) => { grupos.addMember(firestore, req, res) })
 app.post('/api/grupos/editMember', (req, res) => { grupos.editMember(firestore, req, res) })

@@ -122,8 +122,91 @@ const addMember = async (firestore, req, res)=>{
     }
 }
 
+const getMember = async (firestore, req, res) => {
+    var id = req.params.id;
+    console.log(id);
+    try {
+        var memberSnap = await firestore.collection('miembros').doc(id).get();
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var member = memberSnap.data();
+        return res.send({
+            error: false,
+            data: member
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
+const getMemberFicha = async (firestore, req, res) => {
+    var id = req.params.id;
+    console.log('miembros/' + id + '/ficha medica cabrones');
+    try {
+        var alergiasSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('alergias').get();
+        var enfermedadesSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('enfermedades').get();
+        var tratamientosSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('tratamientos').get();
+        var seguroSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('seguro').get();
+
+        var alergias = alergiasSnap.docs.map(doc => ({ id: "alergias", ...doc.data() }));
+        var enfermedades = enfermedadesSnap.docs.map(doc => ({ id: "enfermedades", ...doc.data() }));
+        var tratamientos = tratamientosSnap.docs.map(doc => ({ id: "tratamientos", ...doc.data() }));
+
+        if (alergias.length == 0 || enfermedades.length == 0 || tratamientos.length == 0 || !seguroSnap.exists)
+            return res.send({ error: true, message: 'Miembro no existe o no tiene ficha medica', code: 1 });
+        var seguro = seguroSnap.data;
+        return res.send({
+            error: false,
+            Seguro: seguro,
+            Alergias: alergias,
+            Enfermedades: enfermedades,
+            Tratamientos: tratamientos
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 const editMember = async (firestore, req, res) => {
     var { name, grupo, age, gender, email, id, estatus} = req.body;
+    try {
+        var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
+        if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+        var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var edited_member = {
+            nombre: name,
+            edad: parseInt(age),
+            grupo,
+            sexo: gender,
+            email,
+            coordinador: false,
+            id,
+            estatus
+        }
+        await firestore.collection('miembros').doc(id).set(edited_member);
+        return res.send({
+            error: false,
+            data: edited_member
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
+const editMemberFicha = async (firestore, req, res) => {
+    var { name, grupo, age, gender, email, id, estatus } = req.body;
     try {
         var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
         if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
@@ -206,5 +289,7 @@ module.exports = {
     addMember,
     editMember,
     editMemberGroup,
-    editMemberStatus
+    editMemberStatus,
+    getMember,
+    getMemberFicha
 }
