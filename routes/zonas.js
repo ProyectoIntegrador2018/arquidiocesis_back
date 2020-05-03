@@ -73,45 +73,41 @@ const getone = async (firestore, req, res) => {
     }
 }
 
-// -----------------------------------
-// Comentado, ya que las zonas son fijas
-// -----------------------------------
+const add = async (firebase, req, res)=>{
+    const nuevaZona = {
+        nombre: req.body.nombre, 
+        decanatos: req.body.decanatos
+    }
 
-// const add = async (firebase, req, res)=>{
-//     const nuevaZona = {
-//         nombre: req.body.nombre, 
-//         decanatos: req.body.decanatos
-//     }
+    //validate decanatos
+    nuevaZona.decanatos.foreach(decanato => {
+        const decanatoref = await firestore.collection('decanatos').doc(decanato)
+        const snapshot = await decanatoref.get()
+        if (!snapshot.exists) {
+            return res.send({
+                error: true,
+                message: 'one of the decanatos ID does not exist'
+            })
+        }
+    });
 
-//     //validate decanatos
-//     nuevaZona.decanatos.foreach(decanato => {
-//         const decanatoref = await firestore.collection('decanatos').doc(decanato)
-//         const snapshot = await decanatoref.get()
-//         if (!snapshot.exists) {
-//             return res.send({
-//                 error: true,
-//                 message: 'one of the decanatos ID does not exist'
-//             })
-//         }
-//     });
-
-//     const collrectionref = await firebase.collection('zonas')
-//     try {
-//         const docref = await collrectionref.add(nuevaZona)
-//         res.send({
-//             error: false, 
-//             id: docref.id
-//         })
-//     }catch(err){
-//         res.send({
-//             error: true, 
-//             message: err.message
-//         })
-//     }
-// }
+    const collrectionref = await firebase.collection('zonas')
+    try {
+        const docref = await collrectionref.add(nuevaZona)
+        res.send({
+            error: false, 
+            id: docref.id
+        })
+    }catch(err){
+        res.send({
+            error: true, 
+            message: err.message
+        })
+    }
+}
 
 module.exports = {
-    // add,
+    add,
     getall, 
     getone
 }
