@@ -46,6 +46,9 @@ app.get('/api/capillas/:id', (req, res)=>capillas.getone(firestore, req, res))
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
+app.get('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.getAsistencia(firestore, req, res)})
+app.post('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.saveAsistencia(firestore, req, res)})
+app.post('/api/grupos/:id/asistencia', (req, res)=>{grupos.registerAsistencia(firestore, req, res)})
 app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
 app.post('/api/grupos/register', (req, res)=>{grupos.addMember(firestore, req, res)})
 
