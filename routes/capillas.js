@@ -59,7 +59,24 @@ const remove = async (firestore, req, res)=>{
     })
 }
 
+const getone = async (firestore, req, res)=>{
+    // validate capilla 
+    const snapshot = await firestore.collection('capillas').doc(req.params.id).get()
+    if(!snapshot){
+        return res.send({
+            error: true, 
+            message: 'no existe una capilla con ese id'
+        })
+    }
+    res.send({
+        error: false, 
+        data: snapshot.data()
+    })
+
+}
+
 module.exports = {
     add: add, 
-    remove: remove
+    remove: remove,
+    getone: getone
 }

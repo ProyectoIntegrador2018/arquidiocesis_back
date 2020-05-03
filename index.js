@@ -46,6 +46,7 @@ app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)}
 
 app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 app.delete('/api/capillas/:id', (req, res)=>capillas.remove(firestore, req, res))
+app.get('/api/capillas/:id', (req, res)=>capillas.getone(firestore, req, res))
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
