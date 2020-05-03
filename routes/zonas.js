@@ -75,21 +75,8 @@ const getone = async (firestore, req, res) => {
 
 const add = async (firebase, req, res)=>{
     const nuevaZona = {
-        nombre: req.body.nombre, 
-        decanatos: req.body.decanatos
+        nombre: req.body.nombre
     }
-
-    //validate decanatos
-    nuevaZona.decanatos.foreach(decanato => {
-        const decanatoref = await firestore.collection('decanatos').doc(decanato)
-        const snapshot = await decanatoref.get()
-        if (!snapshot.exists) {
-            return res.send({
-                error: true,
-                message: 'one of the decanatos ID does not exist'
-            })
-        }
-    });
 
     const collrectionref = await firebase.collection('zonas')
     try {
