@@ -129,7 +129,47 @@ const addMember = async (firestore, req, res)=>{
 }
 
 const getAsistencia = async (firestore, req, res)=>{
+	var {id, fecha} = req.params;
+	try{
+		var assist = await firestore.collection('grupos/'+id+'/asistencias').doc(fecha).get();
+		if(!assist.exists){
+			return res.send({
+				error: true,
+				code: 34, // Arbitrary number
+				message: 'No such assistance'
+			});
+		}
+		var groupSnap = await firestore.collection('grupos').doc(id).get();
+		if(!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+		if(groupSnap.get('miembros').length==0 && assist.get('miembros').length==0){
+			return res.send({
+				error: false,
+				data: {
+					miembros: []
+				}
+			});
+		}
+		var allMembers = Array.from(new Set([...groupSnap.get('miembros'), ...assist.get('miembros')]));
+		const miembrosSnap = await firestore.getAll(...allMembers.map(a=>firestore.doc('miembros/'+a)));
+		var members = [];
+		miembrosSnap.forEach(a=>{
+			if(a.exists) members.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
+		});
 
+		return res.send({
+			error: false,
+			data: {
+				miembros: members
+			} 
+		})
+
+	}catch(err){
+		console.error(err);
+		return res.send({
+			error: true,
+			message: 'Error inesperado.'
+		})
+	}
 }
 
 const registerAsistencia = async (firestore, req, res)=>{
@@ -154,7 +194,7 @@ const registerAsistencia = async (firestore, req, res)=>{
 		if(oldAssistance.exists){
 			return res.send({ 
 				error: true,
-				code: 52,
+				code: 52, // Arbitrary number
 				message: 'Assistance of that date already exists.'
 			})
 		}
@@ -174,11 +214,44 @@ const registerAsistencia = async (firestore, req, res)=>{
 	}
 }
 
+const saveAsistencia = async (firestore, req, res)=>{
+	var {id, fecha} = req.params;
+	var { miembros } = req.body;
+
+	var date = moment(fecha, 'YYYY-MM-DD');
+	if(!date.isValid()){
+		return res.send({ error: true, message: 'Invalid date'})
+	}
+
+	try{
+		if(!miembros || miembros.length==0){
+			await firestore.collection('grupos/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).delete();
+			return res.send({
+				error: false,
+				data: { deleted: true, date: date.format('YYYY-MM-DD') }
+			})
+		}else{
+			await firestore.collection('grupos/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+			return res.send({
+				error: false,
+				data: { deleted: false, date: date.format('YYYY-MM-DD') }
+			})
+		}
+	}catch(e){
+		console.error(e);
+		return res.send({
+			error: true,
+			message: 'Unexpected error.'
+		})
+	}
+}
+
 module.exports = {
     getall, 
     getone, 
     add,
 	addMember,
 	getAsistencia,
-	registerAsistencia
+	registerAsistencia,
+	saveAsistencia
 }
