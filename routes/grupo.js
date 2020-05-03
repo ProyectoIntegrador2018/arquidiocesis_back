@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('grupos').get();
 	var grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -30,6 +32,10 @@ const getone = async (firestore, req, res)=>{
 		const miembrosSnap = await firestore.getAll(...grupo.miembros.map(a=>firestore.doc('miembros/'+a)));
 		grupo.miembros = miembrosSnap.map(a=>({ id: a.id, ...a.data() }));
 	}
+
+	const asistenciasSnap = await firestore.collection('grupos/'+req.params.id+'/asistencias').get();
+	var asistencias = asistenciasSnap.docs.map(doc=>doc.id);
+	grupo.asistencias = (asistencias || []);
 
     res.send({
         error: false, 
@@ -74,7 +80,7 @@ const add = async (firestore, req, res)=>{
     let newGroup = {
         nombre: name,
         coordinador,
-        miembros: []
+		miembros: [],
     }
     if (capilla)
         newGroup.capilla = capilla
@@ -122,9 +128,57 @@ const addMember = async (firestore, req, res)=>{
     }
 }
 
+const getAsistencia = async (firestore, req, res)=>{
+
+}
+
+const registerAsistencia = async (firestore, req, res)=>{
+	var id = req.params.id;
+	var { fecha, miembros, force } = req.body;
+
+	var date = moment(fecha, 'YYYY-MM-DD');
+	if(!date.isValid()){
+		return res.send({ error: true, message: 'Invalid date'})
+	}
+
+	var group = await firestore.collection('grupos').doc(id).get();
+	if(!group.exists){
+		return res.send({
+			error: true,
+			message: 'Group doesnt exist'
+		})
+	}
+
+	if(!force){
+		var oldAssistance = await await firestore.collection('grupos/'+id+'/asistencias').doc(fecha).get();
+		if(oldAssistance.exists){
+			return res.send({ 
+				error: true,
+				code: 52,
+				message: 'Assistance of that date already exists.'
+			})
+		}
+	}
+
+	try{
+		await firestore.collection('grupos/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+		return res.send({
+			error: false,
+			data: date.format('YYYY-MM-DD')
+		});
+	}catch(err){
+		return res.send({
+			error: true,
+			message: 'Error inesperado.'
+		})
+	}
+}
+
 module.exports = {
     getall, 
     getone, 
     add,
-    addMember
+	addMember,
+	getAsistencia,
+	registerAsistencia
 }
