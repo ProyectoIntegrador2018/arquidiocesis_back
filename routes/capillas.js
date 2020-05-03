@@ -58,6 +58,7 @@ const remove = async (firestore, req, res)=>{
         data: snapshot.data()
     })
 }
+
 module.exports = {
     add: add, 
     remove: remove
