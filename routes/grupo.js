@@ -26,10 +26,13 @@ const getone = async (firestore, req, res)=>{
 	}
 
 	var grupo = snapshot.data();
-	if(grupo.miembros && grupo.miembros.length>0){
-		const miembrosSnap = await firestore.getAll(...grupo.miembros.map(a=>firestore.doc('miembros/'+a)));
-		grupo.miembros = miembrosSnap.map(a=>({ id: a.id, ...a.data() }));
-	}
+	var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).get();
+	var miembros = []
+	miembrosSnap.forEach(a=>{
+		if(!a.exists) return;
+		miembros.push({ id: a.id, nombre: a.data().nombre });
+	})
+	grupo.miembros = miembros;
 
     res.send({
         error: false, 
@@ -74,7 +77,6 @@ const add = async (firestore, req, res)=>{
     let newGroup = {
         nombre: name,
         coordinador,
-        miembros: []
     }
     if (capilla)
         newGroup.capilla = capilla
@@ -105,9 +107,9 @@ const addMember = async (firestore, req, res)=>{
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
-        await firestore.collection("grupos").doc(grupo).update({
-            miembros: [...groupSnap.get('miembros'), new_member.id]
-        });
+        // await firestore.collection("grupos").doc(grupo).update({
+        //     miembros: [...groupSnap.get('miembros'), new_member.id]
+        // });
 
         return res.send({
             error: false,
@@ -144,7 +146,6 @@ const getMember = async (firestore, req, res) => {
 
 const getMemberFicha = async (firestore, req, res) => {
     var id = req.params.id;
-    console.log('miembros/' + id + '/ficha medica cabrones');
     try {
         var seguroSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('seguro').get();
         var historialSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').get();
@@ -178,7 +179,8 @@ const getMemberFicha = async (firestore, req, res) => {
 }
 
 const editMember = async (firestore, req, res) => {
-    var { name, grupo, age, gender, email, id, estatus} = req.body;
+	var id = req.params.id;
+    var { name, grupo, age, gender, email, estatus } = req.body;
     try {
         var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
         if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
@@ -209,16 +211,14 @@ const editMember = async (firestore, req, res) => {
 }
 
 const editMemberGroup = async (firestore, req, res) => {
-    var { newGroup, memberID} = req.body;
+	var miembro_id = req.params.id;
+    var { grupo_id } = req.body;
     try {
-        var groupSnap = await firestore.collection('grupos').doc(newGroup).get('miembros');
+        var groupSnap = await firestore.collection('grupos').doc(grupo_id).get('miembros');
         if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
-        var memberSnap = await firestore.collection('miembros').doc(memberID).get('nombre');
+        var memberSnap = await firestore.collection('miembros').doc(miembro_id).get('nombre');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
-        await firestore.collection('miembros').doc(memberID).update({
-            "grupo": newGroup
-            }
-        );
+        await firestore.collection('miembros').doc(miembro_id).update({ grupo: grupo_id });
         return res.send({
             error: false,
             data: req.body
@@ -233,17 +233,15 @@ const editMemberGroup = async (firestore, req, res) => {
 }
 
 const editMemberStatus = async (firestore, req, res) => {
-    var { newStatus, memberID } = req.body;
+	var id = req.params.id;
+    var { status } = req.body;
     try {
-        var memberSnap = await firestore.collection('miembros').doc(memberID).get('estatus');
+        var memberSnap = await firestore.collection('miembros').doc(id).get('estatus');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe o no tiene un campo de estatus', code: 1 });
-        await firestore.collection('miembros').doc(memberID).update({
-            "estatus": newStatus
-        }
-        );
+        await firestore.collection('miembros').doc(id).update({ estatus: status });
         return res.send({
             error: false,
-            data: req.body
+            data: memberSnap.data()
         })
     } catch (err) {
         console.log(err);
