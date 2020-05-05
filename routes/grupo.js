@@ -4,14 +4,40 @@ const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('grupos').get();
 	var grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 	if(grupos.length>0){
-		var snapParroquias = await firestore.getAll(...grupos.map(a=>firestore.doc('parroquias/'+a.parroquia)));
-		var parroquias = snapParroquias.map(a=>({ id: a.id, nombre: a.data().nombre }));
+		// Get unique ids from parroquias and capillas
+		var pid = Array.from(new Set(grupos.map(a=>(a.parroquia || null)))).filter(a=>a!=null);
+		var cid = Array.from(new Set(grupos.map(a=>(a.capilla || null)))).filter(a=>a!=null);
+		
+		// Get parroquias
+		var parroquias = [];
+		if(pid.length>0){
+			var snapParroquias = await firestore.getAll(...pid.map(a=>firestore.doc('parroquias/'+a)));
+			snapParroquias.forEach(a=>{
+				if(!a.exists) return;
+				var d = a.data();
+				parroquias.push({ id: a.id, nombre: d.nombre });
+			})
+		}
+
+		// Get capillas
+		var capillas = []
+		if(cid.length>0){
+			var snapCapillas = await firestore.getAll(...cid.map(a=>firestore.doc('capillas/'+a)));
+			snapCapillas.forEach(a=>{
+				if(!a.exists) return;
+				var d = a.data();
+				capillas.push({ id: a.id, nombre: d.nombre });
+			})
+		}
 
 		for(var i of grupos){
-			i.parroquia = parroquias.find(a=>a.id==i.parroquia).nombre;			
+			if(i.parroquia){
+				i.parroquia = parroquias.find(a=>a.id==i.parroquia);
+			}else if(i.capilla){
+				i.capilla = capillas.find(a=>a.id==i.capilla);
+			}
 		}
 	}
-
     res.send({
         error: false, 
         data: grupos
@@ -28,11 +54,32 @@ const getone = async (firestore, req, res)=>{
 	}
 
 	var grupo = snapshot.data();
+
+	// Query a información de los miembros
 	if(grupo.miembros && grupo.miembros.length>0){
 		const miembrosSnap = await firestore.getAll(...grupo.miembros.map(a=>firestore.doc('miembros/'+a)));
-		grupo.miembros = miembrosSnap.map(a=>({ id: a.id, ...a.data() }));
+		grupo.miembros = miembrosSnap.map(a=>({ id: a.id, nombre: a.get('nombre') }));
 	}
 
+	if(grupo.parroquia){
+		// Grupo pertenece a parroquia, query a parroquia.
+		var parrSnap = await firestore.collection('parroquias').doc(grupo.parroquia).get();
+		if(parrSnap.exists){
+			grupo.parroquia = { id: parrSnap.id, nombre: parrSnap.data().nombre };
+		}else grupo.parroquia = false;
+	}else if(grupo.capilla){
+		// Grupo pertenece a capilla, query a capilla y su parroquia.
+		var capSnap = await firestore.collection('capillas').doc(grupo.capilla).get();
+		if(capSnap.exists){
+			grupo.capilla = { id: capSnap.id, nombre: capSnap.data().nombre };
+			var parrSnap = await firestore.collection('parroquias').where('capillas', 'array-contains', capSnap.id).select('nombre').get();
+			if(parrSnap.size>0){
+				grupo.capilla.parroquia = { id: parrSnap.docs[0].id, nombre: parrSnap.docs[0].data().nombre };
+			}
+		}else grupo.capilla = false;
+	}
+
+	// Conseguir información sobre asistencias
 	const asistenciasSnap = await firestore.collection('grupos/'+req.params.id+'/asistencias').get();
 	var asistencias = asistenciasSnap.docs.map(doc=>doc.id);
 	grupo.asistencias = (asistencias || []);
@@ -44,7 +91,7 @@ const getone = async (firestore, req, res)=>{
 }
 
 const add = async (firestore, req, res)=>{
-    var { name, parroquia, capilla, coordinador } = req.body;
+	 var { name, parroquia, capilla, coordinador } = req.body;
     try{ 
         const snapshot = await firestore.collection('miembros').doc(coordinador).get() 
         if(!snapshot.exists || !snapshot.data().coordinador) throw {message: 'no hay coordinador registrado con ese id'}

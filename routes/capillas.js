@@ -2,7 +2,7 @@ const add = async (firestore, req, res)=>{
     const newCapilla = {
         nombre: req.body.name, 
     	parroquia: req.body.parroquia,
-		address: req.body.address
+		direccion: req.body.address
     }
     const collectionref = await firestore.collection('capillas')
     const parroquiaref = await firestore.collection('parroquias').doc(req.body.parroquia)

@@ -30,13 +30,17 @@ const getone = async(firestore, req, res)=>{
 	 }
 	var parroquia = snapshot.data();
 	var capillas = []
+	// Conseguir información sobre capillas.
 	if(parroquia.capillas && parroquia.capillas.length>0){
 		var ref = parroquia.capillas.map(a=>firestore.doc('capillas/'+a));
 		const cap = await firestore.getAll(...ref);
-		capillas = cap.map(a=>{
-			return {...a.data(), id: a.id}
-		});
+		cap.forEach(a=>{
+			if(!a.exists) return;
+			capillas.push({...a.data(), id: a.id})
+		})
 	}
+
+	// Conseguir información sobre el decanato
 	if(parroquia.decanato){
 		const dec = await firestore.doc('decanatos/'+parroquia.decanato).get();
 		if(dec.exists) parroquia.decanato = dec.data().nombre;
@@ -45,8 +49,9 @@ const getone = async(firestore, req, res)=>{
     res.send({
         error: false, 
         data: {
+			id: snapshot.id,
 			nombre: parroquia.nombre,
-			address: parroquia.address,
+			direccion: parroquia.direccion,
 			decanato: parroquia.decanato,
 			capillas
 		}
@@ -56,7 +61,7 @@ const getone = async(firestore, req, res)=>{
 const add = async (firestore, req, res)=>{
     const nuevaParroquia = {
         nombre: req.body.name, 
-        address: req.body.address, 
+        direccion: req.body.address, 
         decanato: req.body.decanato
     }
 
@@ -80,7 +85,7 @@ const add = async (firestore, req, res)=>{
 			data: {
 				id: docref.id,
 				nombre: req.body.name, 
-				address: req.body.address, 
+				direccion: req.body.address, 
 				decanato: req.body.decanato
 			}
         })
