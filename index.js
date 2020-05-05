@@ -29,7 +29,7 @@ app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-app.all('*', login.verifyToken(firestore));
+//app.all('*', login.verifyToken(firestore));
 
 
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
@@ -50,7 +50,13 @@ app.get('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.getAsistencia(f
 app.post('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.saveAsistencia(firestore, req, res)})
 app.post('/api/grupos/:id/asistencia', (req, res)=>{grupos.registerAsistencia(firestore, req, res)})
 app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
-app.post('/api/grupos/register', (req, res)=>{grupos.addMember(firestore, req, res)})
+app.post('/api/grupos/register', (req, res) => { grupos.addMember(firestore, req, res) }
+app.get('/api/grupos/miembro/:id', (req, res) => { grupos.getMember(firestore, req, res) }))
+app.post('/api/grupos/miembro/:id/edit', (req, res) => { grupos.editMember(firestore, req, res) })
+app.post('/api/grupos/miembro/:id/edit/grupo', (req, res) => { grupos.editMemberGroup(firestore, req, res) })
+app.post('/api/grupos/miembro/:id/edit/status', (req, res) => { grupos.editMemberStatus(firestore, req, res) })
+app.get('/api/grupos/miembro/:id/ficha', (req, res) => { grupos.getMemberFicha(firestore, req, res) })
+
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
