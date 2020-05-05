@@ -1,5 +1,3 @@
-const express = require('express')
-
 const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').get()
     try {
@@ -32,13 +30,17 @@ const getone = async(firestore, req, res)=>{
 	 }
 	var parroquia = snapshot.data();
 	var capillas = []
+	// Conseguir información sobre capillas.
 	if(parroquia.capillas && parroquia.capillas.length>0){
 		var ref = parroquia.capillas.map(a=>firestore.doc('capillas/'+a));
 		const cap = await firestore.getAll(...ref);
-		capillas = cap.map(a=>{
-			return {...a.data(), id: a.id}
-		});
+		cap.forEach(a=>{
+			if(!a.exists) return;
+			capillas.push({...a.data(), id: a.id})
+		})
 	}
+
+	// Conseguir información sobre el decanato
 	if(parroquia.decanato){
 		const dec = await firestore.doc('decanatos/'+parroquia.decanato).get();
 		if(dec.exists) parroquia.decanato = dec.data().nombre;
@@ -47,8 +49,9 @@ const getone = async(firestore, req, res)=>{
     res.send({
         error: false, 
         data: {
+			id: snapshot.id,
 			nombre: parroquia.nombre,
-			address: parroquia.address,
+			direccion: parroquia.direccion,
 			decanato: parroquia.decanato,
 			capillas
 		}
@@ -58,7 +61,7 @@ const getone = async(firestore, req, res)=>{
 const add = async (firestore, req, res)=>{
     const nuevaParroquia = {
         nombre: req.body.name, 
-        address: req.body.address, 
+        direccion: req.body.address, 
         decanato: req.body.decanato
     }
 
@@ -82,7 +85,7 @@ const add = async (firestore, req, res)=>{
 			data: {
 				id: docref.id,
 				nombre: req.body.name, 
-				address: req.body.address, 
+				direccion: req.body.address, 
 				decanato: req.body.decanato
 			}
         })
@@ -94,9 +97,43 @@ const add = async (firestore, req, res)=>{
     }
 }
 
+const remove = async (firestore, req, res)=>{
+    //validate parroquia 
+    const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
+    if (!snapshot.exists){
+        return res.send({
+            error: true, 
+            message: 'no existe un aparroquia con ese id'
+        })
+    }
+    const capillas = snapshot.data().capillas // lista de ids de capilla
+    const capillas_borradas = [] 
+    if (capillas){
+        for (let capilla of capillas){
+            //validate capilla 
+            const snapshot = await firestore.collection('capillas').doc(capilla).get()
+            if (snapshot.exists){
+                capillas_borradas.push({id: snapshot.id, ...snapshot.data()})
+                await firestore.collection('capillas').doc(capilla).delete()
+            }
+        }
+    }
+    await firestore.collection('parroquias').doc(req.params.id).delete() 
+    const parroquia = snapshot.data() 
+    parroquia.capillas_borradas = capillas_borradas
+    res.send({
+        error: false, 
+        data: {
+            id: req.params.id, 
+            ...parroquia
+        }
+    })
+}
+
 module.exports = {
     getall: getall, 
     getone: getone,
-    add: add
+    add: add, 
+    remove: remove
 }
 
