@@ -56,7 +56,7 @@ const getone = async (firestore, req, res)=>{
 	var grupo = snapshot.data();
   
   // Query a información de los miembros
-	var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).get();
+	var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).get();
 	var miembros = []
 	miembrosSnap.forEach(a=>{
 		if(!a.exists) return;
