@@ -146,17 +146,20 @@ const getMemberFicha = async (firestore, req, res) => {
     var id = req.params.id;
     console.log('miembros/' + id + '/ficha medica cabrones');
     try {
+        var seguroSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('seguro').get();
+        var historialSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').get();
+        if (!historialSnap.exists || !seguroSnap.exists)
+            return res.send({ error: true, message: 'Miembro no existe o no tiene ficha medica', code: 1 });
+
         var alergiasSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('alergias').get();
         var enfermedadesSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('enfermedades').get();
         var tratamientosSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('tratamientos').get();
-        var seguroSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('seguro').get();
 
         var alergias = alergiasSnap.docs.map(doc => ({ id: "alergias", ...doc.data() }));
         var enfermedades = enfermedadesSnap.docs.map(doc => ({ id: "enfermedades", ...doc.data() }));
         var tratamientos = tratamientosSnap.docs.map(doc => ({ id: "tratamientos", ...doc.data() }));
 
-        if (alergias.length == 0 || enfermedades.length == 0 || tratamientos.length == 0 || !seguroSnap.exists)
-            return res.send({ error: true, message: 'Miembro no existe o no tiene ficha medica', code: 1 });
+
         var seguro = seguroSnap.data;
         return res.send({
             error: false,
