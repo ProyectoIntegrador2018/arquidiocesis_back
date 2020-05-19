@@ -179,7 +179,6 @@ const addMember = async (firestore, req, res)=>{
 
 const getMember = async (firestore, req, res) => {
     var id = req.params.id;
-    console.log(id);
     try {
         var memberSnap = await firestore.collection('miembros').doc(id).get();
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
@@ -318,26 +317,24 @@ const getAsistencia = async (firestore, req, res)=>{
 		}
 		var groupSnap = await firestore.collection('grupos').doc(id).get();
 		if(!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
-		if(groupSnap.get('miembros').length==0 && assist.get('miembros').length==0){
-			return res.send({
-				error: false,
-				data: {
-					miembros: []
-				}
-			});
-		}
-		var allMembers = Array.from(new Set([...groupSnap.get('miembros'), ...assist.get('miembros')]));
-		const miembrosSnap = await firestore.getAll(...allMembers.map(a=>firestore.doc('miembros/'+a)));
-		var members = [];
-		miembrosSnap.forEach(a=>{
-			if(a.exists) members.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
+
+		var asistentes = assist.get('miembros');
+		var miembros = []
+		const asistSnap = await firestore.getAll(...asistentes.map(a=>firestore.doc('miembros/'+a)));
+		asistSnap.forEach(a=>{
+			if(a.exists) miembros.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
 		});
+
+		var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('coordinador', '==', false).get();
+		miembrosSnap.forEach(a=>{
+			if(!a.exists) return;
+			if(asistentes.findIndex(b=>b==a.id)!=-1) return;
+			miembros.push({ id: a.id, nombre: a.data().nombre, assist: false });
+		})
 
 		return res.send({
 			error: false,
-			data: {
-				miembros: members
-			} 
+			data: { miembros } 
 		})
 
 	}catch(err){
