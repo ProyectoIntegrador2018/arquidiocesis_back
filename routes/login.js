@@ -1,6 +1,5 @@
-const express = require('express')
 const jwt = require('jsonwebtoken');
-
+const bcrypt = require('bcrypt-nodejs');
 const SECRET = 'R?<=2vYPXm)n*_kd,Hp.W2GG[hD3b2D/';
 
 const authenticate = async (firestore, req, res)=>{
@@ -15,7 +14,7 @@ const authenticate = async (firestore, req, res)=>{
         if (snapshot.exists){ // since id is email, this validates email 
 				const data = snapshot.data() //read the doc data 
 
-            if (data.contraseña == password){ //validate password 
+            if (bcrypt.compareSync(password, data.password)){ //validate password 
                 var token = jwt.sign({ id: data.id }, SECRET);
                 return res.send({
                     error: false,
