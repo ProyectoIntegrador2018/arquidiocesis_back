@@ -37,7 +37,7 @@ const authenticate = async (firestore, req, res)=>{
             });
         }
     } catch(err){
-        return res.end({
+        return res.send({
             error: true,
             message: 'Error inesperado.'
         });
