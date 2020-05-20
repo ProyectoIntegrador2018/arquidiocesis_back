@@ -29,8 +29,9 @@ app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-//app.all('*', login.verifyToken(firestore));
+app.all('*', login.verifyToken(firestore));
 
+app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})

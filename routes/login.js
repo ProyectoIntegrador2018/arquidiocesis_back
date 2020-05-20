@@ -25,7 +25,7 @@ const authenticate = async (firestore, req, res)=>{
                     }
                 });
             }else{
-                return res.end({
+                return res.send({
                     error: true,
                     message: 'Contraseña equivocada'
                 });
@@ -83,7 +83,7 @@ const verify = async (firestore, token)=>{
         var user;
         query.forEach(v=>{
             if(v.data().id==decoded.id) user = v.data();
-        });
+		});
 
         return user;
     }catch(err){
@@ -91,7 +91,45 @@ const verify = async (firestore, token)=>{
     }
 }
 
+const changePassword = async (firestore, req, res)=>{
+	var { old_password, new_password } = req.body;
+	if(new_password.length<5) return res.send({
+		error: true,
+		message: 'La nueva contraseña debe de ser de minimo 5 caracteres.'
+	})
+	try{
+		const userSnap = await firestore.collection('logins').where('id', '==', req.user.id).get();
+		if(userSnap.size==0) return res.send({
+			error: true,
+			message: 'No existe un usuario con ese id.'
+		});
+		var login = userSnap.docs[0].data();
+		login.email = userSnap.docs[0].id;
+		if(!bcrypt.compareSync(old_password, login.password)){
+			return res.send({
+				error: true,
+				code: 923, // Arbitrary number
+				message: 'La contraseña actual es incorrecta.'
+			});
+		}
+		var passwordHash = bcrypt.hashSync(new_password);
+		await firestore.collection('logins').doc(login.email).update({ password: passwordHash });
+
+		return res.send({
+			error: false,
+			message: 'Se ha cambiado la contraseña.'
+		})
+	}catch(e){
+		return res.send({
+			error: true,
+			message: 'Error inesperado.'
+		})
+	}
+
+}
+
 module.exports = {
     authenticate,
-    verifyToken
+	verifyToken,
+	changePassword
 }
