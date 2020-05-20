@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const parroquias = require('./routes/parroquia')
 const decanato = require('./routes/decanato')
 const login = require('./routes/login')
+const admins = require('./routes/admin')
 const capillas  = require('./routes/capillas')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
@@ -33,6 +34,9 @@ app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
+app.all('/api/admin*', admins.isAdmin); // Check if user is an admin
+app.get('/api/admin/users', (req, res)=>admins.getLogins(firestore, req, res));
+
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
 app.get('/api/parroquias/:id', (req, res)=>{parroquias.getone(firestore, req, res)})
@@ -57,7 +61,6 @@ app.post('/api/grupos/miembro/:id/edit', (req, res) => { grupos.editMember(fires
 app.post('/api/grupos/miembro/:id/edit/grupo', (req, res) => { grupos.editMemberGroup(firestore, req, res) })
 app.post('/api/grupos/miembro/:id/edit/status', (req, res) => { grupos.editMemberStatus(firestore, req, res) })
 app.get('/api/grupos/miembro/:id/ficha', (req, res) => { grupos.getMemberFicha(firestore, req, res) })
-
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
