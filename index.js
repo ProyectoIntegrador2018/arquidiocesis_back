@@ -46,6 +46,7 @@ app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
 app.get('/api/parroquias/:id', (req, res)=>{parroquias.getone(firestore, req, res)})
 app.delete('/api/parroquias/:id', (req, res)=>parroquias.remove(firestore, req, res))
+app.post('/api/parroquias/edit', (req, res)=>parroquias.udpate(firestore, req, res))
 
 app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
 app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
