@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt-nodejs');
 
 const isAdmin = (req, res, next)=>{
-	if(req.user.tipo=='admin') return next();
+	if(req.user.tipo=='admin' || req.user.tipo=='superadmin') return next();
 	else return res.send({
 		error: true,
 		message: 'Usuario no es administrador.'
@@ -63,7 +63,9 @@ const changePassword = async (firestore, req, res)=>{
 		await firestore.collection('logins').doc(loginSnap.id).update({ password: passwordHash });
 		return res.send({
 			error: false,
-			message: 'Se ha cambiado la contraseña'
+			data: {
+				emai: email.toLowerCase()
+			}
 		})
 	}catch(e){
 		return res.send({
@@ -119,7 +121,7 @@ const register = async (firestore, req, res)=>{
 			password: bcrypt.hashSync(password), 
 			tipo
 		};
-		const new_login = await firestore.collection('logins').doc(email.toLowerCase()).set(login);
+		await firestore.collection('logins').doc(email.toLowerCase().trim()).set(login);
 		return res.send({
 			error: false,
 			data: {
@@ -136,10 +138,93 @@ const register = async (firestore, req, res)=>{
 	}
 }
 
+const deleteAdmin = async (firestore, req, res)=>{
+	var { email } = req.body;
+	if(req.user.email.toLowerCase()==email.toLowerCase()){
+		return res.send({
+			error: true,
+			code: 682,
+			message: 'No se puede eliminar a uno mismo.'
+		})
+	}
+
+	try{
+		var loginSnap = await firestore.collection('logins').doc(email.toLowerCase()).get();
+		if(!loginSnap.exists) return res.send({
+			error: true,
+			message: 'Usuario no existe',
+		});
+	
+		await firestore.collection('miembros').doc(loginSnap.data().id).delete();
+		await firestore.collection('logins').doc(loginSnap.id).delete()
+	}catch(e){
+		return res.send({
+			error: true,
+			message: 'Mensaje inesperado.'
+		})
+	}
+
+	return res.send({
+		error: false,
+		data: true
+	})
+}
+
+const editAdmin = async (firestore, req, res)=>{
+	var {
+		id,
+		nombre,
+		apellido_paterno,
+		apellido_materno,
+		sexo,
+		tipo
+	} = req.body;
+
+	if(['admin', 'coordinador_general', 'acompañante_operativo'].indexOf(tipo)==-1){
+		return res.send({
+			error: true,
+			message: 'Tipo de usuario invalido'
+		});
+	}
+	if([ 'Masculino', 'Femenino', 'Sin especificar' ].indexOf(sexo)==-1){
+		return res.send({
+			error: true,
+			message: 'Sexo invalido.'
+		});
+	}
+	var miembro = { nombre, apellido_paterno, sexo };
+	if(apellido_materno){
+		miembro.apellido_materno = apellido_materno;
+	}
+
+	try{
+		var loginSnap = await firestore.collection('logins').doc(id.toLowerCase()).get();
+		if(!loginSnap.exists) return res.send({
+			error: true,
+			message: 'Usuario no existe',
+		});
+		await firestore.collection('logins').doc(id.toLowerCase()).update({ tipo });
+		await firestore.collection('miembros').doc(loginSnap.data().id).update(miembro);
+		miembro.tipo = tipo;
+		miembro.email = id.toLowerCase();
+		return res.send({
+			error: false,
+			data: miembro
+		})
+	}catch(e){
+		return res.send({
+			error: false,
+			message: 'Error inesperado.'
+		})
+	}
+}
+
 module.exports = {
 	isAdmin,
 	getLogins,
 	getOne,
 	register,
-	changePassword
+	deleteAdmin,
+	changePassword,
+	editAdmin
 }
