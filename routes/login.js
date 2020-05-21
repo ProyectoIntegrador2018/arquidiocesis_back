@@ -20,7 +20,7 @@ const authenticate = async (firestore, req, res)=>{
                     error: false,
                     data: {
                         token,
-                        email,
+                        email: email.toLowerCase(),
                         type: data.tipo
                     }
                 });
