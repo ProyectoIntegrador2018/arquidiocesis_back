@@ -20,7 +20,7 @@ const authenticate = async (firestore, req, res)=>{
                     error: false,
                     data: {
                         token,
-                        email,
+                        email: email.toLowerCase(),
                         type: data.tipo
                     }
                 });
@@ -80,11 +80,7 @@ const verify = async (firestore, token)=>{
         const collection = await firestore.collection('logins')
         const query = await (await collection.where('id', '==', decoded.id)).get();
         if(query.empty) return false;
-        var user;
-        query.forEach(v=>{
-            if(v.data().id==decoded.id) user = v.data();
-		});
-
+        var user = { ...query.docs[0].data(), email: query.docs[0].id };
         return user;
     }catch(err){
         return false;
