@@ -64,6 +64,7 @@ const verifyToken = (firestore)=>{
         verify(firestore, token).then(user=>{
             if(user){
                 req.user = user;
+                req.user.admin = user.tipo=='admin' || user.tipo=='superadmin';
                 return next();
             }else return res.send({
                 error: true,
