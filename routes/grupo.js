@@ -257,7 +257,45 @@ const remove = async (firestore, req, res)=>{
 }
 
 const changeCoordinador = async (firestore, req, res)=>{
-    
+    var { id } = req.params;
+    var { coordinador } = req.body;
+    try{
+        var grupoSnap = await firestore.collection('grupos').doc(id)
+        // Checar si tiene acceso a editar el grupo
+        if(!req.user.admin){ // Checar si no es admin
+            var grupo = grupoSnap.get();
+            if(!grupo.exists) return res.send({ error: true, message: 'Grupo no existe.' });
+
+            // Checar si el grupo pertenece al usuario.
+            if(req.user.tipo=='coordinador'){
+                if(grupo.data().coordinador!=req.user.id){
+                    return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
+                }
+            }else if(req.user.tipo=='acompañante_decanato' || req.user.tipo=='acompañante_zona'){
+                return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
+                // var parroquiaSnap = await firestore.collection('parroquia').doc(grupo.data().parroquia).get()
+                // if(!parroquiaSnap.exists) return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
+                // if(req.user.tipo=='acompañante_decanato'){
+                //     if(parroquiaSnap)
+                // }
+            }
+        }
+       
+        const coordSnap = await firestore.collection('miembros').doc(coordinador).get();
+        if(!coordSnap.exists || !coordSnap.data().coordinador) return res.send({ error: true, message: 'El coordinador no existe.' });
+        
+        await grupoSnap.update({ coordinador });
+
+        return res.send({
+            error: false,
+            data: true 
+        });
+    }catch(e){
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
 }
 
 const addMember = async (firestore, req, res)=>{
@@ -571,5 +609,6 @@ module.exports = {
     getMemberFicha,
     getAsistencia,
     registerAsistencia,
-    saveAsistencia
+    saveAsistencia,
+    changeCoordinador
 }
