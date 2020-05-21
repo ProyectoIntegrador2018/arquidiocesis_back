@@ -130,10 +130,45 @@ const remove = async (firestore, req, res)=>{
     })
 }
 
+const update = async (firestore, req, res)=>{
+    try { 
+        const payload = req.body.payload
+        const id = payload.parroquia
+        const docref = firestore.collection('parroquias').doc(id)
+        let snapshot = await docref.get()
+        if (!snapshot.exists){
+            return res.send({
+                error: true, 
+                message: "No hay parroquia con ese id"
+            })
+        }
+        await docref.set({
+            nombre: payload.nombre,
+            direccion: payload.direccion, 
+            colonia: payload.colonia, 
+            municipio: payload.municipio, 
+            telefono1: payload.telefono1, 
+            telefono2: payload.telefono2, 
+            decanato: payload.decanato
+        }, {merge: true})
+        snapshot = await docref.get()
+        res.send({
+            error: false, 
+            data: snapshot.data()
+        })
+    }catch(err){
+        res.send({
+            error: true, 
+            message: err.message
+        })
+    }
+}
+
 module.exports = {
     getall: getall, 
     getone: getone,
     add: add, 
-    remove: remove
+    remove: remove,
+    udpate: update
 }
 
