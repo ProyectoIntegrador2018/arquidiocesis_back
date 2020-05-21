@@ -80,7 +80,16 @@ const getone = async (firestore, req, res)=>{
 				grupo.capilla.parroquia = { id: parrSnap.docs[0].id, nombre: parrSnap.docs[0].data().nombre };
 			}
 		}else grupo.capilla = false;
-	}
+    }
+    
+    if(grupo.coordinador){
+        var coordSnap = await firestore.collection('miembros').doc(grupo.coordinador).get();
+        if(!coordSnap.exists) grupo.coordinador = null;
+        grupo.coordinador = {
+            id: coordSnap.id,
+            nombre: coordSnap.data().nombre
+        }
+    }
 
 	// Conseguir información sobre asistencias
 	const asistenciasSnap = await firestore.collection('grupos/'+req.params.id+'/asistencias').get();
@@ -143,6 +152,33 @@ const add = async (firestore, req, res)=>{
         error: false, 
         data: newGroup
     })
+}
+
+const edit = async (firestore, req, res)=>{
+    var {
+        id,
+        nombre,
+        coordinador,
+        parroquia,
+        capilla
+    } = req.body;
+
+    var data = { nombre, coordinador };
+    if(capilla) data.capilla = capilla;
+    else data.parroquia = parroquia;
+
+    try{
+        await firestore.collection('grupos').doc(id).update(data);
+        return res.send({
+            error: false,
+            data: true
+        })
+    }catch(err){
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
 }
 
 const addMember = async (firestore, req, res)=>{
@@ -423,6 +459,7 @@ const saveAsistencia = async (firestore, req, res)=>{
 module.exports = {
     getall, 
     getone, 
+    edit,
     add,
     addMember,
     editMember,
@@ -430,7 +467,7 @@ module.exports = {
     editMemberStatus,
     getMember,
     getMemberFicha,
-	  getAsistencia,
-	  registerAsistencia,
-	  saveAsistencia
+    getAsistencia,
+    registerAsistencia,
+    saveAsistencia
 }

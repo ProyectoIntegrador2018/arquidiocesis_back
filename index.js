@@ -60,6 +60,7 @@ app.get('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.getAsistencia(f
 app.post('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.saveAsistencia(firestore, req, res)})
 app.post('/api/grupos/:id/asistencia', (req, res)=>{grupos.registerAsistencia(firestore, req, res)})
 app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
+app.post('/api/grupos/edit', (req, res)=>grupos.edit(firestore, req, res));
 app.post('/api/grupos/register', (req, res) => { grupos.addMember(firestore, req, res) });
 app.get('/api/grupos/miembro/:id', (req, res) => { grupos.getMember(firestore, req, res) });
 app.post('/api/grupos/miembro/:id/edit', (req, res) => { grupos.editMember(firestore, req, res) })
