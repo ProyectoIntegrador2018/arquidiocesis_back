@@ -174,12 +174,11 @@ const edit = async (firestore, req, res)=>{
     var {
         id,
         nombre,
-        coordinador,
         parroquia,
         capilla
     } = req.body;
 
-    var data = { nombre, coordinador };
+    var data = { nombre };
     if(capilla) data.capilla = capilla;
     else data.parroquia = parroquia;
 
