@@ -403,7 +403,7 @@ const editMemberFicha = async (firestore, req, res) => {
             ambulancia: ambulancia,
             padecimientos: padecimientos
         }
-        await firestore.collection('miembros').doc(id).update(edited_member);
+        await firestore.collection('miembros').doc(id).set(edited_member, { merge: true });
         return res.send({
             error: false,
             data: edited_member
