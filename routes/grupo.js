@@ -108,13 +108,11 @@ const addMember = async (firestore, req, res)=>{
         await firestore.collection("grupos").doc(grupo).update({
             miembros: [...groupSnap.get('miembros'), new_member.id]
         });
-
         return res.send({
             error: false,
             data: new_member
         })
     }catch(err){
-        console.log(err);
         return res.send({
             error: true, 
             message: 'Error inesperado.'
@@ -124,7 +122,6 @@ const addMember = async (firestore, req, res)=>{
 
 const getMember = async (firestore, req, res) => {
     var id = req.params.id;
-    console.log(id);
     try {
         var memberSnap = await firestore.collection('miembros').doc(id).get();
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
@@ -142,34 +139,31 @@ const getMember = async (firestore, req, res) => {
     }
 }
 
-const getMemberFicha = async (firestore, req, res) => {
+const editMember = async (firestore, req, res) => {
+    var { name, grupo, age, gender, email, estatus } = req.body;
     var id = req.params.id;
-    console.log('miembros/' + id + '/ficha medica cabrones');
     try {
-        var seguroSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('seguro').get();
-        var historialSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').get();
-        if (!historialSnap.exists || !seguroSnap.exists)
-            return res.send({ error: true, message: 'Miembro no existe o no tiene ficha medica', code: 1 });
-
-        var alergiasSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('alergias').get();
-        var enfermedadesSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('enfermedades').get();
-        var tratamientosSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('tratamientos').get();
-
-        var alergias = alergiasSnap.docs.map(doc => ({ id: "alergias", ...doc.data() }));
-        var enfermedades = enfermedadesSnap.docs.map(doc => ({ id: "enfermedades", ...doc.data() }));
-        var tratamientos = tratamientosSnap.docs.map(doc => ({ id: "tratamientos", ...doc.data() }));
-
-
-        var seguro = seguroSnap.data;
+        var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
+        if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+        var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var member = memberSnap.data();
+        var edited_member = {
+            nombre: name,
+            edad: parseInt(age),
+            grupo: grupo,
+            sexo: gender,
+            email: email,
+            coordinador: false,
+            id: id,
+            estatus: estatus
+        }
+        await firestore.collection('miembros').doc(id).update(edited_member);
         return res.send({
             error: false,
-            Seguro: seguro,
-            Alergias: alergias,
-            Enfermedades: enfermedades,
-            Tratamientos: tratamientos
+            data: edited_member
         })
     } catch (err) {
-        console.log(err);
         return res.send({
             error: true,
             message: 'Error inesperado.'
@@ -177,24 +171,21 @@ const getMemberFicha = async (firestore, req, res) => {
     }
 }
 
-const editMember = async (firestore, req, res) => {
-    var { name, grupo, age, gender, email, id, estatus} = req.body;
+const editMemberFicha = async (firestore, req, res) => {
+    var { tipo_sangre, alergico, servicio_medico, ambulancia, padecimientos } = req.body;
+    var id = req.params.id;
     try {
-        var groupSnap = await firestore.collection('grupos').doc(grupo).get('miembros');
-        if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
         var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var member = memberSnap.data();
         var edited_member = {
-            nombre: name,
-            edad: parseInt(age),
-            grupo,
-            sexo: gender,
-            email,
-            coordinador: false,
-            id,
-            estatus
+            tipo_sangre: tipo_sangre,
+            alergico: alergico,
+            servicio_medico: servicio_medico,
+            ambulancia: ambulancia,
+            padecimientos: padecimientos
         }
-        await firestore.collection('miembros').doc(id).set(edited_member);
+        await firestore.collection('miembros').doc(id).update(edited_member);
         return res.send({
             error: false,
             data: edited_member
@@ -263,5 +254,5 @@ module.exports = {
     editMemberGroup,
     editMemberStatus,
     getMember,
-    getMemberFicha
+    editMemberFicha
 }
