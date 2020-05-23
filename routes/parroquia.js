@@ -40,34 +40,49 @@ const getone = async(firestore, req, res)=>{
 		})
 	}
 
-	// Conseguir información sobre el decanato
+    // Conseguir información sobre el decanato
 	if(parroquia.decanato){
 		const dec = await firestore.doc('decanatos/'+parroquia.decanato).get();
-		if(dec.exists) parroquia.decanato = dec.data().nombre;
+		if(dec.exists) parroquia.decanato = {
+            nombre: dec.data().nombre,
+            id: dec.id
+        };
 		else parroquia.decanato = null;
 	}
     res.send({
         error: false, 
         data: {
-			id: snapshot.id,
-			nombre: parroquia.nombre,
-			direccion: parroquia.direccion,
-			decanato: parroquia.decanato,
+            id: snapshot.id,
+            ...parroquia,
 			capillas
 		}
     })
 }
 
 const add = async (firestore, req, res)=>{
-    const nuevaParroquia = {
-        nombre: req.body.name, 
-        direccion: req.body.address, 
-        decanato: req.body.decanato
+    var {
+        colonia,
+        decanato,
+        direccion,
+        municipio,
+        nombre,
+        telefono1,
+        telefono2
+    } = req.body;
+
+    var nuevaParroquia = {
+        nombre,
+        direccion,
+        colonia,
+        municipio,
+        telefono1,
+        telefono2,
+        decanato
     }
 
     // --- validate decanato --- // 
    // ---VVVVVVVVVVVVVVVVVV---- //
-    const snapshot = await firestore.collection('decanatos').doc(req.body.decanato).get()
+    const snapshot = await firestore.collection('decanatos').doc(decanato).get()
     if (!snapshot.exists) {
         return res.send({
             error: true, 
@@ -80,14 +95,10 @@ const add = async (firestore, req, res)=>{
     const collrectionref = await firestore.collection('parroquias')
     try{ 
         const docref = await collrectionref.add(nuevaParroquia)
+        nuevaParroquia.id = docref.id;
         res.send({
             error: false,
-			data: {
-				id: docref.id,
-				nombre: req.body.name, 
-				direccion: req.body.address, 
-				decanato: req.body.decanato
-			}
+			data: nuevaParroquia
         })
     }catch(err){
         res.send({
@@ -132,7 +143,7 @@ const remove = async (firestore, req, res)=>{
 
 const update = async (firestore, req, res)=>{
     try { 
-        const payload = req.body.payload
+        const payload = req.body
         const id = payload.parroquia
         const docref = firestore.collection('parroquias').doc(id)
         let snapshot = await docref.get()
