@@ -208,14 +208,14 @@ const editMember = async (firestore, req, res) => {
         var edited_member = {
             nombre: name,
             edad: parseInt(age),
-            grupo,
+            grupo: grupo,
             sexo: gender,
-            email,
+            email: email,
             coordinador: false,
-            id,
-            estatus
+            id: id,
+            estatus: estatus
         }
-        await firestore.collection('miembros').doc(id).set(edited_member);
+        await firestore.collection('miembros').doc(id).update(edited_member);
         return res.send({
             error: false,
             data: edited_member
