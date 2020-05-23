@@ -1,8 +1,15 @@
 const moment = require('moment');
 
 const getall = async (firestore, req, res)=>{
-    const snapshot = await firestore.collection('grupos').get();
-	var grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    var grupos = []
+
+    if(req.user.admin){ // Is admin, return all
+        const snapshot = await firestore.collection('grupos').get();
+        grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }else{
+        const snapshot = await firestore.collection('grupos').where('coordinador', '==', req.user.id).get();
+        grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
 	if(grupos.length>0){
 		// Get unique ids from parroquias and capillas
 		var pid = Array.from(new Set(grupos.map(a=>(a.parroquia || null)))).filter(a=>a!=null);
