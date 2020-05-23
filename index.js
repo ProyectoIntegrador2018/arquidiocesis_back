@@ -56,6 +56,7 @@ app.get('/api/capillas/:id', (req, res)=>capillas.getone(firestore, req, res))
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
+app.get('/api/grupos/:id/bajas', (req, res)=>{grupos.getBajasTemporales(firestore, req, res)})
 app.delete('/api/grupos/:id', (req, res)=>{grupos.remove(firestore, req, res)})
 app.post('/api/grupos/:id/coordinador', (req, res)=>{grupos.changeCoordinador(firestore, req, res)})
 app.get('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.getAsistencia(firestore, req, res)})

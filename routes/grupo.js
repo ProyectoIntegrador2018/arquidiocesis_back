@@ -55,9 +55,16 @@ const getone = async (firestore, req, res)=>{
         }
 
         var grupo = snapshot.data();
+        if(!req.user.admin && grupo.coordinador!=req.user.id){
+            return res.send({
+                error: true,
+                code: 999,
+                message: 'No tienes acceso a este grupo'
+            })
+        }
     
         // Query a información de los miembros
-        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).get();
+        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).where('estatus', '==', 0).get();
         var miembros = []
         miembrosSnap.forEach(a=>{
             if(!a.exists) return;
@@ -102,9 +109,41 @@ const getone = async (firestore, req, res)=>{
             data: grupo
         })
     }catch(err){
+        console.log(err);
         return res.send({
             error: true,
             message: 'Error inesperado.'
+        })
+    }
+}
+
+var getBajasTemporales = async (firestore, req, res)=>{
+    var { id } = req.params;
+    try{
+        var snapshot = await firestore.collection('grupos').doc(id).get();
+        if (!snapshot.exists){
+            return res.send({
+                error: true, 
+                message: 'there is no group with that id'
+            })
+        }
+    
+        // Query a información de los miembros
+        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).where('estatus', '==', 1).get('nombre');
+        var miembros = []
+        miembrosSnap.forEach(a=>{
+            if(!a.exists) return;
+            miembros.push({ id: a.id, nombre: a.data().nombre });
+        });
+    
+        return res.send({
+            error: false,
+            data: miembros
+        })
+    }catch(e){
+        return res.send({
+            error: true,
+            message: 'Mensaje inesperado'
         })
     }
 }
@@ -429,6 +468,10 @@ const editMember = async (firestore, req, res) => {
         domicilio
     } = req.body;
     
+    
+    var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+    if(!fn.isValid()) fn = moment();
+
     try{
         var miembroSnap = await firestore.collection('miembros').doc(id).get();
         if(!miembroSnap.exists) return res.send({ error: true, message: 'No existe el miembro' });
@@ -451,7 +494,7 @@ const editMember = async (firestore, req, res) => {
             estado_civil,
             sexo,
             email,
-            fecha_nacimiento,
+            fecha_nacimiento: fn,
             escolaridad,
             oficio,
             domicilio
@@ -494,12 +537,25 @@ const editMemberStatus = async (firestore, req, res) => {
 	var id = req.params.id;
     var { status } = req.body;
     try {
-        var memberSnap = await firestore.collection('miembros').doc(id).get('estatus');
-        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe o no tiene un campo de estatus', code: 1 });
+        var miembroSnap = await firestore.collection('miembros').doc(id).get();
+        if(!miembroSnap.exists) return res.send({ error: true, message: 'No existe el miembro' });
+        var miembro = miembroSnap.data();
+
+        var groupSnap = await firestore.collection('grupos').doc(miembro.grupo).get();
+        if(!groupSnap.exists) return res.send({ error: true, message: 'El grupo no existe' });
+
+        if(!req.user.admin && req.user.id!=groupSnap.data().coordinador){
+            return res.send({
+                error: true,
+                code: 999,
+                message: 'No tienes acceso a esta acción'
+            })
+        }
+
         await firestore.collection('miembros').doc(id).update({ estatus: status });
         return res.send({
             error: false,
-            data: memberSnap.data()
+            data: true
         })
     } catch (err) {
         console.log(err);
@@ -641,5 +697,6 @@ module.exports = {
     getAsistencia,
     registerAsistencia,
     saveAsistencia,
-    changeCoordinador
+    changeCoordinador,
+    getBajasTemporales
 }
