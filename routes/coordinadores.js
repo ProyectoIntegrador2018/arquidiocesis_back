@@ -68,7 +68,6 @@ const getone = async (firestore, req, res)=>{
 
 const editCoordinador = async (firestore, req, res) => {
 	var id = req.params.id;
-	console.log(id);
 	var { coordinador } = req.body;
 	try {
 		var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
