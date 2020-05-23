@@ -30,7 +30,7 @@ app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-app.all('*', login.verifyToken(firestore));
+//app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
@@ -70,7 +70,8 @@ app.get('/api/grupos/miembro/:id/ficha', (req, res) => { grupos.getMemberFicha(f
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
-app.post('/api/coordinadores', (req, res)=>coordinadores.add(firestore, req, res));
+app.post('/api/coordinadores', (req, res) => coordinadores.add(firestore, req, res));
+app.post('/api/coordinadores/:id/edit', (req, res) => coordinadores.editCoordinador(firestore, req, res));
 
 app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
 app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
