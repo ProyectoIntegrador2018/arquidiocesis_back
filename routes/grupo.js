@@ -593,7 +593,7 @@ const getAsistencia = async (firestore, req, res)=>{
 			if(a.exists) miembros.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
 		});
 
-		var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('estado', '==', 0).get();
+		var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('estatus', '==', 0).get();
 		miembrosSnap.forEach(a=>{
 			if(!a.exists) return;
 			if(asistentes.findIndex(b=>b==a.id)!=-1) return;
