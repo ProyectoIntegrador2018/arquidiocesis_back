@@ -56,7 +56,6 @@ app.post('/api/grupos/miembro/:id/edit', (req, res) => { grupos.editMember(fires
 app.post('/api/grupos/miembro/:id/edit/grupo', (req, res) => { grupos.editMemberGroup(firestore, req, res) })
 app.post('/api/grupos/miembro/:id/edit/status', (req, res) => { grupos.editMemberStatus(firestore, req, res) })
 app.post('/api/grupos/miembro/:id/edit/ficha', (req, res) => { grupos.editMemberFicha(firestore, req, res) })
-app.get('/api/grupos/miembro/:id/ficha', (req, res) => { grupos.getMemberFicha(firestore, req, res) })
 
 
 app.get('/api/coordinadores', (req, res) => coordinadores.getall(firestore, req, res));

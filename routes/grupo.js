@@ -395,18 +395,17 @@ const editMemberFicha = async (firestore, req, res) => {
     try {
         var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
-        await firestore.collection('miembros').doc(id).update({
-            fichaMedica: {
-                tipo_sangre: tipo_sangre,
-                alergico: alergico,
-                servicio_medico: servicio_medico,
-                ambulancia: ambulancia,
-                padecimientos: padecimientos
-            }
-        });
+        var ficha_medica = {
+            tipo_sangre: tipo_sangre,
+            alergico: alergico,
+            servicio_medico: servicio_medico,
+            ambulancia: ambulancia,
+            padecimientos: padecimientos
+        }
+        await firestore.collection('miembros').doc(id).update({ ficha_medica });
         return res.send({
             error: false,
-            data: edited_member
+            data: ficha_medica
         })
     } catch (err) {
         console.log(err);
