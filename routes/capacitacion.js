@@ -91,7 +91,28 @@ const changeCoordinador = async (firestore, req, res) => {
     }
 }
 
+const deleteOne = async (firestore, req, res) => {
+    var id = req.params.id;
+    try {
+        var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get();
+        if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var capacitacion = capacitacionSnap.data();
+        await firestore.collection('capacitaciones').doc(id).delete();
+        return res.send({
+            error: false,
+            data: capacitacion
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 module.exports = {
     add: add,
-    changeCoordinador
+    changeCoordinador,
+    deleteOne
 }
