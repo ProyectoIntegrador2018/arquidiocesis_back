@@ -71,7 +71,7 @@ const getone = async (firestore, req, res)=>{
         }
     
         // Query a información de los miembros
-        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).where('estatus', '==', 0).get();
+        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('estatus', '==', 0).get();
         var miembros = []
         miembrosSnap.forEach(a=>{
             if(!a.exists) return;
@@ -98,7 +98,7 @@ const getone = async (firestore, req, res)=>{
         }
         
         if(grupo.coordinador){
-            var coordSnap = await firestore.collection('miembros').doc(grupo.coordinador).get();
+            var coordSnap = await firestore.collection('coordinadores').doc(grupo.coordinador).get();
             if(!coordSnap.exists) grupo.coordinador = null;
             grupo.coordinador = {
                 id: coordSnap.id,
@@ -136,7 +136,7 @@ var getBajasTemporales = async (firestore, req, res)=>{
         }
     
         // Query a información de los miembros
-        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).where('estatus', '==', 1).get('nombre');
+        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('estatus', '==', 1).get('nombre');
         var miembros = []
         miembrosSnap.forEach(a=>{
             if(!a.exists) return;
@@ -280,7 +280,7 @@ const remove = async (firestore, req, res)=>{
         
         // Eliminar miembros
         let batch = firestore.batch();
-        const memberSnap = await firestore.collection('miembros').where('grupo', '==', id).where('coordinador', '==', false).get();
+        const memberSnap = await firestore.collection('miembros').where('grupo', '==', id).get();
         memberSnap.docs.forEach(doc=>{
             batch.delete(doc.ref);
         });
@@ -386,7 +386,6 @@ const addMember = async (firestore, req, res)=>{
             domicilio,
             grupo,
             estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva
-            coordinador: false
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
