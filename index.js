@@ -12,12 +12,13 @@ const capillas  = require('./routes/capillas')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
+const capacitacion = require('./routes/capacitacion')
 
 app.use(cors())
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/', (req, res)=>{res.send('Arquidiocesis Backend')})
+// app.get('/', (req, res)=>{res.send('Arquidiocesis Backend')})
 
 //init firebase
 const admin = require('firebase-admin')
@@ -30,7 +31,7 @@ app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-app.all('*', login.verifyToken(firestore));
+// app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
@@ -75,6 +76,8 @@ app.post('/api/coordinadores', (req, res)=>coordinadores.add(firestore, req, res
 app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
 app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
 app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
+
+app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
 
 
 // No route found
