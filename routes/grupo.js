@@ -46,7 +46,7 @@ const getall = async (firestore, req, res)=>{
 		}
 	}
     res.send({
-        error: false, 
+        error: false,
         data: grupos
     })
 }
@@ -180,27 +180,27 @@ const add = async (firestore, req, res)=>{
     } 
     catch(err){
         return res.send({
-            error: true, 
+            error: true,
             message: err.message
         })
     }
 
     //validate parroquia
-    if (parroquia){
+    if (parroquia) {
         const snapshot = await firestore.collection('parroquias').doc(parroquia).get()
-        if (!snapshot.exists){
+        if (!snapshot.exists) {
             return res.send({
-                error: true, 
+                error: true,
                 message: 'no hay parroquia con ese id'
             })
         }
     }
     //validate capilla
-    if(capilla){
+    if (capilla) {
         const snapshot = await firestore.collection('capillas').doc(capilla).get()
-        if(!snapshot.exists){
+        if (!snapshot.exists) {
             return res.send({
-                error: true, 
+                error: true,
                 message: 'no hay capilla con ese id'
             })
         }
@@ -218,7 +218,7 @@ const add = async (firestore, req, res)=>{
     const docref = await firestore.collection('grupos').add(newGroup)
     newGroup.id = docref.id;
     res.send({
-        error: false, 
+        error: false,
         data: newGroup
     })
 }
@@ -405,10 +405,10 @@ const addMember = async (firestore, req, res)=>{
             error: false,
             data: new_member
         })
-    }catch(err){
+    } catch (err) {
         console.log(err);
         return res.send({
-            error: true, 
+            error: true,
             message: 'Error inesperado.'
         })
     }
@@ -433,39 +433,6 @@ const getMember = async (firestore, req, res) => {
     }
 }
 
-const getMemberFicha = async (firestore, req, res) => {
-    var id = req.params.id;
-    try {
-        var seguroSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('seguro').get();
-        var historialSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').get();
-        if (!historialSnap.exists || !seguroSnap.exists)
-            return res.send({ error: true, message: 'Miembro no existe o no tiene ficha medica', code: 1 });
-
-        var alergiasSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('alergias').get();
-        var enfermedadesSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('enfermedades').get();
-        var tratamientosSnap = await firestore.collection('miembros').doc(id).collection('ficha medica').doc('historial').collection('tratamientos').get();
-
-        var alergias = alergiasSnap.docs.map(doc => ({ id: "alergias", ...doc.data() }));
-        var enfermedades = enfermedadesSnap.docs.map(doc => ({ id: "enfermedades", ...doc.data() }));
-        var tratamientos = tratamientosSnap.docs.map(doc => ({ id: "tratamientos", ...doc.data() }));
-
-
-        var seguro = seguroSnap.data;
-        return res.send({
-            error: false,
-            Seguro: seguro,
-            Alergias: alergias,
-            Enfermedades: enfermedades,
-            Tratamientos: tratamientos
-        })
-    } catch (err) {
-        console.log(err);
-        return res.send({
-            error: true,
-            message: 'Error inesperado.'
-        })
-    }
-}
 
 const editMember = async (firestore, req, res) => {
     var id = req.params.id;
@@ -638,78 +605,105 @@ const getAsistencia = async (firestore, req, res)=>{
 	}
 }
 
-const registerAsistencia = async (firestore, req, res)=>{
-	var id = req.params.id;
-	var { fecha, miembros, force } = req.body;
+const registerAsistencia = async (firestore, req, res) => {
+    var id = req.params.id;
+    var { fecha, miembros, force } = req.body;
 
-	var date = moment(fecha, 'YYYY-MM-DD');
-	if(!date.isValid()){
-		return res.send({ error: true, message: 'Invalid date'})
-	}
+    var date = moment(fecha, 'YYYY-MM-DD');
+    if (!date.isValid()) {
+        return res.send({ error: true, message: 'Invalid date' })
+    }
 
-	var group = await firestore.collection('grupos').doc(id).get();
-	if(!group.exists){
-		return res.send({
-			error: true,
-			message: 'Group doesnt exist'
-		})
-	}
+    var group = await firestore.collection('grupos').doc(id).get();
+    if (!group.exists) {
+        return res.send({
+            error: true,
+            message: 'Group doesnt exist'
+        })
+    }
 
-	if(!force){
-		var oldAssistance = await await firestore.collection('grupos/'+id+'/asistencias').doc(fecha).get();
-		if(oldAssistance.exists){
-			return res.send({ 
-				error: true,
-				code: 52, // Arbitrary number
-				message: 'Assistance of that date already exists.'
-			})
-		}
-	}
+    if (!force) {
+        var oldAssistance = await await firestore.collection('grupos/' + id + '/asistencias').doc(fecha).get();
+        if (oldAssistance.exists) {
+            return res.send({
+                error: true,
+                code: 52, // Arbitrary number
+                message: 'Assistance of that date already exists.'
+            })
+        }
+    }
 
-	try{
-		await firestore.collection('grupos/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
-		return res.send({
-			error: false,
-			data: date.format('YYYY-MM-DD')
-		});
-	}catch(err){
-		return res.send({
-			error: true,
-			message: 'Error inesperado.'
-		})
-	}
+    try {
+        await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+        return res.send({
+            error: false,
+            data: date.format('YYYY-MM-DD')
+        });
+    } catch (err) {
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
 }
 
-const saveAsistencia = async (firestore, req, res)=>{
-	var {id, fecha} = req.params;
-	var { miembros } = req.body;
+const saveAsistencia = async (firestore, req, res) => {
+    var { id, fecha } = req.params;
+    var { miembros } = req.body;
 
-	var date = moment(fecha, 'YYYY-MM-DD');
-	if(!date.isValid()){
-		return res.send({ error: true, message: 'Invalid date'})
-	}
+    var date = moment(fecha, 'YYYY-MM-DD');
+    if (!date.isValid()) {
+        return res.send({ error: true, message: 'Invalid date' })
+    }
 
-	try{
-		if(!miembros || miembros.length==0){
-			await firestore.collection('grupos/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).delete();
-			return res.send({
-				error: false,
-				data: { deleted: true, date: date.format('YYYY-MM-DD') }
-			})
-		}else{
-			await firestore.collection('grupos/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
-			return res.send({
-				error: false,
-				data: { deleted: false, date: date.format('YYYY-MM-DD') }
-			})
-		}
-	}catch(e){
-		console.error(e);
-		return res.send({
-			error: true,
-			message: 'Unexpected error.'
-		})
-	}
+    try {
+        if (!miembros || miembros.length == 0) {
+            await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).delete();
+            return res.send({
+                error: false,
+                data: { deleted: true, date: date.format('YYYY-MM-DD') }
+            })
+        } else {
+            await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+            return res.send({
+                error: false,
+                data: { deleted: false, date: date.format('YYYY-MM-DD') }
+            })
+        }
+    } catch (e) {
+        console.error(e);
+        return res.send({
+            error: true,
+            message: 'Unexpected error.'
+        })
+    }
+}
+
+const editMemberFicha = async (firestore, req, res) => {
+    var { tipo_sangre, alergico, servicio_medico, ambulancia, padecimientos } = req.body;
+    var id = req.params.id;
+    try {
+        var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var ficha_medica = {
+            tipo_sangre: tipo_sangre,
+            alergico: alergico,
+            servicio_medico: servicio_medico,
+            ambulancia: ambulancia,
+            padecimientos: padecimientos
+        }
+        await firestore.collection('miembros').doc(id).update({ ficha_medica });
+        return res.send({
+            error: false,
+            data: ficha_medica
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
 }
 
 module.exports = {
@@ -723,7 +717,6 @@ module.exports = {
     editMemberGroup,
     editMemberStatus,
     getMember,
-    getMemberFicha,
     getAsistencia,
     registerAsistencia,
     saveAsistencia,

@@ -20,7 +20,7 @@ app.use(cors())
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// app.get('/', (req, res)=>{res.send('Arquidiocesis Backend')})
+app.get('/', (req, res) => { res.send('Arquidiocesis Backend') })
 
 //init firebase
 const admin = require('firebase-admin')
@@ -28,8 +28,8 @@ const serviceAccount = require('./ServiceAccountKey')
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
-const firestore = admin.firestore() 
-app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
+const firestore = admin.firestore()
+app.get('/', (req, res) => { res.send('Arquidiocesis Backend').status(200) })
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
@@ -55,9 +55,9 @@ app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
 app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
 app.delete('/api/decanatos/:id/acompanante', (req, res)=>{ acompanante.removeDecanato(firestore, req, res) })
 
-app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
-app.delete('/api/capillas/:id', (req, res)=>capillas.remove(firestore, req, res))
-app.get('/api/capillas/:id', (req, res)=>capillas.getone(firestore, req, res))
+app.post('/api/capillas', (req, res) => { capillas.add(firestore, req, res) })
+app.delete('/api/capillas/:id', (req, res) => capillas.remove(firestore, req, res))
+app.get('/api/capillas/:id', (req, res) => capillas.getone(firestore, req, res))
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
@@ -74,7 +74,7 @@ app.get('/api/grupos/miembro/:id', (req, res) => { grupos.getMember(firestore, r
 app.post('/api/grupos/miembro/:id/edit', (req, res) => { grupos.editMember(firestore, req, res) })
 app.post('/api/grupos/miembro/:id/edit/grupo', (req, res) => { grupos.editMemberGroup(firestore, req, res) })
 app.post('/api/grupos/miembro/:id/edit/status', (req, res) => { grupos.editMemberStatus(firestore, req, res) })
-app.get('/api/grupos/miembro/:id/ficha', (req, res) => { grupos.getMemberFicha(firestore, req, res) })
+app.post('/api/grupos/miembro/:id/edit/ficha', (req, res) => { grupos.editMemberFicha(firestore, req, res) })
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
@@ -100,11 +100,11 @@ app.get('/api/acompanante/:id', (req, res)=>acompanante.getone(firestore, req, r
 app.post('/api/acompanante/edit', (req, res)=>acompanante.edit(firestore, req, res));
 
 // No route found
-app.all('*', (req, res)=>{
+app.all('*', (req, res) => {
     return res.send({
         error: true,
         message: 'Mensaje inesperado.'
     });
 })
 
-app.listen(PORT, ()=>{console.log(`Listening on port: ${PORT}...`)})
+app.listen(PORT, () => { console.log(`Listening on port: ${PORT}...`) })
