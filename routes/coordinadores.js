@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt-nodejs');
+const moment = require('moment');
 
 const add = async(firestore, req, res)=>{
 	var { name, age, email, password, gender } = req.body;
@@ -68,20 +69,40 @@ const getone = async (firestore, req, res)=>{
 
 const editCoordinador = async (firestore, req, res) => {
 	var id = req.params.id;
-	var { coordinador } = req.body;
+	var { 
+		apellido_paterno,
+		apellido_materno,
+		domicilio,
+		escolaridad,
+		estado_civil,
+		fecha_nacimiento,
+		nombre,
+		oficio,
+		sexo
+	} = req.body;
+
+	var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+	if(!fn.isValid()) fn = moment();
+
 	try {
-		var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
-		if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
-		var edited_member = {
-			coordinador: coordinador,
-		}
-		await firestore.collection('miembros').doc(id).update(edited_member);
+		var memberSnap = await firestore.collection('coordinadores').doc(id).get();
+		if (!memberSnap.exists) return res.send({ error: true, message: 'Coordinador no existe.', code: 1 });
+		await firestore.collection('coordinadores').doc(id).update({
+			apellido_paterno,
+			apellido_materno,
+			domicilio,
+			escolaridad,
+			estado_civil,
+			fecha_nacimiento: fn.toDate(),
+			nombre,
+			oficio,
+			sexo
+		});
 		return res.send({
 			error: false,
-			data: edited_member
+			data: true
 		})
 	} catch (err) {
-		console.log(err);
 		return res.send({
 			error: true,
 			message: 'Error inesperado.'
