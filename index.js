@@ -79,6 +79,9 @@ app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
 app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 
 app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
+app.get('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.getAsistencia(firestore, req, res))
+app.post('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.saveAsistencia(firestore, req, res))
+app.post('/api/capacitacion/:id/asistencia', (req, res)=>capacitacion.registerAsistencia(firestore, req, res))
 
 app.post('/api/participante/', (req, res)=>participante.add(firestore, req, res))
 

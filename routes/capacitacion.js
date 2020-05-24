@@ -44,6 +44,126 @@ const add = async (firestore, req, res)=>{
     }
 }
 
+/* copy pasted code, cambio de var a const y grupos a capacitaciones */
+const getAsistencia = async (firestore, req, res)=>{
+	const {id, fecha} = req.params;
+	try{
+		const assist = await firestore.collection('capacitaciones/'+id+'/asistencias').doc(fecha).get();
+		if(!assist.exists){
+			return res.send({
+				error: true,
+				code: 34, // Arbitrary number
+				message: 'No such assistance'
+			});
+		}
+		const groupSnap = await firestore.collection('capacitaciones').doc(id).get();
+		if(!groupSnap.exists) return res.send({ error: true, message: 'capacitacion no existe.', code: 1 });
+
+		const asistentes = assist.get('miembros');
+		const miembros = []
+		const asistSnap = await firestore.getAll(...asistentes.map(a=>firestore.doc('participantes/'+a)));
+		asistSnap.forEach(a=>{
+			if(a.exists) miembros.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
+		});
+
+		const miembrosSnap = await firestore.collection('participantes').where('capacitacion', '==', groupSnap.id).get()
+		miembrosSnap.forEach(a=>{
+			if(!a.exists) return;
+			if(asistentes.findIndex(b=>b==a.id)!=-1) return;
+			miembros.push({ id: a.id, nombre: a.data().nombre, assist: false });
+		})
+
+		return res.send({
+			error: false,
+			data: { miembros } 
+		})
+
+	}catch(err){
+		console.error(err);
+		return res.send({
+			error: true,
+			message: 'Error inesperado.'
+		})
+	}
+}
+
+const registerAsistencia = async (firestore, req, res)=>{
+	const id = req.params.id;
+	const { fecha, miembros, force } = req.body;
+
+	const date = moment(fecha, 'YYYY-MM-DD');
+	if(!date.isValid()){
+		return res.send({ error: true, message: 'Invalid date'})
+	}
+
+	const capacitacion = await firestore.collection('capacitaciones').doc(id).get();
+	if(!capacitacion.exists){
+		return res.send({
+			error: true,
+			message: 'capacitacion doesnt exist'
+		})
+	}
+
+	if(!force){
+		const oldAssistance = await firestore.collection('capacitaciones/'+id+'/asistencias').doc(fecha).get();
+		if(oldAssistance.exists){
+			return res.send({ 
+				error: true,
+				code: 52, // Arbitrary number
+				message: 'Assistance of that date already exists.'
+			})
+		}
+	}
+
+	try{
+		await firestore.collection('capacitaciones/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+		return res.send({
+			error: false,
+			data: date.format('YYYY-MM-DD')
+		});
+	}catch(err){
+		return res.send({
+			error: true,
+			message: 'Error inesperado.'
+		})
+	}
+}
+
+const saveAsistencia = async (firestore, req, res)=>{
+	const {id, fecha} = req.params;
+	const { miembros } = req.body;
+
+	const date = moment(fecha, 'YYYY-MM-DD');
+	if(!date.isValid()){
+		return res.send({ error: true, message: 'Invalid date'})
+	}
+
+	try{
+		if(!miembros || miembros.length==0){
+			await firestore.collection('capacitaciones/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).delete();
+			return res.send({
+				error: false,
+				data: { deleted: true, date: date.format('YYYY-MM-DD') }
+			})
+		}else{
+			await firestore.collection('capacitaciones/'+id+'/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+			return res.send({
+				error: false,
+				data: { deleted: false, date: date.format('YYYY-MM-DD') }
+			})
+		}
+	}catch(e){
+		console.error(e);
+		return res.send({
+			error: true,
+			message: 'Unexpected error.'
+		})
+	}
+}
+
 module.exports = {
     add: add,
+    getAsistencia,
+    registerAsistencia,
+    saveAsistencia
 }
