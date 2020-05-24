@@ -21,7 +21,8 @@ const authenticate = async (firestore, req, res)=>{
                     data: {
                         token,
                         email: email.toLowerCase(),
-                        type: data.tipo
+                        type: data.tipo,
+                        id: data.id
                     }
                 });
             }else{

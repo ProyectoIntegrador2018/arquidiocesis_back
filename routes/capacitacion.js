@@ -2,8 +2,17 @@ const moment = require('moment');
 const firebase = require('firebase-admin')
 
 const add = async (firestore, req, res)=>{
-    const payload = req.body.payload
-    let nombre, encargado, inicio, fin
+    const payload = req.body
+	let nombre, encargado, inicio, fin
+	
+	if(!req.user.admin && !req.user.tipo.startsWith('acompañante')){
+		return res.send({
+			error: true,
+			code: 999,
+			message: 'No tienes acceso a esta acción'
+		})
+	}
+	
     try{
         nombre = payload.nombre
         encargado = payload.encargado

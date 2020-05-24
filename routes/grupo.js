@@ -3,7 +3,7 @@ const moment = require('moment');
 const getall = async (firestore, req, res)=>{
     var grupos = [];
 
-    if(req.user.admin){ // Is admin, return all
+    if(req.user.admin || req.user.tipo.startsWith('acompañante')){ // Is admin, return all
         const snapshot = await firestore.collection('grupos').get();
         grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }else{
@@ -62,7 +62,7 @@ const getone = async (firestore, req, res)=>{
         }
 
         var grupo = snapshot.data();
-        if(!req.user.admin && grupo.coordinador!=req.user.id){
+        if(!req.user.admin && grupo.coordinador!=req.user.id && !req.user.tipo.startsWith('acompañante')){
             return res.send({
                 error: true,
                 code: 999,
