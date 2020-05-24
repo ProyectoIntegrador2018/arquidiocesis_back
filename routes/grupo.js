@@ -271,6 +271,26 @@ const editMemberStatus = async (firestore, req, res) => {
     }
 }
 
+const editMemberStatus = async (firestore, req, res) => {
+    var id = req.params.id;
+    var { status } = req.body;
+    try {
+        var memberSnap = await firestore.collection('miembros').doc(id).get('estatus');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe o no tiene un campo de estatus', code: 1 });
+        await firestore.collection('miembros').doc(id).update({ estatus: status });
+        return res.send({
+            error: false,
+            data: memberSnap.data()
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 const getAsistencia = async (firestore, req, res) => {
     var { id, fecha } = req.params;
     try {
