@@ -13,6 +13,7 @@ const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
 const capacitacion = require('./routes/capacitacion')
+const participante = require('./routes/participante')
 
 app.use(cors())
 app.use(express.json())
@@ -83,6 +84,7 @@ app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 
 app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
 
+app.post('/api/participante/', (req, res)=>participante.add(firestore, req, res))
 
 // No route found
 app.all('*', (req, res)=>{
