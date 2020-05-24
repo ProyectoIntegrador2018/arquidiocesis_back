@@ -1,20 +1,41 @@
 const bcrypt = require('bcrypt-nodejs');
+const moment = require('moment');
 
 const add = async(firestore, req, res)=>{
-	var { name, age, email, password, gender } = req.body;
-	if(!name || !age || !email || !password || !gender) return res.send({ error: true, message: 'Missing info.' });
+	var {
+		nombre,
+		apellido_paterno,
+		apellido_materno,
+		estado_civil,
+		sexo,
+		email,
+		fecha_nacimiento,
+		escolaridad,
+		oficio,
+		domicilio,
+		password
+	} = req.body;
 
 	var checkEmail = await firestore.collection('logins').doc(email.toLowerCase()).get();
 	if(checkEmail.exists) return res.send({ error: true, code: 1, message: 'Correo ya utilizado.' });
 
+	var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+	if(!fn.isValid()) fn = moment();
+
 	var newCoordinador = {
-		nombre: name,
-		email: email.toLowerCase(),
-		edad: age,
-		coordinador: true,
-		sexo: gender,
-		coordinador: true,
-	}
+		nombre,
+		apellido_paterno,
+		apellido_materno,
+		fecha_nacimiento: fn,
+		sexo,
+		estado_civil,
+		email,
+		escolaridad,
+		oficio,
+		domicilio,
+		estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva
+		coordinador: false
+  	}
 
 	var newLogin = {
 		password: bcrypt.hashSync(password),
@@ -23,7 +44,7 @@ const add = async(firestore, req, res)=>{
 	}
 
 	try{
-		const docref = await firestore.collection('miembros').add(newCoordinador)
+		const docref = await firestore.collection('coordinadores').add(newCoordinador)
 		newLogin.id = docref.id
 		const login = await firestore.collection('logins').doc(email.toLowerCase()).set(newLogin);
 
@@ -35,6 +56,7 @@ const add = async(firestore, req, res)=>{
 			}
 		})
 	}catch(e){
+		console.log(e);
 		return res.send({
 			error: true,
 			message: 'Error inesperado.'
@@ -45,7 +67,7 @@ const add = async(firestore, req, res)=>{
 
 const getall = async (firestore, req, res)=>{
 	try{
-		const snapshot = await (await firestore.collection('miembros').where('coordinador', '==', true)).get();
+		const snapshot = await firestore.collection('coordinadores').get();
 		var coordinadores = []
 		snapshot.forEach(doc => {
 			coordinadores.push({ id: doc.id, ...doc.data() });
