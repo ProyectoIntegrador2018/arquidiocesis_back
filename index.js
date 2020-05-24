@@ -77,7 +77,8 @@ app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
 app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
 app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 
-app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
+app.post('/api/capacitacion/', (req, res) => capacitacion.add(firestore, req, res))
+app.post('/api/capacitacion/:id/edit/encargado', (req, res) => capacitacion.changeCoordinador(firestore, req, res))
 
 
 // No route found

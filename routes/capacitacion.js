@@ -67,6 +67,31 @@ const add = async (firestore, req, res)=>{
 
 }
 
+const changeCoordinador = async (firestore, req, res) => {
+    var id = req.params.id;
+    var { coordinadorId } = req.body;
+    try {
+        var memberSnap = await firestore.collection('miembros').doc(coordinadorId).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe', code: 1 });
+
+        var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get('encargado');
+        if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Capacitacion no existe', code: 1 });
+
+        await firestore.collection('capacitaciones').doc(id).update({ encargado: coordinadorId });
+        return res.send({
+            error: false,
+            data: capacitacionSnap.data()
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 module.exports = {
-    add: add
+    add: add,
+    changeCoordinador
 }
