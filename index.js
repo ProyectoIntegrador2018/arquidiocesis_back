@@ -14,6 +14,7 @@ const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
 const capacitacion = require('./routes/capacitacion')
 const acompanante = require('./routes/acompanantes')
+const participante = require('./routes/participante')
 
 app.use(cors())
 app.use(express.json())
@@ -85,12 +86,16 @@ app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 app.delete('/api/zonas/:id/acompanante', (req, res)=>{ acompanante.removeZona(firestore, req, res) })
 
 app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
+app.get('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.getAsistencia(firestore, req, res))
+app.post('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.saveAsistencia(firestore, req, res))
+app.post('/api/capacitacion/:id/asistencia', (req, res)=>capacitacion.registerAsistencia(firestore, req, res))
+
+app.post('/api/participante/', (req, res)=>participante.add(firestore, req, res))
 
 app.post('/api/acompanante/zona', (req, res)=>acompanante.addZona(firestore, req, res));
 app.post('/api/acompanante/decanato', (req, res)=>acompanante.addDecanato(firestore, req, res));
 app.get('/api/acompanante/:id', (req, res)=>acompanante.getone(firestore, req, res));
 app.post('/api/acompanante/edit', (req, res)=>acompanante.edit(firestore, req, res));
-
 
 // No route found
 app.all('*', (req, res)=>{
