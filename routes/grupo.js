@@ -75,7 +75,8 @@ const getone = async (firestore, req, res)=>{
         var miembros = []
         miembrosSnap.forEach(a=>{
             if(!a.exists) return;
-            miembros.push({ id: a.id, nombre: a.data().nombre });
+            var m = a.data();
+            miembros.push({ id: a.id, nombre: m.nombre, apellido_paterno: m.apellido_paterno });
         })
         grupo.miembros = miembros;
     
@@ -99,10 +100,16 @@ const getone = async (firestore, req, res)=>{
         
         if(grupo.coordinador){
             var coordSnap = await firestore.collection('coordinadores').doc(grupo.coordinador).get();
-            if(!coordSnap.exists) grupo.coordinador = null;
-            grupo.coordinador = {
-                id: coordSnap.id,
-                nombre: coordSnap.data().nombre
+            if(!coordSnap.exists){
+                grupo.coordinador = null;
+            }else{
+                var d = coordSnap.data();
+                grupo.coordinador = {
+                    id: coordSnap.id,
+                    nombre: d.nombre,
+                    apellido_paterno: d.apellido_paterno,
+                    apellido_materno: d.apellido_materno
+                }
             }
         }
 
@@ -326,8 +333,9 @@ const changeCoordinador = async (firestore, req, res)=>{
             }
         }
        
-        const coordSnap = await firestore.collection('miembros').doc(coordinador).get();
-        if(!coordSnap.exists || !coordSnap.data().coordinador) return res.send({ error: true, message: 'El coordinador no existe.' });
+        console.log(coordinador);
+        const coordSnap = await firestore.collection('coordinadores').doc(coordinador).get();
+        if(!coordSnap.exists) return res.send({ error: true, message: 'El coordinador no existe.' });
         
         await grupoSnap.update({ coordinador });
 
@@ -590,14 +598,30 @@ const getAsistencia = async (firestore, req, res)=>{
 		var miembros = []
 		const asistSnap = await firestore.getAll(...asistentes.map(a=>firestore.doc('miembros/'+a)));
 		asistSnap.forEach(a=>{
-			if(a.exists) miembros.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
+			if(a.exists){
+                var m = a.data();
+                miembros.push({ 
+                    id: a.id, 
+                    nombre: m.nombre, 
+                    apellido_paterno: m.apellido_paterno,
+                    apellido_materno: m.apellido_materno,
+                    assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 
+                })
+            }
 		});
 
 		var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('estatus', '==', 0).get();
 		miembrosSnap.forEach(a=>{
 			if(!a.exists) return;
-			if(asistentes.findIndex(b=>b==a.id)!=-1) return;
-			miembros.push({ id: a.id, nombre: a.data().nombre, assist: false });
+            if(asistentes.findIndex(b=>b==a.id)!=-1) return;
+            var m = a.data();
+			miembros.push({ 
+                id: a.id, 
+                nombre: m.nombre, 
+                apellido_paterno: m.apellido_paterno,
+                apellido_materno: m.apellido_materno,
+                assist: false
+            })
 		})
 
 		return res.send({

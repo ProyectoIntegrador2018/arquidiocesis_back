@@ -16,6 +16,15 @@ const add = async(firestore, req, res)=>{
 		password
 	} = req.body;
 
+	
+	if(!req.user.admin){
+		return res.send({
+			error: true,
+			code: 999,
+			message: 'No tienes acceso a esta acción'
+		})
+  	}
+
 	var checkEmail = await firestore.collection('logins').doc(email.toLowerCase()).get();
 	if(checkEmail.exists) return res.send({ error: true, code: 1, message: 'Correo ya utilizado.' });
 
@@ -102,6 +111,14 @@ const editCoordinador = async (firestore, req, res) => {
 		sexo
 	} = req.body;
 
+	if(!req.user.admin){
+		return res.send({
+			error: true,
+			code: 999,
+			message: 'No tienes acceso a esta acción'
+		})
+  	}
+
 	var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
 	if(!fn.isValid()) fn = moment();
 
@@ -133,6 +150,14 @@ const editCoordinador = async (firestore, req, res) => {
 
 const remove = async (firestore, req, res)=>{
 	var { id } = req.params;
+
+	if(!req.user.admin){
+		return res.send({
+			error: true,
+			code: 999,
+			message: 'No tienes acceso a esta acción'
+		})
+  	}
 	try{
 		var coordSnap = await firestore.collection('coordinadores').doc(id).get('nombre');
 		if(!coordSnap.exists) return res.send({
