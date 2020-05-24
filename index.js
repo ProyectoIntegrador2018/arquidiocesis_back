@@ -13,6 +13,7 @@ const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
 const capacitacion = require('./routes/capacitacion')
+const acompanante = require('./routes/acompanantes')
 
 app.use(cors())
 app.use(express.json())
@@ -31,7 +32,7 @@ app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-// app.all('*', login.verifyToken(firestore));
+app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
@@ -51,6 +52,7 @@ app.post('/api/parroquias/edit', (req, res)=>parroquias.udpate(firestore, req, r
 
 app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
 app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
+app.delete('/api/decanatos/:id/acompanante', (req, res)=>{ acompanante.removeDecanato(firestore, req, res) })
 
 app.post('/api/capillas', (req, res)=>{capillas.add(firestore, req, res)})
 app.delete('/api/capillas/:id', (req, res)=>capillas.remove(firestore, req, res))
@@ -80,8 +82,14 @@ app.post('/api/coordinadores', (req, res)=>coordinadores.add(firestore, req, res
 app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
 app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
 app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
+app.delete('/api/zonas/:id/acompanante', (req, res)=>{ acompanante.removeZona(firestore, req, res) })
 
 app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
+
+app.post('/api/acompanante/zona', (req, res)=>acompanante.addZona(firestore, req, res));
+app.post('/api/acompanante/decanato', (req, res)=>acompanante.addDecanato(firestore, req, res));
+app.get('/api/acompanante/:id', (req, res)=>acompanante.getone(firestore, req, res));
+app.post('/api/acompanante/edit', (req, res)=>acompanante.edit(firestore, req, res));
 
 
 // No route found
