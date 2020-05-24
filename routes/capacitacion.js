@@ -67,6 +67,17 @@ const add = async (firestore, req, res)=>{
 
 }
 
+/*
+    payload {
+        id, (String)
+        memberid, (String)
+    }
+*/
+
+const addMember = async (firestore, req, res)=>{
+}
+
 module.exports = {
-    add: add
+    add: add,
+    addMember: addMember
 }
