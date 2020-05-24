@@ -110,9 +110,38 @@ const editCoordinador = async (firestore, req, res) => {
 	}
 }
 
+const remove = async (firestore, req, res)=>{
+	var { id } = req.params;
+	try{
+		var coordSnap = await firestore.collection('coordinadores').doc(id).get('nombre');
+		if(!coordSnap.exists) return res.send({
+			error: true,
+			message: 'El coordinador no existe'
+		});
+		var l = await firestore.collection('logins').where('id', '==', coordSnap.id).where('tipo', '==', 'coordinador').get();
+		let batch = firestore.batch();
+		l.docs.forEach(a=>{
+			batch.delete(a.ref);
+		})
+		await batch.commit();
+		await firestore.collection('coordinadores').doc(id).delete();
+
+		return res.send({
+			error: false,
+			data: true
+		})
+	}catch(e){
+		return res.send({
+			error: true,
+			message: 'Mensaje inesperado'
+		})
+	}
+}
+
 module.exports = {
 	add,
 	getall,
 	getone,
-	editCoordinador
+	editCoordinador,
+	remove
 }

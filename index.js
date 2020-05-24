@@ -72,6 +72,7 @@ app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, r
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
 app.post('/api/coordinadores', (req, res) => coordinadores.add(firestore, req, res));
 app.post('/api/coordinadores/:id/edit', (req, res) => coordinadores.editCoordinador(firestore, req, res));
+app.delete('/api/coordinadores/:id', (req, res) => coordinadores.remove(firestore, req, res));
 
 app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
 app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
