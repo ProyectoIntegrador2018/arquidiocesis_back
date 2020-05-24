@@ -12,12 +12,14 @@ const capillas  = require('./routes/capillas')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
+const capacitacion = require('./routes/capacitacion')
+const participante = require('./routes/participante')
 
 app.use(cors())
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/', (req, res)=>{res.send('Arquidiocesis Backend')})
+// app.get('/', (req, res)=>{res.send('Arquidiocesis Backend')})
 
 //init firebase
 const admin = require('firebase-admin')
@@ -30,7 +32,7 @@ app.get('/', (req, res)=>{res.send('Arquidiocesis Backend').status(200)})
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-//app.all('*', login.verifyToken(firestore));
+app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
@@ -57,10 +59,14 @@ app.get('/api/capillas/:id', (req, res)=>capillas.getone(firestore, req, res))
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
+app.get('/api/grupos/:id/bajas', (req, res)=>{grupos.getBajasTemporales(firestore, req, res)})
+app.delete('/api/grupos/:id', (req, res)=>{grupos.remove(firestore, req, res)})
+app.post('/api/grupos/:id/coordinador', (req, res)=>{grupos.changeCoordinador(firestore, req, res)})
 app.get('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.getAsistencia(firestore, req, res)})
 app.post('/api/grupos/:id/asistencia/:fecha', (req, res)=>{grupos.saveAsistencia(firestore, req, res)})
 app.post('/api/grupos/:id/asistencia', (req, res)=>{grupos.registerAsistencia(firestore, req, res)})
 app.post('/api/grupos', (req, res)=>{grupos.add(firestore, req, res)})
+app.post('/api/grupos/edit', (req, res)=>grupos.edit(firestore, req, res));
 app.post('/api/grupos/register', (req, res) => { grupos.addMember(firestore, req, res) });
 app.get('/api/grupos/miembro/:id', (req, res) => { grupos.getMember(firestore, req, res) });
 app.post('/api/grupos/miembro/:id/edit', (req, res) => { grupos.editMember(firestore, req, res) })
@@ -78,6 +84,12 @@ app.get('/api/zonas', (req, res) => { zonas.getall(firestore, req, res) })
 app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
 app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 
+app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
+app.get('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.getAsistencia(firestore, req, res))
+app.post('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.saveAsistencia(firestore, req, res))
+app.post('/api/capacitacion/:id/asistencia', (req, res)=>capacitacion.registerAsistencia(firestore, req, res))
+
+app.post('/api/participante/', (req, res)=>participante.add(firestore, req, res))
 
 // No route found
 app.all('*', (req, res)=>{
