@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 const getall = async (firestore, req, res)=>{
-    var grupos = []
+    var grupos = [];
 
     if(req.user.admin){ // Is admin, return all
         const snapshot = await firestore.collection('grupos').get();
@@ -71,7 +71,7 @@ const getone = async (firestore, req, res)=>{
         }
     
         // Query a información de los miembros
-        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).where('estatus', '==', 0).get();
+        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('estatus', '==', 0).get();
         var miembros = []
         miembrosSnap.forEach(a=>{
             if(!a.exists) return;
@@ -98,7 +98,7 @@ const getone = async (firestore, req, res)=>{
         }
         
         if(grupo.coordinador){
-            var coordSnap = await firestore.collection('miembros').doc(grupo.coordinador).get();
+            var coordSnap = await firestore.collection('coordinadores').doc(grupo.coordinador).get();
             if(!coordSnap.exists) grupo.coordinador = null;
             grupo.coordinador = {
                 id: coordSnap.id,
@@ -136,7 +136,7 @@ var getBajasTemporales = async (firestore, req, res)=>{
         }
     
         // Query a información de los miembros
-        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('coordinador', '==', false).where('estatus', '==', 1).get('nombre');
+        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('estatus', '==', 1).get('nombre');
         var miembros = []
         miembrosSnap.forEach(a=>{
             if(!a.exists) return;
@@ -167,7 +167,7 @@ const add = async (firestore, req, res)=>{
 
     var { name, parroquia, capilla, coordinador } = req.body;
     try{ 
-        const snapshot = await firestore.collection('miembros').doc(coordinador).get() 
+        const snapshot = await firestore.collection('coordinadores').doc(coordinador).get() 
         if(!snapshot.exists || !snapshot.data().coordinador) throw {message: 'no hay coordinador registrado con ese id'}
         if ((!parroquia && !capilla)|| (parroquia && capilla)) throw {message: 'group needs capilla OR parroquia'}
     } 
@@ -280,7 +280,7 @@ const remove = async (firestore, req, res)=>{
         
         // Eliminar miembros
         let batch = firestore.batch();
-        const memberSnap = await firestore.collection('miembros').where('grupo', '==', id).where('coordinador', '==', false).get();
+        const memberSnap = await firestore.collection('miembros').where('grupo', '==', id).get();
         memberSnap.docs.forEach(doc=>{
             batch.delete(doc.ref);
         });
@@ -386,7 +386,6 @@ const addMember = async (firestore, req, res)=>{
             domicilio,
             grupo,
             estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva
-            coordinador: false
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
@@ -594,7 +593,7 @@ const getAsistencia = async (firestore, req, res)=>{
 			if(a.exists) miembros.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
 		});
 
-		var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('coordinador', '==', false).get();
+		var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).get();
 		miembrosSnap.forEach(a=>{
 			if(!a.exists) return;
 			if(asistentes.findIndex(b=>b==a.id)!=-1) return;
