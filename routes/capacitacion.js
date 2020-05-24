@@ -1,25 +1,11 @@
 const moment = require('moment');
 const firebase = require('firebase-admin')
-/*
-    payload = {
-        id, (string)
-        encargado, (string)
-        inicio, (string YYYY-MM-DD)
-        fin (string YYYY-MM-DD)
-    }
-
-    // Date to Timestamp
-    const t = firebase.firestore.Timestamp.fromDate(new Date());
-
-    // Timestamp to Date
-    const d = t.toDate();
-*/
 
 const add = async (firestore, req, res)=>{
     const payload = req.body.payload
-    let id, encargado, inicio, fin
+    let nombre, encargado, inicio, fin
     try{
-        id = payload.id
+        nombre = payload.nombre
         encargado = payload.encargado
         inicio = firebase.firestore.Timestamp.fromDate(moment(payload.inicio, 'YYYY-MM-DD').toDate())
         fin = firebase.firestore.Timestamp.fromDate(moment(payload.fin, 'YYYY-MM-DD').toDate())
@@ -31,7 +17,7 @@ const add = async (firestore, req, res)=>{
     }
 
     //validar que exista en coordinador 
-    let snapshot = await firestore.collection('capacitadores').doc(encargado).get()
+    let snapshot = await firestore.collection('coordinadores').doc(encargado).get()
     if (!snapshot.exists){
         return res.send({
             error: true, 
@@ -39,20 +25,12 @@ const add = async (firestore, req, res)=>{
         })
     }
 
-    //validar que no exista un grupo con ese id 
-    snapshot = await firestore.collection('capacitaciones').doc(id).get()
-    if (snapshot.exists){
-        return res.send({
-            error: true, 
-            message: 'ya existe una capacitacion con ese id'
-        })
-    }
-
     try{
-        const writeresult = await firestore.collection('capacitaciones').doc(id).set({
+        const writeresult = await firestore.collection('capacitaciones').add({
+            nombre,
             encargado, 
             inicio,
-            fin
+            fin 
         })
         res.send({
             error: false, 
@@ -64,20 +42,8 @@ const add = async (firestore, req, res)=>{
             message: 'error al escribir los datos a db\n' + err
         })
     }
-
-}
-
-/*
-    payload {
-        id, (String)
-        memberid, (String)
-    }
-*/
-
-const addMember = async (firestore, req, res)=>{
 }
 
 module.exports = {
     add: add,
-    addMember: addMember
 }
