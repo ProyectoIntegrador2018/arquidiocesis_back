@@ -80,6 +80,8 @@ app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 app.post('/api/capacitacion/', (req, res) => capacitacion.add(firestore, req, res))
 app.post('/api/capacitacion/:id/edit/encargado', (req, res) => capacitacion.changeCoordinador(firestore, req, res))
 app.delete('/api/capacitacion/:id/delete', (req, res) => capacitacion.deleteOne(firestore, req, res))
+app.delete('/api/capacitacion/:id/deleteMember', (req, res) => capacitacion.deleteMember(firestore, req, res))
+
 
 
 // No route found

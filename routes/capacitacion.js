@@ -111,8 +111,29 @@ const deleteOne = async (firestore, req, res) => {
     }
 }
 
+const deleteMember = async (firestore, req, res) => {
+    var id = req.params.id;
+    try {
+        var participantesSnap = await firestore.collection('participantes').doc(id).get();
+        if (!participantesSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
+        var participantes = participantesSnap.data();
+        await firestore.collection('participantes').doc(id).delete();
+        return res.send({
+            error: false,
+            data: participantes
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 module.exports = {
     add: add,
     changeCoordinador,
-    deleteOne
+    deleteOne,
+    deleteMember
 }
