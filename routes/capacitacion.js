@@ -33,13 +33,12 @@ const add = async (firestore, req, res)=>{
             message: 'No hay capacitador con eses id'
         })
     }
-
     try{
         const writeresult = await firestore.collection('capacitaciones').add({
             nombre,
             encargado, 
             inicio,
-            fin 
+            fin
         })
         res.send({
             error: false, 
@@ -52,6 +51,86 @@ const add = async (firestore, req, res)=>{
         })
     }
 }
+
+const changeCoordinador = async (firestore, req, res) => {
+    var { id, coordinador } = req.body;
+    try {
+        var memberSnap = await firestore.collection('coordinadores').doc(coordinador).get('nombre');
+        if (!memberSnap.exists) return res.send({ error: true, message: 'Coordinador no existe', code: 1 });
+
+        var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get('encargado');
+        if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Capacitacion no existe', code: 1 });
+
+        await firestore.collection('capacitaciones').doc(id).update({ encargado: coordinador });
+        return res.send({
+            error: false,
+            data: true
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
+const deleteOne = async (firestore, req, res) => {
+    var id = req.params.id;
+    try {
+        var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get();
+        if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Capacitacion no existe.', code: 1 });
+        await firestore.collection('capacitaciones').doc(id).delete();
+        return res.send({
+            error: false,
+            data: true
+        })
+    } catch (err) {
+        console.log(err);
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
+const edit = async (firestore, req, res)=>{
+    var { id, nombre, inicio, fin } = req.body;
+
+    if(!req.user.admin && !req.user.tipo.startsWith('acompañante')){
+		return res.send({
+			error: true,
+			code: 999,
+			message: 'No tienes acceso a esta acción'
+		})
+	}
+
+    try{
+        inicio = firebase.firestore.Timestamp.fromDate(moment(inicio, 'YYYY-MM-DD').toDate())
+        fin = firebase.firestore.Timestamp.fromDate(moment(fin, 'YYYY-MM-DD').toDate())
+    }catch(e){
+        return res.send({
+            error: true, 
+            message: 'Fechas no validas'
+        })
+    }
+
+    try{
+        var capRef = await firebase.collection('capacitaciones').doc(id);
+        var capSnap = capRef.get();
+        if(!capSnap.exists) return res.send({
+            error: true,
+            message: 'Capacitación no existe.'
+        });
+        await capRef.update({ nombre, inicio, fin });
+    }catch(e){
+        return res.send({
+            error: true,
+            message: 'Error inesperado.'
+        })
+    }
+}
+
 
 /* copy pasted code, cambio de var a const y grupos a capacitaciones */
 const getAsistencia = async (firestore, req, res)=>{
@@ -201,10 +280,13 @@ const getall = async (firestore, req, res)=>{
 }
 
 module.exports = {
-    add: add,
+    add,
     getAsistencia,
     registerAsistencia,
 	saveAsistencia,
-	getone: getone, 
-	getall: getall
+	getone, 
+	getall,
+	changeCoordinador,
+	edit,
+	deleteOne
 }

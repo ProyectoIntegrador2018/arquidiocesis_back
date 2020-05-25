@@ -33,7 +33,7 @@ app.get('/', (req, res) => { res.send('Arquidiocesis Backend').status(200) })
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-// app.all('*', login.verifyToken(firestore));
+app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
@@ -87,6 +87,10 @@ app.get('/api/zonas/:id', (req, res) => { zonas.getone(firestore, req, res) })
 app.post('/api/zonas', (req, res) => {zonas.add(firestore, req, res) })
 app.delete('/api/zonas/:id/acompanante', (req, res)=>{ acompanante.removeZona(firestore, req, res) })
 
+app.post('/api/capacitacion/', (req, res) => capacitacion.add(firestore, req, res))
+app.delete('/api/capacitacion/:id', (req, res) => capacitacion.deleteOne(firestore, req, res))
+app.post('/api/capacitacion/edit', (req, res) => capacitacion.edit(firestore, req, res))
+app.post('/api/capacitacion/edit/encargado', (req, res) => capacitacion.changeCoordinador(firestore, req, res))
 app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
 app.get('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.getAsistencia(firestore, req, res))
 app.post('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.saveAsistencia(firestore, req, res))
