@@ -99,6 +99,7 @@ app.get('/api/capacitacion/:id', (req, res)=>capacitacion.getone(firestore, req,
 app.get('/api/capacitacion/', (req, res)=>capacitacion.getall(firestore, req, res))
 
 app.post('/api/participante/', (req, res)=>participante.add(firestore, req, res))
+app.post('/api/participante/edit', (req, res)=>participante.edit(firestore, req, res))
 
 app.post('/api/acompanante/zona', (req, res)=>acompanante.addZona(firestore, req, res));
 app.post('/api/acompanante/decanato', (req, res)=>acompanante.addDecanato(firestore, req, res));
