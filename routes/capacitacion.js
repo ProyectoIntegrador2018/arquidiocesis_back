@@ -116,13 +116,17 @@ const edit = async (firestore, req, res)=>{
     }
 
     try{
-        var capRef = await firebase.collection('capacitaciones').doc(id);
-        var capSnap = capRef.get();
+		var capRef = await firestore.collection('capacitaciones').doc(id);
+        var capSnap = await capRef.get();
         if(!capSnap.exists) return res.send({
             error: true,
             message: 'Capacitación no existe.'
         });
-        await capRef.update({ nombre, inicio, fin });
+		await capRef.update({ nombre, inicio, fin });
+		return res.send({
+			error: false,
+			data: true
+		})
     }catch(e){
         return res.send({
             error: true,
@@ -253,15 +257,33 @@ const getone = async (firestore, req, res)=>{
 	const id = req.params.id
 	const snapshot = await firestore.collection('capacitaciones').doc(id).get()
 	if(!snapshot.exists){
-
 		return res.send({
 			error: true, 
 			message: 'no existe capacitacion con ese id'
 		})
 	}
+
+	const partSnap = await firestore.collection('participantes').where('capacitacion', '==', id).get();
+	var participantes = partSnap.docs.map(a=>{
+		var p = a.data();
+		return {
+			nombre: p.nombre,
+			apellido_paterno: p.apellido_paterno,
+			apellido_materno: p.apellido_materno
+		}
+	})
+
+	const asistSnap = await firestore.collection('capacitaciones/'+id+'/asistencias').get();
+	var asistencias = asistSnap.docs.map(a=>a.id);
+
 	res.send({
 		error: false, 
-		data: snapshot.data()
+		data: {
+			id: snapshot.id,
+			participantes,
+			asistencias,
+			...snapshot.data()
+		}
 	})
 }
 

@@ -91,7 +91,6 @@ app.post('/api/capacitacion/', (req, res) => capacitacion.add(firestore, req, re
 app.delete('/api/capacitacion/:id', (req, res) => capacitacion.deleteOne(firestore, req, res))
 app.post('/api/capacitacion/edit', (req, res) => capacitacion.edit(firestore, req, res))
 app.post('/api/capacitacion/edit/encargado', (req, res) => capacitacion.changeCoordinador(firestore, req, res))
-app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res))
 app.get('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.getAsistencia(firestore, req, res))
 app.post('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.saveAsistencia(firestore, req, res))
 app.post('/api/capacitacion/:id/asistencia', (req, res)=>capacitacion.registerAsistencia(firestore, req, res))
