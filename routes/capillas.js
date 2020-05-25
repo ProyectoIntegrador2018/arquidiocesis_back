@@ -75,8 +75,50 @@ const getone = async (firestore, req, res)=>{
 
 }
 
+/*
+    var payload = {
+        capilla,
+        nombre,
+        direccion,
+        colonia,
+        municipio,
+        telefono1,
+        telefono2
+    }
+*/
+const edit = async (firestore, req, res)=>{
+    const {id, nombre, direccion, colonia, municipio, telefono1, telefono2} = req.body.payload
+    if(!id || !nombre || !direccion|| !colonia|| !municipio|| !telefono1|| !telefono2){
+        return res.send({
+            error: true, 
+            message: 'valores faltantes en el request'
+        })
+    }
+    //validate que exista lo que se queire editar
+    const snapshot = await firestore.collection('capillas').doc(id).get()
+    if(!snapshot.exists){
+        return res.send({
+            error: true, 
+            message: 'no hay capacitacion con ese id'
+        })
+    }
+    const payload = {nombre, direccion, colonia, municipio, telefono1, telefono2}
+    const result = await firestore.collection('capillas').doc(id).set({...payload},{merge: true})
+    if (!result){
+        return res.send({
+            error: true, 
+            message: 'error al actualizar los datos'
+        })
+    }
+
+    res.send({
+        error: false, 
+        message: result.writeTime.toDate()
+    })
+}
 module.exports = {
     add: add, 
     remove: remove,
-    getone: getone
+    getone: getone,
+    edit: edit
 }
