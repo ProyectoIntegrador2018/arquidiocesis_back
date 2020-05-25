@@ -30,15 +30,12 @@ const getone = async(firestore, req, res)=>{
 	 }
 	var parroquia = snapshot.data();
 	var capillas = []
-	// Conseguir información sobre capillas.
-	if(parroquia.capillas && parroquia.capillas.length>0){
-		var ref = parroquia.capillas.map(a=>firestore.doc('capillas/'+a));
-		const cap = await firestore.getAll(...ref);
-		cap.forEach(a=>{
-			if(!a.exists) return;
-			capillas.push({...a.data(), id: a.id})
-		})
-	}
+    // Conseguir información sobre capillas.
+    var cap = await firestore.collection('capillas').where('parroquia', '==', snapshot.id).get();
+    cap.forEach(a=>{
+        if(!a.exists) return;
+        capillas.push({...a.data(), id: a.id})
+    })
 
     // Conseguir información sobre el decanato
 	if(parroquia.decanato){
