@@ -53,7 +53,8 @@ const add = async (firestore, req, res)=>{
 }
 
 const changeCoordinador = async (firestore, req, res) => {
-    var { id, coordinador } = req.body;
+	 var { id, coordinador } = req.body;
+	 console.log(req.body);
     try {
         var memberSnap = await firestore.collection('coordinadores').doc(coordinador).get('nombre');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Coordinador no existe', code: 1 });
@@ -166,7 +167,9 @@ const getAsistencia = async (firestore, req, res)=>{
 			if(a.exists) miembros.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
 		});
 
-		const miembrosSnap = await firestore.collection('participantes').where('capacitacion', '==', groupSnap.id).get()
+		console.log(miembros);
+
+		const miembrosSnap = await firestore.collection('participantes').where('capacitacion', '==', groupSnap.id).where('eliminado', '==', false).get()
 		miembrosSnap.forEach(a=>{
 			if(!a.exists) return;
 			if(asistentes.findIndex(b=>b==a.id)!=-1) return;
@@ -271,10 +274,11 @@ const getone = async (firestore, req, res)=>{
 		})
 	}
 
-	const partSnap = await firestore.collection('participantes').where('capacitacion', '==', id).get();
+	const partSnap = await firestore.collection('participantes').where('capacitacion', '==', id).where('eliminado', '==', false).get();
 	var participantes = partSnap.docs.map(a=>{
 		var p = a.data();
 		return {
+			id: a.id,
 			nombre: p.nombre,
 			apellido_paterno: p.apellido_paterno,
 			apellido_materno: p.apellido_materno
@@ -293,6 +297,32 @@ const getone = async (firestore, req, res)=>{
 			...snapshot.data()
 		}
 	})
+}
+
+const getParticipantes = async (firestore, req, res)=>{
+	var { id } = req.params;
+	try{
+		const partSnap = await firestore.collection('participantes').where('capacitacion', '==', id).where('eliminado', '==', false).get();
+		var participantes = partSnap.docs.map(a=>{
+			var p = a.data();
+			return {
+				id: a.id,
+				nombre: p.nombre,
+				apellido_paterno: p.apellido_paterno,
+				apellido_materno: p.apellido_materno
+			}
+		})
+	
+		return res.send({
+			error: false,
+			data: participantes
+		})
+	}catch(e){
+		return res.send({
+			error: true,
+			message: 'Mensaje inesperado.'
+		})
+	}
 }
 
 const getall = async (firestore, req, res)=>{
@@ -318,5 +348,6 @@ module.exports = {
 	getall,
 	changeCoordinador,
 	edit,
-	deleteOne
+	deleteOne,
+	getParticipantes
 }

@@ -3,112 +3,70 @@ const firebase = require('firebase-admin')
 
 const add = async(firestore, req, res)=>{
     const {
-        nombre , 
-        apellido_materno , 
-        apellido_paterno , 
-        nombre_corto , 
+        nombre, 
+        apellido_materno, 
+        apellido_paterno, 
+        nombre_corto, 
         fecha_nacimiento,
-        estado_civil ,  
-        genero ,  
-        domicilio ,  
-        colonia , 
-        municipio , 
-        telefono_casa , 
-        telefono_movil , 
-        correo , 
+        estado_civil,  
+		sexo, 
+		email,
         escolaridad , 
-        ocupacion, 
-        capacitacion
-    } = req.body.payload
+        oficio, 
+		capacitacion,
+		domicilio
+	} = req.body
 
-   if ( !nombre || 
-        !apellido_materno || 
-        !apellido_paterno || 
-        !nombre_corto || 
-        !fecha_nacimiento||
-        !estado_civil ||  
-        !genero ||  
-        !domicilio ||  
-        !colonia || 
-        !municipio || 
-        !telefono_casa || 
-        !telefono_movil || 
-        !correo || 
-        !escolaridad || 
-        !ocupacion ||
-        !capacitacion
-   ){
-        res.send({
-            error: true, 
-            message: 'missing values in payload'
-        })
-   }
-
-   //validar capacitacion 
-   const snapshot = await firestore.collection('capacitaciones').doc(capacitacion).get()
-   if (!snapshot.exists){
-       return res.send({
+   	//validar capacitacion 
+   	const snapshot = await firestore.collection('capacitaciones').doc(capacitacion).get()
+	if (!snapshot.exists){
+       	return res.send({
            error: false, 
            message: 'no hay capacitacion con ese id'
-       })
-   }
+       	})
+   	}
 
-   req.body.payload.fecha_nacimiento = firebase.firestore.Timestamp.fromDate(moment(fecha_nacimiento, 'YYYY-MM-DD').toDate())
+   	var fn = firebase.firestore.Timestamp.fromDate(moment(fecha_nacimiento, 'YYYY-MM-DD').toDate())
    
-   await firestore.collection('participantes').add({
-       ...req.body.payload
-   })
-   res.send({
+   	var newPart = await firestore.collection('participantes').add({
+		nombre,
+		apellido_paterno,
+		apellido_materno,
+		nombre_corto,
+		fecha_nacimiento: fn,
+		estado_civil,
+		sexo,
+		email,
+		escolaridad,
+		oficio,
+		domicilio,
+        capacitacion,
+        eliminado: false
+	})
+   	return res.send({
        error: false, 
-       message: 'ok'
-   })
+       data: newPart.id
+   	})
 }
 
 const edit = async (firestore, req, res)=>{
     const {
-        participante,
-        nombre , 
-        apellido_materno , 
-        apellido_paterno , 
-        nombre_corto , 
+        id,
+        nombre, 
+        apellido_materno, 
+        apellido_paterno, 
+        nombre_corto, 
         fecha_nacimiento,
-        estado_civil ,  
-        genero ,  
-        domicilio ,  
-        colonia , 
-        municipio , 
-        telefono_casa , 
-        telefono_movil , 
-        correo , 
-        escolaridad , 
-        ocupacion, 
-        capacitacion
-    } = req.body.payload   
-    if ( !nombre || 
-        !apellido_materno || 
-        !apellido_paterno || 
-        !nombre_corto || 
-        !fecha_nacimiento||
-        !estado_civil ||  
-        !genero ||  
-        !domicilio ||  
-        !colonia || 
-        !municipio || 
-        !telefono_casa || 
-        !telefono_movil || 
-        !correo || 
-        !escolaridad || 
-        !ocupacion ||
-        !capacitacion
-   ){
-        res.send({
-            error: true, 
-            message: 'missing values in payload'
-        })
-   }
-
+        estado_civil,  
+		sexo, 
+		email,
+        escolaridad, 
+        oficio, 
+		domicilio
+	} = req.body
+    
     //validate participante
-    const usersnap = await firestore.collection('participantes').doc(participante).get() 
+    const usersnap = await firestore.collection('participantes').doc(id).get() 
     if(!usersnap.exists){
         return res.send({
             error: true, 
@@ -116,32 +74,20 @@ const edit = async (firestore, req, res)=>{
         })
     }
 
-    //validar capacitacion 
-    const capsnap = await firestore.collection('capacitaciones').doc(capacitacion).get()
-    if (!capsnap.exists){
-        return res.send({
-            error: false, 
-            message: 'no hay capacitacion con ese id'
-        })
-    }
+    var fn = firebase.firestore.Timestamp.fromDate(moment(fecha_nacimiento, 'YYYY-MM-DD').toDate())
 
-    const result = await firestore.collection('participantes').doc(participante).set({
-        nombre , 
-        apellido_materno , 
-        apellido_paterno , 
-        nombre_corto , 
-        fecha_nacimiento,
-        estado_civil ,  
-        genero ,  
-        domicilio ,  
-        colonia , 
-        municipio , 
-        telefono_casa , 
-        telefono_movil , 
-        correo , 
-        escolaridad , 
-        ocupacion, 
-        capacitacion
+    const result = await firestore.collection('participantes').doc(id).set({
+        nombre,
+		apellido_paterno,
+		apellido_materno,
+		nombre_corto,
+		fecha_nacimiento: fn,
+		estado_civil,
+		sexo,
+		email,
+		escolaridad,
+		oficio,
+		domicilio,
     }, {merge: true})
 
     if(!result){
@@ -151,15 +97,49 @@ const edit = async (firestore, req, res)=>{
         })
     }
 
-    res.send({
+    return res.send({
         error: false, 
-        message: result.writeTime.toDate()
+        data: true
     })
+}
 
+var getone = async (firestore, req, res)=>{
+    var { id } = req.params;
+    const usersnap = await firestore.collection('participantes').doc(id).get() 
+    if(!usersnap.exists){
+        return res.send({
+            error: true, 
+            message: 'El participante no existe.'
+        })
+    }
 
+    return res.send({
+        error: false,
+        data: {
+            id: usersnap.id,
+            ...usersnap.data()
+        }
+    })
+}
+
+var remove = async (firestore, req, res)=>{
+    var { id } = req.params;
+    const usersnap = await firestore.collection('participantes').doc(id).get();
+    if(!usersnap.exists){
+        return res.send({ error: false, data: true });
+    }
+    await firestore.collection('participantes').doc(id).update({
+      eliminado: true  
+    });
+    return res.send({
+        error: false,
+        data: true
+    })
 }
 
 module.exports = {
     add: add,
-    edit: edit
+    edit: edit,
+    getone,
+    remove
 }
