@@ -96,11 +96,10 @@ const deleteOne = async (firestore, req, res) => {
     try {
         var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get();
         if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
-        var capacitacion = capacitacionSnap.data();
         await firestore.collection('capacitaciones').doc(id).delete();
         return res.send({
             error: false,
-            data: capacitacion
+            data: true
         })
     } catch (err) {
         console.log(err);
