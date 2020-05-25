@@ -21,7 +21,8 @@ const authenticate = async (firestore, req, res)=>{
                     data: {
                         token,
                         email: email.toLowerCase(),
-                        type: data.tipo
+                        type: data.tipo,
+                        id: data.id
                     }
                 });
             }else{
@@ -64,6 +65,8 @@ const verifyToken = (firestore)=>{
         verify(firestore, token).then(user=>{
             if(user){
                 req.user = user;
+                req.user.admin = user.tipo=='admin' || user.tipo=='superadmin' || user.tipo=='coordinador_general' || user.tipo=='acompañante_operativo';
+                req.user.readonly = user.tipo=='coordinador_general' || user.tipo=='acompañante_operativo';
                 return next();
             }else return res.send({
                 error: true,

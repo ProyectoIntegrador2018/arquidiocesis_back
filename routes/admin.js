@@ -27,7 +27,7 @@ const getOne = async (firestore, req, res)=>{
 		})
 		var login = loginSnap.data();
 		var member;
-		var memberSnap = await firestore.collection('miembros').doc(login.id).get();
+		var memberSnap = await firestore.collection('admins').doc(login.id).get();
 		if(!memberSnap.exists){
 			member = {
 				email: loginSnap.id,
@@ -115,9 +115,9 @@ const register = async (firestore, req, res)=>{
 		}
 
 
-		const new_miembro = await firestore.collection('miembros').add(miembro);
+		const new_admin = await firestore.collection('admins').add(miembro);
 		var login = { 
-			id: new_miembro.id,
+			id: new_admin.id,
 			password: bcrypt.hashSync(password), 
 			tipo
 		};
@@ -126,7 +126,7 @@ const register = async (firestore, req, res)=>{
 			error: false,
 			data: {
 				email: email.toLowerCase(),
-				id: new_miembro.id,
+				id: new_admin.id,
 				tipo
 			}
 		})
@@ -155,7 +155,7 @@ const deleteAdmin = async (firestore, req, res)=>{
 			message: 'Usuario no existe',
 		});
 	
-		await firestore.collection('miembros').doc(loginSnap.data().id).delete();
+		await firestore.collection('admins').doc(loginSnap.data().id).delete();
 		await firestore.collection('logins').doc(loginSnap.id).delete()
 	}catch(e){
 		return res.send({
@@ -204,7 +204,7 @@ const editAdmin = async (firestore, req, res)=>{
 			message: 'Usuario no existe',
 		});
 		await firestore.collection('logins').doc(id.toLowerCase()).update({ tipo });
-		await firestore.collection('miembros').doc(loginSnap.data().id).update(miembro);
+		await firestore.collection('admins').doc(loginSnap.data().id).update(miembro);
 		miembro.tipo = tipo;
 		miembro.email = id.toLowerCase();
 		return res.send({
