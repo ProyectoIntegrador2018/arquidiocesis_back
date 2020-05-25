@@ -80,7 +80,15 @@ const deleteOne = async (firestore, req, res) => {
     try {
         var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get();
         if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Capacitacion no existe.', code: 1 });
-        await firestore.collection('capacitaciones').doc(id).delete();
+		await firestore.collection('capacitaciones').doc(id).delete();
+		
+		var part = await firestore.collection('participantes').where('capacitacion', '==', id).get();
+		let batch = firestore.batch();
+		part.docs.forEach(a=>{
+			batch.delete(a.ref);
+		})
+		await batch.commit();
+
         return res.send({
             error: false,
             data: true
