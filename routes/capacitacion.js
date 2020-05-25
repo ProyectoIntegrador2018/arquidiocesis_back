@@ -170,9 +170,41 @@ const saveAsistencia = async (firestore, req, res)=>{
 	}
 }
 
+const getone = async (firestore, req, res)=>{
+	const id = req.params.id
+	const snapshot = await firestore.collection('capacitaciones').doc(id).get()
+	if(!snapshot.exists){
+
+		return res.send({
+			error: true, 
+			message: 'no existe capacitacion con ese id'
+		})
+	}
+	res.send({
+		error: false, 
+		data: snapshot.data()
+	})
+}
+
+const getall = async (firestore, req, res)=>{
+	const snapshot = await firestore.collection('capacitaciones').get()
+	const docs = snapshot.docs.map(doc =>{
+		return {
+			id: doc.id,
+			...doc.data()
+		}
+	})
+	res.send({
+		error:false, 
+		data: docs
+	})
+}
+
 module.exports = {
     add: add,
     getAsistencia,
     registerAsistencia,
-    saveAsistencia
+	saveAsistencia,
+	getone: getone, 
+	getall: getall
 }

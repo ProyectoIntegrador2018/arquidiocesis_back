@@ -33,7 +33,7 @@ app.get('/', (req, res) => { res.send('Arquidiocesis Backend').status(200) })
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-app.all('*', login.verifyToken(firestore));
+// app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
@@ -91,6 +91,8 @@ app.post('/api/capacitacion/', (req, res)=>capacitacion.add(firestore, req, res)
 app.get('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.getAsistencia(firestore, req, res))
 app.post('/api/capacitacion/:id/asistencia/:fecha', (req, res)=>capacitacion.saveAsistencia(firestore, req, res))
 app.post('/api/capacitacion/:id/asistencia', (req, res)=>capacitacion.registerAsistencia(firestore, req, res))
+app.get('/api/capacitacion/:id', (req, res)=>capacitacion.getone(firestore, req, res))
+app.get('/api/capacitacion/', (req, res)=>capacitacion.getall(firestore, req, res))
 
 app.post('/api/participante/', (req, res)=>participante.add(firestore, req, res))
 
