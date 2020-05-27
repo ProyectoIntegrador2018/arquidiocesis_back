@@ -1,4 +1,6 @@
 const moment = require('moment');
+const Readable = require('stream').Readable;
+const iconv = require('iconv-lite')
 
 const getall = async (firestore, req, res)=>{
     var grupos = [];
@@ -706,6 +708,109 @@ const editMemberFicha = async (firestore, req, res) => {
     }
 }
 
+const getAsistenciasReport = async (firestore, req, res)=>{
+    if(!req.user.admin){
+        return res.sendStatus(404);
+    }
+
+    var miembros = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
+    var headers = ['IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno','Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
+    var values = []
+    for(var i of miembros.docs){
+        if(!i.exists) continue;
+        var d = i.data();
+        values.push([
+            i.id,
+            d.nombre,
+            d.apellido_paterno,
+            d.apellido_materno,
+            d.email,
+            d.sexo,
+            d.escolaridad,
+            d.oficio,
+            d.estado_civil,
+            d.domicilio.domicilio,
+            d.domicilio.colonia,
+            d.domicilio.municipio,
+            d.domicilio.telefono_movil,
+            d.domicilio.telefono_casa
+        ]);
+    }
+
+    var csv = toCSV(headers, values);
+    
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Miembros.csv')
+
+    return csv.pipe(iconv.encodeStream('utf16le')).pipe(res);
+}
+
+const getAsistenciasAsistanceReport = async (firestore, req, res)=>{    
+    if(!req.user.admin){
+        return res.sendStatus(404);
+    }
+
+    var groupRef = await firestore.collection('grupos').doc(req.params.id);
+    var assistColl = await groupRef.collection('asistencias');
+    var assistList = await assistColl.get();
+    var dates = []
+    assistList.docs.forEach(a=>{
+        if(!a.exists) return;
+        dates.push({
+            date: a.id,
+            members: a.data().miembros
+        })
+    });
+
+	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 1).get();
+
+	var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...memSnap.docs.map(a=>a.id)])];
+    const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('miembros/'+a)));
+    var members = [];
+    asistSnap.forEach(a=>{
+        if(a.exists){
+            var m = a.data();
+            members.push({ 
+                id: a.id, 
+                nombre: m.nombre, 
+                apellido_paterno: m.apellido_paterno,
+                apellido_materno: m.apellido_materno
+            })
+        }
+    });
+
+    var headers = ['IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', ...dates.map(a=>a.date)];
+    var values = []
+    for(var i of members){
+        var date_assistance = dates.map(a=>(a.members.findIndex(v=>v==i.id)!=-1 ? 'X' : ''));
+        values.push([
+            i.id,
+            i.nombre,
+            i.apellido_paterno,
+            i.apellido_materno,
+            ...date_assistance
+        ])
+    }
+    
+    var csv = toCSV(headers, values);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Asistencia.csv')
+    return csv.pipe(iconv.encodeStream('utf16le')).pipe(res);
+}
+
+function toCSV(header, values){
+	var csv = header.join(',')+'\n'+values.map(a=>a.map(a=>{
+		if(typeof a === 'string'){
+			return '"' + a + '"';
+		}else return a;
+	}).join(',')).join('\n');
+	var stream = new Readable;
+	stream.setEncoding('UTF8');
+	stream.push(Buffer.from(csv, 'utf8'));
+	stream.push(null);
+	return stream;
+}
+
 module.exports = {
     getall, 
     getone, 
@@ -721,5 +826,8 @@ module.exports = {
     registerAsistencia,
     saveAsistencia,
     changeCoordinador,
-    getBajasTemporales
+    editMemberFicha,
+    getBajasTemporales,
+    getAsistenciasReport,
+    getAsistenciasAsistanceReport
 }
