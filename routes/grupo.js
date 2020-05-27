@@ -335,7 +335,6 @@ const changeCoordinador = async (firestore, req, res)=>{
             }
         }
        
-        console.log(coordinador);
         const coordSnap = await firestore.collection('coordinadores').doc(coordinador).get();
         if(!coordSnap.exists) return res.send({ error: true, message: 'El coordinador no existe.' });
         

@@ -55,8 +55,7 @@ const add = async (firestore, req, res)=>{
 }
 
 const changeCoordinador = async (firestore, req, res) => {
-	 var { id, coordinador } = req.body;
-	 console.log(req.body);
+	var { id, coordinador } = req.body;
     try {
         var memberSnap = await firestore.collection('coordinadores').doc(coordinador).get('nombre');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Coordinador no existe', code: 1 });
@@ -168,8 +167,6 @@ const getAsistencia = async (firestore, req, res)=>{
 		asistSnap.forEach(a=>{
 			if(a.exists) miembros.push({ id: a.id, nombre: a.data().nombre, assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 })
 		});
-
-		console.log(miembros);
 
 		const miembrosSnap = await firestore.collection('participantes').where('capacitacion', '==', groupSnap.id).where('eliminado', '==', false).get()
 		miembrosSnap.forEach(a=>{
