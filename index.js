@@ -15,6 +15,7 @@ const zonas = require('./routes/zonas')
 const capacitacion = require('./routes/capacitacion')
 const acompanante = require('./routes/acompanantes')
 const participante = require('./routes/participante')
+const all = require('./routes/all')
 
 app.use(cors())
 app.use(express.json())
@@ -33,7 +34,7 @@ app.get('/', (req, res) => { res.send('Arquidiocesis Backend').status(200) })
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
 
 // Check valid token
-app.all('*', login.verifyToken(firestore));
+// app.all('*', login.verifyToken(firestore));
 
 app.post('/api/password/change', (req, res) => { login.changePassword(firestore, req, res) })
 
@@ -112,6 +113,8 @@ app.post('/api/acompanante/zona', (req, res)=>acompanante.addZona(firestore, req
 app.post('/api/acompanante/decanato', (req, res)=>acompanante.addDecanato(firestore, req, res));
 app.get('/api/acompanante/:id', (req, res)=>acompanante.getone(firestore, req, res));
 app.post('/api/acompanante/edit', (req, res)=>acompanante.edit(firestore, req, res));
+
+app.get('/api/all', (req, res)=>all.get(firestore, req, res))
 
 // No route found
 app.all('*', (req, res) => {
