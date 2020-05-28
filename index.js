@@ -24,10 +24,27 @@ app.get('/', (req, res) => { res.send('Arquidiocesis Backend') })
 
 //init firebase
 const admin = require('firebase-admin')
-const serviceAccount = require('./ServiceAccountKey')
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-})
+
+// Check if environment variable for firebase
+// auth is available
+if(process.env.FIREBASE_SERVICE_ACCOUNT){
+    var serviceJson = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString();
+    try{
+        const serviceAccount = JSON.parse(serviceJson);
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        })    
+    }catch(e){
+        throw e;
+    }
+}else{
+    // Check if firebase auth file is present
+    const serviceAccount = require('./ServiceAccountKey')
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    })
+}
+
 const firestore = admin.firestore()
 app.get('/', (req, res) => { res.send('Arquidiocesis Backend').status(200) })
 app.post('/api/login', (req, res) => { login.authenticate(firestore, req, res) })
