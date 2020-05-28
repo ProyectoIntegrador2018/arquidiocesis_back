@@ -1,7 +1,7 @@
 //init express
 const express = require('express')
 const app = express()
-const PORT = process.env.PORT | 8000
+const PORT = process.env.PORT || 8000
 const cors = require('cors')
 const bodyParser = require('body-parser');
 const parroquias = require('./routes/parroquia')
