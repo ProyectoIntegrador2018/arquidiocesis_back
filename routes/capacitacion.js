@@ -55,6 +55,13 @@ const add = async (firestore, req, res)=>{
 }
 
 const changeCoordinador = async (firestore, req, res) => {
+	if(req.user.tipo=='coordinador'){
+		return res.send({
+			error: true,
+			message: 'No tienes acceso.'
+		})
+	}
+
 	var { id, coordinador } = req.body;
     try {
         var memberSnap = await firestore.collection('coordinadores').doc(coordinador).get('nombre');
@@ -325,14 +332,19 @@ const getParticipantes = async (firestore, req, res)=>{
 }
 
 const getall = async (firestore, req, res)=>{
-	const snapshot = await firestore.collection('capacitaciones').get()
+	var snapshot;
+	if(req.user.admin || req.user.tipo.startsWith('acompañante')){
+		snapshot = await firestore.collection('capacitaciones').get();
+	}else{
+		snapshot = await firestore.collection('capacitaciones').where('encargado', '==', req.user.id).get();
+	}
 	const docs = snapshot.docs.map(doc =>{
 		return {
 			id: doc.id,
 			...doc.data()
 		}
 	})
-	res.send({
+	return res.send({
 		error:false, 
 		data: docs
 	})
