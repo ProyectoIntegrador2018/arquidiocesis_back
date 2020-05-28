@@ -57,7 +57,7 @@ const verifyToken = (firestore)=>{
         // No token sent.
         if(!token) return res.send({
             error: true,
-            code: 999,
+            code: 900,
             message: 'Token invalid'
         })
     
@@ -70,7 +70,7 @@ const verifyToken = (firestore)=>{
                 return next();
             }else return res.send({
                 error: true,
-                code: 999,
+                code: 900,
                 message: 'Token invalid'
             });
         });
