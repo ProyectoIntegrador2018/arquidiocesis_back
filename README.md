@@ -22,8 +22,8 @@ APP de Arquidiocesis de Monterrey
 
 ### Environment URLS
 
-* **Production** - [TBD](TBD)
-* **Development** - [TBD](TBD)
+* **Production** - https://arquidiocesis-bda.herokuapp.com
+* **Development** - N/A
 
 ### Team
 
@@ -39,6 +39,7 @@ APP de Arquidiocesis de Monterrey
 | ------------- | -------------|
 | NodeJS        | 12.16.01     |
 | ExpressJS     | 04.17.01     |
+| Firebase      | 08.10.00     |
 
 ### Management tools
 
@@ -46,7 +47,7 @@ You should ask for access to this tools if you don't have it already:
 
 * [Github repo](https://github.com/ProyectoIntegrador2018/arquidiocesis-back)
 * Backlog (Microsoft Teams)
-* [Heroku](https://arquidiocesis.herokuapp.com/)
+* [Heroku](https://arquidiocesis-bda.herokuapp.com/)
 * Documentation (Microsoft Teams)
 
 ## Development
@@ -62,6 +63,12 @@ $ git clone git@github.com:ProyectoIntegrador2018/arquidiocesis-back.git
 
 ```bash
 $ npm i nodemon --save-dev
+```
+
+4. Install dependencies
+```bash
+$ cd arquidiocesis-back
+$ npm i
 ```
 
 
