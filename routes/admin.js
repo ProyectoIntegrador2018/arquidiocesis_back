@@ -1,11 +1,17 @@
 const bcrypt = require('bcrypt-nodejs');
 
-const isAdmin = (req, res, next)=>{
+const isAdmin = (req, res, next, redirect=false)=>{
 	if(req.user.tipo=='admin' || req.user.tipo=='superadmin') return next();
-	else return res.send({
-		error: true,
-		message: 'Usuario no es administrador.'
-	})
+	else {
+		if(redirect){
+			return res.redirect('back');
+		}else{
+			return res.send({
+				error: true,
+				message: 'Usuario no es administrador.'
+			})
+		}
+	}
 }
 
 const getLogins = async (firestore, req, res)=>{
