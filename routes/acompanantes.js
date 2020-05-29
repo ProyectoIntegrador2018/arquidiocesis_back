@@ -322,5 +322,5 @@ module.exports = {
 	addDecanato,
 	removeZona,
 	removeDecanato,
-	edit
+	edit,
 }

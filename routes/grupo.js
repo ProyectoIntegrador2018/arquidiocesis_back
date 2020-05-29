@@ -1,6 +1,5 @@
 const moment = require('moment');
-const Readable = require('stream').Readable;
-const iconv = require('iconv-lite')
+const Util = require('./util');
 
 const getall = async (firestore, req, res)=>{
     var grupos = [];
@@ -713,12 +712,13 @@ const getAsistenciasReport = async (firestore, req, res)=>{
     }
 
     var miembros = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
-    var headers = ['IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno','Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
+    var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno','Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
     var values = []
     for(var i of miembros.docs){
         if(!i.exists) continue;
         var d = i.data();
         values.push([
+            d.grupo,
             i.id,
             d.nombre,
             d.apellido_paterno,
@@ -736,17 +736,25 @@ const getAsistenciasReport = async (firestore, req, res)=>{
         ]);
     }
 
-    var csv = toCSV(headers, values);
+    var csv = Util.toCSV(headers, values);
+
+    var name = req.params.id;
+    try{
+        var group = await firestore.collection('grupos').doc(req.params.id).get();
+        if(group.exists){
+            name = group.data().nombre;
+        }
+    }catch(e){ }
     
     res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-    res.attachment('Miembros.csv')
+    res.attachment('Miembros-'+name.replace(/ /g, '_')+'.csv')
 
-    return csv.pipe(iconv.encodeStream('utf16le')).pipe(res);
+    return csv.pipe(res);
 }
 
-const getAsistenciasAsistanceReport = async (firestore, req, res)=>{    
+const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     if(!req.user.admin){
-        return res.sendStatus(404);
+        return res.redirect('back');
     }
 
     var groupRef = await firestore.collection('grupos').doc(req.params.id);
@@ -778,11 +786,12 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
         }
     });
 
-    var headers = ['IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', ...dates.map(a=>a.date)];
+    var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', ...dates.map(a=>a.date)];
     var values = []
     for(var i of members){
         var date_assistance = dates.map(a=>(a.members.findIndex(v=>v==i.id)!=-1 ? 'X' : ''));
         values.push([
+            req.params.id,
             i.id,
             i.nombre,
             i.apellido_paterno,
@@ -790,24 +799,20 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
             ...date_assistance
         ])
     }
-    
-    var csv = toCSV(headers, values);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-    res.attachment('Asistencia.csv')
-    return csv.pipe(iconv.encodeStream('utf16le')).pipe(res);
-}
 
-function toCSV(header, values){
-	var csv = header.join(',')+'\n'+values.map(a=>a.map(a=>{
-		if(typeof a === 'string'){
-			return '"' + a + '"';
-		}else return a;
-	}).join(',')).join('\n');
-	var stream = new Readable;
-	stream.setEncoding('UTF8');
-	stream.push(Buffer.from(csv, 'utf8'));
-	stream.push(null);
-	return stream;
+    var name = req.params.id;
+    try{
+        var group = await groupRef.get();
+        if(group.exists){
+            name = group.data().nombre;
+        }
+    }catch(e){ }
+
+    
+    var csv = Util.toCSV(headers, values);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Asistencia-'+name.replace(/ /g, '_')+'.csv')
+    return csv.pipe(res);
 }
 
 module.exports = {

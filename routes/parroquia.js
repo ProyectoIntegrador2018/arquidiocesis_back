@@ -1,3 +1,5 @@
+const Util = require('./util');
+
 const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').get()
     try {
@@ -172,11 +174,81 @@ const update = async (firestore, req, res)=>{
     }
 }
 
+const dump = async (firestore, req, res)=>{
+    if(!req.user.admin){
+        return res.redirect('back');
+    }
+    var parroquias = []
+    try{
+        var parrSnap = await firestore.collection('parroquias').get();
+        if(parrSnap.docs.length==0){
+            var csv = toCSV([], []);
+            return csv.pipe(res);
+        }
+
+        var decanatoId = [...new Set(parrSnap.docs.map(a=>a.data().decanato))];
+        var decaSnap = await firestore.getAll(...decanatoId.map(a=>firestore.doc('decanatos/'+a)));
+        var decanatos = []
+        decaSnap.forEach(a=>{
+            if(!a.exists) return;
+            decanatos.push({
+                id: a.id,
+                ...a.data()
+            });
+        })
+
+        var zonasId = [...new Set(decanatos.map(a=>a.zona))];
+        var zonaSnap = await firestore.getAll(...zonasId.map(a=>firestore.doc('zonas/'+a)));
+        var zonas = []
+        zonaSnap.forEach(a=>{
+            if(!a.exists) return;
+            zonas.push({
+                id: a.id,
+                ...a.data()
+            });
+        })
+
+        parrSnap.docs.forEach(a=>{
+            if(!a.exists) return;
+            var d = a.data();
+            var dec = decanatos.find(a=>a.id==d.decanato);
+            var z = dec ? zonas.find(a=>a.id==dec.zona) : null;
+            parroquias.push([
+                a.id,
+                d.nombre,
+                d.direccion,
+                d.colonia,
+                d.municipio,
+                d.telefono1,
+                d.telefono2,
+                ...(!dec ? [] : [
+                    dec.id,
+                    dec.nombre
+                ]),
+                ...(!z ? [] : [
+                    z.id,
+                    z.nombre
+                ])
+            ])
+        });
+
+        var headers = ['IDParroquia', 'Nombre', 'Dirección', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDDecanato', 'Decanato', 'IDZona', 'Zona'];
+        var csv = Util.toCSV(headers, parroquias);
+        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+        res.attachment('Parroquias.csv')
+        return csv.pipe(res);
+    }catch(e){
+        console.log(e);
+        return res.redirect('back');
+    }
+}
+
 module.exports = {
     getall: getall, 
     getone: getone,
     add: add, 
     remove: remove,
-    udpate: update
+    udpate: update,
+    dump: dump
 }
 

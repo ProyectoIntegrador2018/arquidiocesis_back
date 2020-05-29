@@ -1,3 +1,5 @@
+const Util = require('./util');
+
 const add = async (firestore, req, res)=>{
     var {
         nombre,
@@ -99,9 +101,58 @@ const edit = async (firestore, req, res)=>{
         message: true
     })
 }
+
+const dump = async (firestore, req, res)=>{
+    if(!req.user.admin){
+        return res.redirect('back');
+    }
+    try{
+        var capiSnap = await firestore.collection('capillas').get();
+        var parroquiaId = [...new Set(capiSnap.docs.map(a=>a.data().parroquia))];
+        var parrSnap = await firestore.getAll(...parroquiaId.map(a=>firestore.doc('parroquias/'+a)));
+        var parroquias = []
+        parrSnap.forEach(a=>{
+            if(!a.exists) return;
+            parroquias.push({
+                id: a.id,
+                ...a.data()
+            });
+        })
+
+        var capillas = []
+        capiSnap.docs.forEach(a=>{
+            if(!a.exists) return;
+            var d = a.data();
+            var p = parroquias.find(b=>b.id==d.parroquia);
+            if(!p) return;
+            capillas.push([
+                a.id,
+                d.nombre,
+                d.direccion,
+                d.colonia,
+                d.municipio,
+                d.telefono1,
+                d.telefono2,
+                p.id,
+                p.nombre
+            ]);
+        });
+
+        var headers = ['IDCapilla', 'Nombre', 'Direccion', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDParroquia', 'Nombre Parroquia'];
+        var csv = Util.toCSV(headers, capillas);
+        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+        res.attachment('Capillas.csv')
+        return csv.pipe(res);
+    }catch(e){
+        console.log(e);
+        return res.redirect('back');
+    }
+}
+
 module.exports = {
     add: add, 
     remove: remove,
     getone: getone,
-    edit: edit
+    edit: edit,
+    dump: dump
 }
