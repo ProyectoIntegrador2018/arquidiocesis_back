@@ -43,7 +43,6 @@ const add = async(firestore, req, res)=>{
 		oficio,
 		domicilio,
 		estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva
-		coordinador: false
   	}
 
 	var newLogin = {
