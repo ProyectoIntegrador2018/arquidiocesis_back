@@ -114,7 +114,19 @@ app.post('/api/acompanante/decanato', (req, res)=>acompanante.addDecanato(firest
 app.get('/api/acompanante/:id', (req, res)=>acompanante.getone(firestore, req, res));
 app.post('/api/acompanante/edit', (req, res)=>acompanante.edit(firestore, req, res));
 
-app.get('/api/all', (req, res)=>all.get(firestore, req, res))
+app.get('/api/reporte/acompanantes', (req, res)=>all.getAcompanantes(firestore, req, res))
+app.get('/api/reporte/admins', (req, res)=>all.getAdmins(firestore, req, res))
+app.get('/api/reporte/capacitaciones', (req, res)=>all.getCapacitaciones(firestore, req, res))
+app.get('/api/reporte/capillas', (req, res)=>all.getCapillas(firestore, req, res))
+app.get('/api/reporte/coordinadores', (req, res)=>all.getCoordinadores(firestore, req, res))
+app.get('/api/reporte/decanatos', (req, res)=>all.getDecanatos(firestore, req, res))
+app.get('/api/reporte/grupos', (req, res)=>all.getGrupos(firestore, req, res))
+app.get('/api/reporte/logins', (req, res)=>all.getLogins(firestore, req, res))
+app.get('/api/reporte/miembros', (req, res)=>all.getMiembros(firestore, req, res))
+app.get('/api/reporte/parroquias', (req, res)=>all.getParroquias(firestore, req, res))
+app.get('/api/reporte/participantes', (req, res)=>all.getParticipantes(firestore, req, res))
+app.get('/api/reporte/zonas', (req, res)=>all.getZonas(firestore, req, res))
+app.get('/api/reporte/all', (req, res)=>all.getall(firestore, req, res))
 
 // No route found
 app.all('*', (req, res) => {
