@@ -815,6 +815,89 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     return csv.pipe(res);
 }
 
+var dump = async (firestore, req, res)=>{
+    if(!req.user.admin){
+        return res.redirect('back');
+    }
+
+    try{
+        var gruposSnap = await firestore.collection('grupos').get();
+
+        var coordIds = [...new Set(gruposSnap.docs.map(a=>a.data().coordinador).filter(a=>(a ? true : false)))];
+        var coordinadores = []
+        if(coordIds.length>0){
+            var coordSnap = await firestore.getAll(...coordIds.map(a=>firestore.doc('coordinadores/'+a)))
+            coordSnap.forEach(a=>{
+                if(!a.exists) return;
+                coordinadores.push({
+                    id: a.id,
+                    ...a.data()
+                });
+            })
+        }
+
+        var parroquiaId = [...new Set(gruposSnap.docs.map(a=>a.data().parroquia).filter(a=>(a ? true : false)))];
+        var capillaId = [...new Set(gruposSnap.docs.map(a=>a.data().capilla).filter(a=>(a ? true : false)))];
+
+        var parroquias = [];
+        var capillas = [];
+        if(parroquiaId.length>0){
+            var parrSnap = await firestore.getAll(...parroquiaId.map(a=>firestore.doc('parroquias/'+a)))
+            parrSnap.forEach(a=>{
+                if(!a.exists) return;
+                parroquias.push({
+                    id: a.id,
+                    ...a.data()
+                });
+            })
+        }
+
+        if(capillaId.length>0){
+            var capSnap = await firestore.getAll(...capillaId.map(a=>firestore.doc('capillas/'+a)))
+            capSnap.forEach(a=>{
+                if(!a.exists) return;
+                capillas.push({
+                    id: a.id,
+                    ...a.data()
+                });
+            })
+        }        
+
+        var grupos = []
+        gruposSnap.docs.forEach(a=>{
+            if(!a.exists) return;
+            var d = a.data();
+            var c = d.capilla ? capillas.find(a=>a.id==d.capilla) : null
+            var p = d.parroquia ? parroquias.find(a=>a.id==d.parroquia) : null
+            var coord = coordinadores.find(a=>a.id==d.coordinador);
+            grupos.push([
+                a.id,
+                d.nombre,
+                coord.id,
+                `${coord.nombre} ${coord.apellido_paterno} ${coord.apellido_materno}`,
+                (c ? 'Capilla' : 'Parroquia'),
+                ...(!p ? ['',''] : [
+                    p.id,
+                    p.nombre
+                ]),
+                ...(!c ? ['',''] : [
+                    c.id,
+                    c.nombre
+                ])
+            ]);
+        });
+
+        var headers = [ 'IDGrupo', 'Nombre', 'IDCoordinador', 'Coordinador', 'Pertenece a', 'IDParroquia', 'Nombre Parroquia', 'IDCapilla', 'IDCapilla' ]
+        var csv = Util.toCSV(headers, grupos);
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+        res.attachment('Grupos.csv')
+        return csv.pipe(res)
+    }catch(e){
+        return res.redirect('back');
+    }
+} 
+
 module.exports = {
     getall, 
     getone, 
@@ -833,5 +916,6 @@ module.exports = {
     editMemberFicha,
     getBajasTemporales,
     getAsistenciasReport,
-    getAsistenciasAsistanceReport
+    getAsistenciasAsistanceReport,
+    dump
 }

@@ -443,6 +443,54 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     return csv.pipe(res);
 }
 
+var dump = async (firestore, req, res)=>{
+	if(!req.user.admin){
+        return res.redirect('back');
+    }
+
+    try{
+        var capSnap = await firestore.collection('capacitaciones').get();
+
+        var coordIds = [...new Set(capSnap.docs.map(a=>a.data().encargado).filter(a=>(a ? true : false)))];
+        var coordinadores = []
+        if(coordIds.length>0){
+            var coordSnap = await firestore.getAll(...coordIds.map(a=>firestore.doc('coordinadores/'+a)))
+            coordSnap.forEach(a=>{
+                if(!a.exists) return;
+                coordinadores.push({
+                    id: a.id,
+                    ...a.data()
+                });
+            })
+        }  
+
+        var capacitaciones = []
+        capSnap.docs.forEach(a=>{
+            if(!a.exists) return;
+            var d = a.data();
+            var coord = coordinadores.find(a=>a.id==d.encargado);
+            capacitaciones.push([
+                a.id,
+                d.nombre,
+                coord.id,
+				`${coord.nombre} ${coord.apellido_paterno} ${coord.apellido_materno}`,
+				(d.inicio && d.inicio._seconds) ? moment.unix(d.inicio._seconds).format('YYYY-MM-DD') : '',
+				(d.fin && d.fin._seconds) ? moment.unix(d.fin._seconds).format('YYYY-MM-DD') : ''
+            ]);
+        });
+
+        var headers = [ 'IDCapacitacion', 'Nombre', 'IDCoordinador', 'Coordinador', 'Fecha inicio', 'Fech fin' ];
+        var csv = Util.toCSV(headers, capacitaciones);
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+        res.attachment('Capacitaciones.csv')
+        return csv.pipe(res)
+    }catch(e){
+		console.log(e);
+        // return res.redirect('back');
+    }
+}
+
 module.exports = {
     add,
     getAsistencia,
@@ -455,5 +503,6 @@ module.exports = {
 	deleteOne,
 	getAsistenciasReport,
 	getAsistenciasAsistanceReport,
-	getParticipantes
+	getParticipantes,
+	dump
 }
