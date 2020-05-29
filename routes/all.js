@@ -1,66 +1,99 @@
 const csvjson = require('csvjson');
+const moment = require('moment');
+const Readable = require('stream').Readable;
+const iconv = require('iconv-lite')
+
+function stringToStream(str){
+	var stream = new Readable;
+	stream.setEncoding('UTF8');
+	stream.push(Buffer.from(str, 'utf8'));
+	stream.push(null);
+	return stream.pipe(iconv.encodeStream('utf16le'));
+}
 
 const getAcompanantes = async (firestore, req, res)=>{
     const acompanantes_snap = await firestore.collection('acompanantes').get()
-    acompanantes = acompanantes_snap.docs.map(doc => {return {id: doc.id, ...doc.data()}})
+    var acompanantes = acompanantes_snap.docs.map(doc => {return {id: doc.id, ...doc.data()}})
+    acompanantes.forEach(a=>{
+        if(a.fecha_nacimiento && a.fecha_nacimiento._seconds){
+            a.fecha_nacimiento = moment.unix(a.fecha_nacimiento._seconds).format('YYYY-MM-DD');
+        }
+    })
     const stringy = JSON.stringify(acompanantes)
     const csvData = csvjson.toCSV(stringy, { headers: 'key' })
-    res.send({
-        error: false, 
-        data: csvData
-    })
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Acompanantes.csv')
+    return stringToStream(csvData).pipe(res);
 }
 
 const getAdmins = async (firestore, req, res)=>{
     const admins_snap = await firestore.collection('admins').get() 
-    admins = admins_snap.docs.map(doc =>{return  { id: doc.id, ...doc.data()}})
+    var admins = admins_snap.docs.map(doc =>{return  { id: doc.id, ...doc.data()}})
     const stringy = JSON.stringify(admins)
     const csvData = csvjson.toCSV(stringy, { headers: 'key' })
-    res.send({
-        error: false, 
-        data: csvData
-    })
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Admins.csv')
+    return stringToStream(csvData).pipe(res);
 }
+
 const getCapacitaciones = async (firestore, req, res)=>{
     const capacitaciones_snap = await firestore.collection('capacitaciones').get() 
-    capacitaciones = capacitaciones_snap.docs.map(doc =>{return {id: doc.id, ...doc.data()}})
+    var capacitaciones = capacitaciones_snap.docs.map(doc =>{return {id: doc.id, ...doc.data()}})
+    capacitaciones.forEach(a=>{
+        if(a.inicio && a.inicio._seconds){
+            a.inicio = moment.unix(a.inicio._seconds).format('YYYY-MM-DD');
+        }
+        if(a.fin && a.fin._seconds){
+            a.fin = moment.unix(a.fin._seconds).format('YYYY-MM-DD');
+        }
+    })
     const stringy = JSON.stringify(capacitaciones)
     const csvData = csvjson.toCSV(stringy, { headers: 'key' })
-    res.send({
-        error: false, 
-        data: csvData
-    })
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Capacitaciones.csv')
+    return stringToStream(csvData).pipe(res);
 }
 
 const getCapillas = async (firestore, req, res)=>{
     const capillas_snap = await firestore.collection('capillas').get()
-    capillas = capillas_snap.docs.map(doc => {return {id: doc.id, ...doc.data()}})
+    var capillas = capillas_snap.docs.map(doc => {return {id: doc.id, ...doc.data()}})
     const stringy = JSON.stringify(capillas)
     const csvData = csvjson.toCSV(stringy, { headers: 'key' })
-    res.send({
-        error: false, 
-        data: csvData
-    })
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Capillas.csv')
+    return stringToStream(csvData).pipe(res);
 }
+
 const getCoordinadores = async (firestore, req, res)=>{
     const coordinadores_snap = await firestore.collection('coordinadores').get()
-    coordinadores = coordinadores_snap.docs.map(doc=>{return {id: doc.id, ...doc.data()}})
+    var coordinadores = coordinadores_snap.docs.map(doc=>{return {id: doc.id, ...doc.data()}})
+    
+    coordinadores.forEach(a=>{
+        if(a.fecha_nacimiento && a.fecha_nacimiento._seconds){
+            a.fecha_nacimiento = moment.unix(a.fecha_nacimiento._seconds).format('YYYY-MM-DD');
+        }
+    })
     const stringy = JSON.stringify(coordinadores)
     const csvData = csvjson.toCSV(stringy, { headers: 'key' })
-    res.send({
-        error: false, 
-        data: csvData
-    })
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Coordinadores.csv')
+    return stringToStream(csvData).pipe(res);
 }
+
 const getDecanatos = async (firestore, req, res)=>{
     const decanatos_snap = await firestore.collection('decanatos').get()
-    decanatos = decanatos_snap.docs.map(doc=>{return{id: doc.id, ...doc.data()}})
+    var decanatos = decanatos_snap.docs.map(doc=>{return{id: doc.id, ...doc.data()}})
     const stringy = JSON.stringify(decanatos)
     const csvData = csvjson.toCSV(stringy, { headers: 'key' })
-    res.send({
-        error: false, 
-        data: csvData
-    })
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Decanatos.csv')
+    return stringToStream(csvData).pipe(res);
 }
 
 const getGrupos = async(firestore, req, res)=>{
@@ -91,6 +124,7 @@ const getGrupos = async(firestore, req, res)=>{
         data: csvData
     })
 }
+
 const getLogins = async(firestore, req, res)=>{
     const logins_snap = await firestore.collection('logins').get()
     logins = logins_snap.docs.map(doc=>{return {id: doc.id, ...doc.data()}})
@@ -101,6 +135,7 @@ const getLogins = async(firestore, req, res)=>{
         data: csvData
     })
 }
+
 const getMiembros = async(firestore, req, res)=>{
     const miembros_snap = await firestore.collection('miembros').get()
     miembros = miembros_snap.docs.map(doc=>{return {id: doc.id, ...doc.data()}})
@@ -111,6 +146,7 @@ const getMiembros = async(firestore, req, res)=>{
         data: csvData
     })
 }
+
 const getParroquias = async(firestore, req, res)=>{
     const parroquias_snap = await firestore.collection('parroquias').get()
     parroquias = parroquias_snap.docs.map(doc=>{return{id: doc.id, ...doc.data()}})
@@ -121,6 +157,7 @@ const getParroquias = async(firestore, req, res)=>{
         data: csvData
     })
 }
+
 const getParticipantes = async(firestore, req, res)=>{
     const participantes_snap = await firestore.collection('participantes').get()
     participantes = participantes_snap.docs.map(doc=>{return {id: doc.id, ...doc.data()}})
@@ -134,13 +171,16 @@ const getParticipantes = async(firestore, req, res)=>{
 
 const getZonas = async(firestore, req, res)=>{
     const zonas_snap = await firestore.collection('zonas').get()
-    zonas = zonas_snap.docs.map(doc=>{return{id: doc.id, ...doc.data()}})
+    var zonas = zonas_snap.docs.map(doc=>{
+        var d = doc.data();
+        return{ id: doc.id, nombre: d.nombre, acompanante: (d.acompanante || '') }
+    })
     const stringy = JSON.stringify(zonas)
     const csvData = csvjson.toCSV(stringy, { headers: 'key' })
-    res.send({
-        error: false, 
-        data: csvData
-    })
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
+    res.attachment('Zonas.csv')
+    return stringToStream(csvData).pipe(res);
 }
 
 const getall = async (firestore, req, res)=>{
