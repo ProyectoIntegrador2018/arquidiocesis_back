@@ -712,11 +712,12 @@ const getAsistenciasReport = async (firestore, req, res)=>{
     }
 
     var miembros = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
-    var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno','Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
+    var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno','Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Estatus', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
     var values = []
     for(var i of miembros.docs){
         if(!i.exists) continue;
         var d = i.data();
+        if(d.estatus>=2) continue;
         values.push([
             d.grupo,
             i.id,
@@ -728,6 +729,7 @@ const getAsistenciasReport = async (firestore, req, res)=>{
             d.escolaridad,
             d.oficio,
             d.estado_civil,
+            d.estatus==0 ? 'Activo' : (d.estatus==1 ? 'Baja temporal' : 'Baja definitiva'),
             d.domicilio.domicilio,
             d.domicilio.colonia,
             d.domicilio.municipio,
