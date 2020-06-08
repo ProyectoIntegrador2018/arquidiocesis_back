@@ -102,3 +102,20 @@ $ export NODE_ENV=production
 ```bash
 $ node index.js 
 ```
+
+### Documentation 
+All code is documented using [jsdocs](https://jsdoc.app/) and should come included with the project, if not, read up the section below to [generate documentation](#generating-documentation).
+
+Navigate to ***docs*** folder and open *index.html*. This will open our documentaiton webpage. 
+
+#### Generating Documentation 
+> We recommend VSCode for a better coding experience and giving the following plugins a try: [HTML CSS Support Plugin](https://github.com/ecmel/vscode-html-css) by *ecmel* and [HTML Preview](https://github.com/tht13/html-preview-vscode) by *Thomas Haakon Townsend* 
+
+To further develop, [run the stack in development](#Running-the-stack-for-Development) and run the command to generate the documentation: 
+```
+npm run docs
+```
+A new ***docs*** folder should have been created.
+
+
+
