@@ -2,12 +2,12 @@ const moment = require('moment');
 const firebase = require('firebase-admin')
 
 /**
- * 
- * @param {*} firestore 
- * @param {*} req 
- * @param {*} res 
+ * Agrega un nuevo participante. 
+ * @type {{
+ * nombre: String, 
+ * apellido_paterno: String
+ * }}
  */
-
 const add = async(firestore, req, res)=>{
     const {
         nombre, 

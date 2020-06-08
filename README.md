@@ -117,5 +117,12 @@ npm run docs
 ```
 A new ***docs*** folder should have been created.
 
-
-
+vscode mac users run: 
+```
+cmd-shift-v
+```
+vscode windows users run: 
+```
+ctrl-shift-v
+```
+this will open a new preview window, you can drag the pane to the side to preview changes as you develop the code. 
