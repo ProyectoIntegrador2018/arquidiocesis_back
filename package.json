@@ -15,7 +15,8 @@
     "iconv-lite": "^0.5.1",
     "jsonstream": "^1.0.3",
     "jsonwebtoken": "^8.5.1",
-    "moment": "^2.25.1"
+    "moment": "^2.25.1",
+    "xlsx": "^0.16.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.3"

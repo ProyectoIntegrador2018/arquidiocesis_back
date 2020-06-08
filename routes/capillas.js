@@ -139,9 +139,9 @@ const dump = async (firestore, req, res)=>{
         });
 
         var headers = ['IDCapilla', 'Nombre', 'Direccion', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDParroquia', 'Nombre Parroquia'];
-        var csv = Util.toCSV(headers, capillas);
-        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-        res.attachment('Capillas.csv')
+        var csv = Util.toXLS(headers, capillas);
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Capillas.xls')
         return csv.pipe(res);
     }catch(e){
         console.log(e);
