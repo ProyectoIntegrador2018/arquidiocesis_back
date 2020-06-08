@@ -208,7 +208,8 @@ const add = async (firestore, req, res)=>{
     }
     let newGroup = {
         nombre: name,
-        coordinador
+        coordinador,
+        fecha_creada: new Date()
     }
     if (capilla)
         newGroup.capilla = capilla
@@ -393,7 +394,8 @@ const addMember = async (firestore, req, res)=>{
             oficio,
             domicilio,
             grupo,
-            estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva
+            estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva,
+            fecha_registro: new Date(),
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;

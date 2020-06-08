@@ -39,7 +39,8 @@ const add = async (firestore, req, res)=>{
             nombre,
             encargado, 
             inicio,
-            fin
+			fin,
+			fecha_creada: new Date()
         })
         res.send({
             error: false, 
