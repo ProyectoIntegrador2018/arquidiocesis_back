@@ -2,10 +2,7 @@
  * Module for managing participants
  * @module Participante 
 */
-
-/** @type module:moment */
 const moment = require('moment');
-/** @type module:firebase */
 const firebase = require('firebase-admin')
 
 /**

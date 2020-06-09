@@ -1,7 +1,32 @@
+/** 
+ * Module for managing 'capacitaciones' 
+ * @module Capacitacion
+ */
 const moment = require('moment');
 const firebase = require('firebase-admin')
+/** @alias module:Util */
 const Util = require('./util');
 
+/**
+ * Adds a new document to the 'Capacitation' collection 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {POST} req 
+ * @param {JSON} req.user - contains information regarding the currently signed in user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'coordinador'
+ * @param {String} req.user.admin - If user is admin or not 
+ * @param {JSON} req.body
+ * @param {JSON} req.body.payload
+ * @param {String} req.body.payload.nombre 
+ * @param {String} req.body.payload.encargado
+ * @param {String} req.body.payload.inicio - Beginning date of course YYYY-MM-DD
+ * @param {String} req.body.payload.fin - End date of course YYYY-MM-DD
+ * 
+ * @param {JSON} res 
+ * @param {Boolean} res.error - True if there was an error else false
+ * @param {Number} [res.code] - if error, code = 999 if user is not authorized for that operation 
+ * @param {String} [res.message] - Assigned if error = true, contains the error message
+ * @param {Number} [res.data] - Assigned if error = false, contains the write time of the operation 
+ */
 const add = async (firestore, req, res)=>{
     const payload = req.body
 	let nombre, encargado, inicio, fin
@@ -52,7 +77,22 @@ const add = async (firestore, req, res)=>{
         })
     }
 }
-
+/**
+ * Updates the coordinator incharge of a course
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {POST} req 
+ * @param {JSON} req.user - contains information regarding the currently signed in user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'coordinador'
+ * @param {String} req.user.admin - If user is admin or not 
+ * @param {JSON} req.body
+ * @param {String} req.body.id - The id of the course to change
+ * @param {String} req.body.coordinador - The id of the new coordinator in charge of the course
+ * 
+ * @param {JSON} res 
+ * @param {Bool} req.error - True if there was an error else false.
+ * @param {String} [req.message] - Assigned if error = true, contains the error message.
+ * @param {Bool} [data] - Assigned if error = false, Always true. 
+ */
 const changeCoordinador = async (firestore, req, res) => {
 	if(req.user.tipo=='coordinador'){
 		return res.send({
