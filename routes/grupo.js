@@ -1,3 +1,4 @@
+let FieldValue = require('firebase-admin').firestore.FieldValue;
 const moment = require('moment');
 const Util = require('./util');
 
@@ -234,8 +235,14 @@ const edit = async (firestore, req, res)=>{
     } = req.body;
 
     var data = { nombre };
-    if(capilla) data.capilla = capilla;
-    else data.parroquia = parroquia;
+    if(capilla){
+        data.capilla = capilla;
+        data.parroquia = FieldValue.delete()
+    }
+    else{
+        data.parroquia = parroquia;
+        data.capilla = FieldValue.delete()
+    }
 
     // CHECK IF HAS ACCESS
     try{
