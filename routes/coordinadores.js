@@ -82,7 +82,8 @@ const getall = async (firestore, req, res)=>{
 				id: doc.id,
 				nombre: d.nombre,
 				apellido_paterno: d.apellido_paterno,
-				apellido_materno: d.apellido_materno
+				apellido_materno: d.apellido_materno,
+				email: d.email
 			});
 		});
 		return res.send({
