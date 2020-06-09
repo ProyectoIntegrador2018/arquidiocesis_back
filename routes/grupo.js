@@ -797,20 +797,22 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
 
 	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 1).get();
 
-	var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...memSnap.docs.map(a=>a.id)])];
-    const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('miembros/'+a)));
+    var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...memSnap.docs.map(a=>a.id)])];
     var members = [];
-    asistSnap.forEach(a=>{
-        if(a.exists){
-            var m = a.data();
-            members.push({ 
-                id: a.id, 
-                nombre: m.nombre, 
-                apellido_paterno: m.apellido_paterno,
-                apellido_materno: m.apellido_materno
-            })
-        }
-    });
+    if(members_id.length>0){
+        const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('miembros/'+a)));
+        asistSnap.forEach(a=>{
+            if(a.exists){
+                var m = a.data();
+                members.push({ 
+                    id: a.id, 
+                    nombre: m.nombre, 
+                    apellido_paterno: m.apellido_paterno,
+                    apellido_materno: m.apellido_materno
+                })
+            }
+        });
+    }
 
     var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', ...dates.map(a=>a.date)];
     var values = []
