@@ -721,12 +721,18 @@ const getAsistenciasReport = async (firestore, req, res)=>{
     }
 
     var miembros = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
-    var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 'Fecha Nacimiento', 'Fecha registro', 'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Estatus', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
+    var headers = [
+      'IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 
+      'Fecha Nacimiento', 'Fecha registro', 
+      'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Estatus', 
+      'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa',
+      'Ambulancia', 'Alergico', 'Tipo Sangre', 'Servicio Medico', 'Padecimientos'
+    ];
     var values = []
     for(var i of miembros.docs){
         if(!i.exists) continue;
         var d = i.data();
-        if(d.estatus>=2) continue;
+		if(d.estatus>=2) continue;
         values.push([
             d.grupo,
             i.id,
@@ -745,7 +751,14 @@ const getAsistenciasReport = async (firestore, req, res)=>{
             d.domicilio.colonia,
             d.domicilio.municipio,
             d.domicilio.telefono_movil,
-            d.domicilio.telefono_casa
+			d.domicilio.telefono_casa,
+			...(d.ficha_medica ? [
+				d.ficha_medica.ambulancia ? 'SI' : 'NO',
+				d.ficha_medica.alergico ? 'SI' : 'NO',
+				d.ficha_medica.tipo_sangre,
+				d.ficha_medica.servicio_medico,
+				d.ficha_medica.padecimientos
+			] : ['','','','',''])
         ]);
     }
 
