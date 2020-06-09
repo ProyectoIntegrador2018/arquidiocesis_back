@@ -39,7 +39,8 @@ const add = async (firestore, req, res)=>{
             nombre,
             encargado, 
             inicio,
-            fin
+			fin,
+			fecha_creada: new Date()
         })
         res.send({
             error: false, 
@@ -353,8 +354,8 @@ const getAsistenciasReport = async (firestore, req, res)=>{
         return res.sendStatus(404);
     }
 
-    var miembros = await firestore.collection('participantes').where('capacitacion', '==', req.params.id).get();
-    var headers = ['IDMiembro', 'Nombre Corto', 'Nombre', 'Apellido Paterno', 'Apellido Materno','Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
+    var miembros = await firestore.collection('participantes').where('capacitacion', '==', req.params.id).where('eliminado', '==', false).get();
+    var headers = ['IDMiembro', 'Nombre Corto', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 'Fecha nacimiento', 'Fecha registro', 'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
     var values = []
     for(var i of miembros.docs){
         if(!i.exists) continue;
@@ -365,6 +366,8 @@ const getAsistenciasReport = async (firestore, req, res)=>{
             d.nombre,
             d.apellido_paterno,
             d.apellido_materno,
+            (d.fecha_nacimiento && d.fecha_nacimiento._seconds ? (moment.unix(d.fecha_nacimiento._seconds).format('YYYY-MM-DD')) : ''),
+            (d.fecha_registro && d.fecha_registro._seconds ? (moment.unix(d.fecha_registro._seconds).format('YYYY-MM-DD')) : ''),
             d.email,
             d.sexo,
             d.escolaridad,
@@ -378,10 +381,10 @@ const getAsistenciasReport = async (firestore, req, res)=>{
         ]);
     }
 
-    var csv = Util.toCSV(headers, values);
+    var csv = Util.toXLS(headers, values);
     
-    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-    res.attachment('Participantes-'+req.params.id+'.csv')
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.attachment('Participantes-'+req.params.id+'.xls')
 
     return csv.pipe(res);
 }
@@ -437,9 +440,9 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
         ])
     }
     
-    var csv = Util.toCSV(headers, values);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-    res.attachment('Asistencia.csv')
+    var csv = Util.toXLS(headers, values);
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.attachment('Asistencia.xls')
     return csv.pipe(res);
 }
 
@@ -480,10 +483,10 @@ var dump = async (firestore, req, res)=>{
         });
 
         var headers = [ 'IDCapacitacion', 'Nombre', 'IDCoordinador', 'Coordinador', 'Fecha inicio', 'Fech fin' ];
-        var csv = Util.toCSV(headers, capacitaciones);
+        var csv = Util.toXLS(headers, capacitaciones);
 
-        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-        res.attachment('Capacitaciones.csv')
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Capacitaciones.xls')
         return csv.pipe(res)
     }catch(e){
 		console.log(e);

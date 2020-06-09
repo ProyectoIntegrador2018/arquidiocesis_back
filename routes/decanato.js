@@ -1,11 +1,10 @@
-const express = require('express')
-
 const getall = async (firestore, req, res) =>{
     const snapshot = await firestore.collection('decanatos').get()
     const docs = snapshot.docs.map(doc => {
         const result = {
             id: doc.id,
             nombre: doc.data().nombre, 
+            zona: doc.data().zona
         }
         return result
     })

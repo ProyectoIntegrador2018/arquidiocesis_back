@@ -179,10 +179,13 @@ const dump = async (firestore, req, res)=>{
         return res.redirect('back');
     }
     var parroquias = []
+    var headers = ['IDParroquia', 'Nombre', 'Dirección', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDDecanato', 'Decanato', 'IDZona', 'Zona'];
     try{
         var parrSnap = await firestore.collection('parroquias').get();
         if(parrSnap.docs.length==0){
-            var csv = toCSV([], []);
+            var csv = toXLS(headers, []);
+            res.setHeader('Content-Type', 'application/vnd.ms-excel');
+            res.attachment('Parroquias.xls')
             return csv.pipe(res);
         }
 
@@ -232,10 +235,9 @@ const dump = async (firestore, req, res)=>{
             ])
         });
 
-        var headers = ['IDParroquia', 'Nombre', 'Dirección', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDDecanato', 'Decanato', 'IDZona', 'Zona'];
-        var csv = Util.toCSV(headers, parroquias);
-        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-        res.attachment('Parroquias.csv')
+        var csv = Util.toXLS(headers, parroquias);
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Parroquias.xls')
         return csv.pipe(res);
     }catch(e){
         console.log(e);
