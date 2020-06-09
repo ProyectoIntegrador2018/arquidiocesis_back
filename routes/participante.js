@@ -1,12 +1,46 @@
+/**
+ * Module for managing participants
+ * @module Participante 
+*/
+
+/** @type module:moment */
 const moment = require('moment');
+/** @type module:firebase */
 const firebase = require('firebase-admin')
 
 /**
- * Agrega un nuevo participante. 
- * @type {{
- * nombre: String, 
- * apellido_paterno: String
- * }}
+ * Adds a new document in the 'participantes' collection with the provided information in the request.body
+ * @param {firebase.firestore} firestore - preinitialized admin-firebase.firestore() instance
+ * @param {POST} req  
+ * @param {String} req.body.nombre 
+ * @param {String} req.body.apellido_materno 
+ * @param {String} req.body.apellido_paterno 
+ * @param {String} req.body.nombre_corto 
+ * @param {String} req.body.fecha_nacimiento
+ * @param {String} req.body.estado_civil  
+ * @param {String} req.body.sexo 
+ * @param {String} req.body.email
+ * @param {String} req.body.escolaridad  
+ * @param {String} req.body.oficio 
+ * @param {String} req.body.capacitacion
+ * @param {String} req.body.domicilio
+ * 
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error - True if there was an error else false 
+ * @param {String} [res.message] - only assigned if there was an error, contains the error message 
+ * @param {JSON} [res.data] - If there was no error, will be be assigned
+ * @param {String} res.data.nombre 
+ * @param {String} res.data.apellido_materno 
+ * @param {String} res.data.apellido_paterno 
+ * @param {String} res.data.nombre_corto 
+ * @param {String} res.data.fecha_nacimiento
+ * @param {String} res.data.estado_civil  
+ * @param {String} res.data.sexo 
+ * @param {String} res.data.email
+ * @param {String} res.data.escolaridad  
+ * @param {String} res.data.oficio 
+ * @param {String} res.data.capacitacion
+ * @param {String} res.data.domicilio
  */
 const add = async(firestore, req, res)=>{
     const {
@@ -56,6 +90,29 @@ const add = async(firestore, req, res)=>{
    	})
 }
 
+/**
+ * Edits a document id the specified body.id in the collection 'participantes' with the data provided in the request.body
+ * @param {firebase.firestore} firestore - preinitialized admin-firebase.firestore() instance
+ * @param {POST} req  
+ * @param {String} req.body.id 
+ * @param {String} req.body.nombre 
+ * @param {String} req.body.apellido_materno 
+ * @param {String} req.body.apellido_paterno 
+ * @param {String} req.body.nombre_corto 
+ * @param {String} req.body.fecha_nacimiento
+ * @param {String} req.body.estado_civil  
+ * @param {String} req.body.sexo 
+ * @param {String} req.body.email
+ * @param {String} req.body.escolaridad  
+ * @param {String} req.body.oficio 
+ * @param {String} req.body.capacitacion
+ * @param {String} req.body.domicilio
+ * 
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error
+ * @param {String} [res.message]
+ * @param {Bool} [res.data] - will be assigned if no error, True if edit was successful
+ */
 const edit = async (firestore, req, res)=>{
     const {
         id,
@@ -109,7 +166,30 @@ const edit = async (firestore, req, res)=>{
         data: true
     })
 }
-
+/**
+ * Gets the document with the specified id
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {GET} req 
+ * @param {String} req.params.id - the id of the document to retrieve
+ * 
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error - true if there was an error, else false. 
+ * @param {String} [res.message] - Assigned only if error, includes de error message
+ * @param {JSON} [res.data] - Assigned only if no error
+ * @param {String} res.data.id 
+ * @param {String} res.data.nombre 
+ * @param {String} res.data.apellido_materno 
+ * @param {String} res.data.apellido_paterno 
+ * @param {String} res.data.nombre_corto 
+ * @param {String} res.data.fecha_nacimiento
+ * @param {String} res.data.estado_civil  
+ * @param {String} res.data.sexo 
+ * @param {String} res.data.email
+ * @param {String} res.data.escolaridad  
+ * @param {String} res.data.oficio 
+ * @param {String} res.data.capacitacion
+ * @param {String} res.data.domicilio
+ */
 var getone = async (firestore, req, res)=>{
     var { id } = req.params;
     const usersnap = await firestore.collection('participantes').doc(id).get() 
@@ -129,6 +209,17 @@ var getone = async (firestore, req, res)=>{
     })
 }
 
+/**
+ * Updates the status of a document from collection 'participantes' to 'eliminado' 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {GET} req 
+ * @param {String} req.params.id - id of document to remove
+ * 
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error
+ * @param {String} [res.message]
+ * @param {Bool} [res.data]  - always true
+ */
 var remove = async (firestore, req, res)=>{
     var { id } = req.params;
     const usersnap = await firestore.collection('participantes').doc(id).get();
