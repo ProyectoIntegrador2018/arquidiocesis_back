@@ -1,5 +1,12 @@
 const Util = require('./util');
+/**
+ * Module for managing Chapels
+ * @module Capillas
+ */
 
+/**
+ * Adds a new chapel to collection.
+ */
 const add = async (firestore, req, res)=>{
     var {
         nombre,
@@ -40,7 +47,9 @@ const add = async (firestore, req, res)=>{
     })
 }
 
-
+/**
+ * Removes a chape from the collection.
+ */
 const remove = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('capillas').doc(req.params.id).get()
     if (!snapshot.exists)
@@ -55,6 +64,9 @@ const remove = async (firestore, req, res)=>{
     })
 }
 
+/**
+ * Converts the data to be used in a csv file.
+ */
 const getone = async (firestore, req, res)=>{
     // validate capilla 
     const snapshot = await firestore.collection('capillas').doc(req.params.id).get()
@@ -71,6 +83,9 @@ const getone = async (firestore, req, res)=>{
 
 }
 
+/**
+ * Edits one or more fields from a particular chapel
+ */
 const edit = async (firestore, req, res)=>{
     const {id, nombre, direccion, colonia, municipio, telefono1, telefono2} = req.body
     if(!id || !nombre || !direccion|| !colonia|| !municipio){
@@ -102,6 +117,9 @@ const edit = async (firestore, req, res)=>{
     })
 }
 
+/**
+ * Converts the data to be used in a csv file.
+ */
 const dump = async (firestore, req, res)=>{
     if(!req.user.admin){
         return res.redirect('back');

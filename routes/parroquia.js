@@ -1,5 +1,13 @@
+/**
+ * Module for managing Parishes
+ * @module Parroquia
+ */
+
 const Util = require('./util');
 
+/**
+ * Retrieves all parishes from the 'parroquias´' collection
+ */
 const getall = async (firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').get()
     try {
@@ -21,6 +29,9 @@ const getall = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Retrieves an specific parish from the 'parroquias´' collection
+ */
 const getone = async(firestore, req, res)=>{
     const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
     //validate parroquia 
@@ -58,6 +69,9 @@ const getone = async(firestore, req, res)=>{
     })
 }
 
+/**
+ * Adds a new parish to the 'parroquias' collection
+ */
 const add = async (firestore, req, res)=>{
     var {
         colonia,
@@ -107,6 +121,9 @@ const add = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Removes a parish from the 'parroquias' collection
+ */
 const remove = async (firestore, req, res)=>{
     //validate parroquia 
     const snapshot = await firestore.collection('parroquias').doc(req.params.id).get()
@@ -140,6 +157,9 @@ const remove = async (firestore, req, res)=>{
     })
 }
 
+/**
+ * Changes data from a parish in the'parroquias' collection
+ */
 const update = async (firestore, req, res)=>{
     try { 
         const payload = req.body
@@ -174,6 +194,9 @@ const update = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Collects data from the 'parroquias collection to transfer to an .csv document. 
+ */
 const dump = async (firestore, req, res)=>{
     if(!req.user.admin){
         return res.redirect('back');

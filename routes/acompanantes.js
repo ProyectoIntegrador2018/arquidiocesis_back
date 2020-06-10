@@ -1,6 +1,15 @@
+/**
+ * Module for managing 'Admins'
+ * @module Admin
+ */
+
 const bcrypt = require('bcrypt-nodejs');
 const moment = require('moment');
 
+/**
+ * /
+ * Gets data from an specific acompanante
+ */
 const getone = async (firestore, req, res)=>{
 	var { id } = req.params;
 	try{
@@ -21,6 +30,10 @@ const getone = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * /
+ * Assigns the acompanante to an specific zone
+ */
 const addZona = async (firestore, req, res)=>{
 	var {
 		zona,
@@ -100,6 +113,10 @@ const addZona = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * /
+ * Assigns the acompanante to an specific decanato
+ */
 const addDecanato = async (firestore, req, res)=>{
 	var {
 		decanato,
@@ -179,6 +196,10 @@ const addDecanato = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * /
+ * Unassings the acompanante to an specific zone
+ */
 const removeZona = async (firestore, req, res)=>{
 	var { id } = req.params;
 	
@@ -221,6 +242,10 @@ const removeZona = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * /
+ * Unassings the acompanante to an specific decanato
+ */
 const removeDecanato = async (firestore, req, res)=>{
 	var { id } = req.params;
 
@@ -263,6 +288,10 @@ const removeDecanato = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * /
+ * Edits data from an specific acompanante
+ */
 const edit = async (firestore, req, res)=>{
 	var {
 		id,
