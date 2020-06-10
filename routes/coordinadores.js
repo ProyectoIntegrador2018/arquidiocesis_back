@@ -77,7 +77,14 @@ const getall = async (firestore, req, res)=>{
 		const snapshot = await firestore.collection('coordinadores').get();
 		var coordinadores = []
 		snapshot.forEach(doc => {
-			coordinadores.push({ id: doc.id, ...doc.data() });
+			var d = doc.data()
+			coordinadores.push({ 
+				id: doc.id,
+				nombre: d.nombre,
+				apellido_paterno: d.apellido_paterno,
+				apellido_materno: d.apellido_materno,
+				email: d.email
+			});
 		});
 		return res.send({
 			error: false,
@@ -92,7 +99,97 @@ const getall = async (firestore, req, res)=>{
 }
 
 const getone = async (firestore, req, res)=>{
-	
+	try{
+		const snapshot = await firestore.collection('coordinadores').doc(req.params.id).get();
+		if(!snapshot.exists) return res.send({
+			error: true,
+			message: 'Coordinador no existe'
+		});
+		
+		var coordinador = snapshot.data();
+		coordinador.id = snapshot.id;
+		coordinador.grupos = [];
+		coordinador.decanatos = [];
+		coordinador.parroquias = [];
+		coordinador.capillas = [];
+		var parroquias = new Set(), capillas = new Set(), decanatos = new Set();
+
+		var groupSnap = await firestore.collection('grupos').where('coordinador', '==', snapshot.id).get('nombre,parroquia,capilla');
+		for(var i of groupSnap.docs){
+			if(!i.exists) continue;
+			var d = i.data();
+			var g = {
+				id: i.id,
+				nombre: d.nombre,
+			}
+			if(d.capilla){
+				g.capilla = d.capilla;
+				capillas.add(d.capilla);
+			}else{
+				g.parroquia = d.parroquia;
+				parroquias.add(d.parroquia)
+			}
+			coordinador.grupos.push(g)
+		}
+
+		capillas = [...capillas];
+		var group_capillas = capillas;
+		var group_parroquias = [...parroquias];
+
+		if(coordinador.grupos.length>0){
+			if(capillas.length>0){
+				var capSnap = await firestore.getAll(...capillas.map(a=>firestore.doc('capillas/'+a)));
+				capSnap.forEach(a=>{
+					if(!a.exists) return;
+					var d = a.data();
+					if(group_capillas.findIndex(b=>b==a.id)!=-1){
+						coordinador.capillas.push({
+							id: a.id,
+							nombre: d.nombre
+						});
+					}
+					parroquias.add(d.parroquia);
+				})
+			}
+
+			parroquias = [...parroquias];
+
+			var parrSnap = await firestore.getAll(...parroquias.map(a=>firestore.doc('parroquias/'+a)));
+			parrSnap.forEach(a=>{
+				if(!a.exists) return;
+				var d = a.data()
+				if(group_parroquias.findIndex(b=>b==a.id)!=-1){
+					coordinador.parroquias.push({
+						id: a.id,
+						nombre: d.nombre
+					})
+				}
+				decanatos.add(d.decanato);
+			});
+			decanatos = [...decanatos];
+
+			var decSnap = await firestore.getAll(...decanatos.map(a=>firestore.doc('decanatos/'+a)));
+
+			decSnap.forEach(a=>{
+				if(!a.exists) return;
+				coordinador.decanatos.push({
+					id: a.id,
+					...a.data()
+				});
+			})
+		}
+
+		return res.send({
+			error: false,
+			data: coordinador
+		})
+
+	}catch(e){
+		return res.send({
+			error: true,
+			message: 'Mensaje inesperado.'
+		})
+	}
 }
 
 const editCoordinador = async (firestore, req, res) => {

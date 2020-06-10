@@ -1,3 +1,4 @@
+let FieldValue = require('firebase-admin').firestore.FieldValue;
 const moment = require('moment');
 const Util = require('./util');
 
@@ -211,7 +212,7 @@ const add = async (firestore, req, res)=>{
     var { name, parroquia, capilla, coordinador } = req.body;
     try{ 
         const snapshot = await firestore.collection('coordinadores').doc(coordinador).get() 
-        if(!snapshot.exists || !snapshot.data().coordinador) throw {message: 'no hay coordinador registrado con ese id'}
+        if(!snapshot.exists) throw {message: 'no hay coordinador registrado con ese id'}
         if ((!parroquia && !capilla)|| (parroquia && capilla)) throw {message: 'group needs capilla OR parroquia'}
     } 
     catch(err){
@@ -243,7 +244,8 @@ const add = async (firestore, req, res)=>{
     }
     let newGroup = {
         nombre: name,
-        coordinador
+        coordinador,
+        fecha_creada: new Date()
     }
     if (capilla)
         newGroup.capilla = capilla
@@ -271,8 +273,14 @@ const edit = async (firestore, req, res)=>{
     } = req.body;
 
     var data = { nombre };
-    if(capilla) data.capilla = capilla;
-    else data.parroquia = parroquia;
+    if(capilla){
+        data.capilla = capilla;
+        data.parroquia = FieldValue.delete()
+    }
+    else{
+        data.parroquia = parroquia;
+        data.capilla = FieldValue.delete()
+    }
 
     // CHECK IF HAS ACCESS
     try{
@@ -440,7 +448,8 @@ const addMember = async (firestore, req, res)=>{
             oficio,
             domicilio,
             grupo,
-            estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva
+            estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva,
+            fecha_registro: new Date(),
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
@@ -787,11 +796,12 @@ const getAsistenciasReport = async (firestore, req, res)=>{
 
     var miembros = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
     var headers = [
-		'IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno',
-		'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Estatus', 
-		'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa',
-		'Ambulancia', 'Alergico', 'Tipo Sangre', 'Servicio Medico', 'Padecimientos'
-	];
+      'IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 
+      'Fecha Nacimiento', 'Fecha registro', 
+      'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Estatus', 
+      'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa',
+      'Ambulancia', 'Alergico', 'Tipo Sangre', 'Servicio Medico', 'Padecimientos'
+    ];
     var values = []
     for(var i of miembros.docs){
         if(!i.exists) continue;
@@ -803,6 +813,8 @@ const getAsistenciasReport = async (firestore, req, res)=>{
             d.nombre,
             d.apellido_paterno,
             d.apellido_materno,
+            (d.fecha_nacimiento && d.fecha_nacimiento._seconds ? (moment.unix(d.fecha_nacimiento._seconds).format('YYYY-MM-DD')) : ''),
+            (d.fecha_registro && d.fecha_registro._seconds ? (moment.unix(d.fecha_registro._seconds).format('YYYY-MM-DD')) : ''),
             d.email,
             d.sexo,
             d.escolaridad,
@@ -824,7 +836,7 @@ const getAsistenciasReport = async (firestore, req, res)=>{
         ]);
     }
 
-    var csv = Util.toCSV(headers, values);
+    var csv = Util.toXLS(headers, values);
 
     var name = req.params.id;
     try{
@@ -834,8 +846,8 @@ const getAsistenciasReport = async (firestore, req, res)=>{
         }
     }catch(e){ }
     
-    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-    res.attachment('Miembros-'+name.replace(/ /g, '_')+'.csv')
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.attachment('Miembros-'+name.replace(/ /g, '_')+'.xls')
 
     return csv.pipe(res);
 }
@@ -862,20 +874,22 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
 
 	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 1).get();
 
-	var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...memSnap.docs.map(a=>a.id)])];
-    const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('miembros/'+a)));
+    var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...memSnap.docs.map(a=>a.id)])];
     var members = [];
-    asistSnap.forEach(a=>{
-        if(a.exists){
-            var m = a.data();
-            members.push({ 
-                id: a.id, 
-                nombre: m.nombre, 
-                apellido_paterno: m.apellido_paterno,
-                apellido_materno: m.apellido_materno
-            })
-        }
-    });
+    if(members_id.length>0){
+        const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('miembros/'+a)));
+        asistSnap.forEach(a=>{
+            if(a.exists){
+                var m = a.data();
+                members.push({ 
+                    id: a.id, 
+                    nombre: m.nombre, 
+                    apellido_paterno: m.apellido_paterno,
+                    apellido_materno: m.apellido_materno
+                })
+            }
+        });
+    }
 
     var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', ...dates.map(a=>a.date)];
     var values = []
@@ -900,9 +914,9 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     }catch(e){ }
 
     
-    var csv = Util.toCSV(headers, values);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-    res.attachment('Asistencia-'+name.replace(/ /g, '_')+'.csv')
+    var csv = Util.toXLS(headers, values);
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.attachment('Asistencia-'+name.replace(/ /g, '_')+'.xls')
     return csv.pipe(res);
 }
 
@@ -968,6 +982,7 @@ var dump = async (firestore, req, res)=>{
             grupos.push([
                 a.id,
                 d.nombre,
+                d.fecha_creada && d.fecha_creada._seconds ? (moment.unix(d.fecha_creada._seconds).format('YYYY-MM-DD')) : '',
                 coord.id,
                 `${coord.nombre} ${coord.apellido_paterno} ${coord.apellido_materno}`,
                 (c ? 'Capilla' : 'Parroquia'),
@@ -982,11 +997,11 @@ var dump = async (firestore, req, res)=>{
             ]);
         });
 
-        var headers = [ 'IDGrupo', 'Nombre', 'IDCoordinador', 'Coordinador', 'Pertenece a', 'IDParroquia', 'Nombre Parroquia', 'IDCapilla', 'IDCapilla' ]
-        var csv = Util.toCSV(headers, grupos);
+        var headers = [ 'IDGrupo', 'Nombre', 'Fecha creación', 'IDCoordinador', 'Coordinador', 'Pertenece a', 'IDParroquia', 'Nombre Parroquia', 'IDCapilla', 'IDCapilla' ]
+        var csv = Util.toXLS(headers, grupos);
 
-        res.setHeader('Content-Type', 'text/csv; charset=utf-16le');
-        res.attachment('Grupos.csv')
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Grupos.xls')
         return csv.pipe(res)
     }catch(e){
         return res.redirect('back');

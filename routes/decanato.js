@@ -13,6 +13,7 @@ const getall = async (firestore, req, res) =>{
         const result = {
             id: doc.id,
             nombre: doc.data().nombre, 
+            zona: doc.data().zona
         }
         return result
     })

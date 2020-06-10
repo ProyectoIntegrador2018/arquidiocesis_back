@@ -79,7 +79,8 @@ const add = async(firestore, req, res)=>{
 		oficio,
 		domicilio,
         capacitacion,
-        eliminado: false
+        eliminado: false,
+        fecha_registro: new Date(),
 	})
    	return res.send({
        error: false, 
