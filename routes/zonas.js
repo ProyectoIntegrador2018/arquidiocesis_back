@@ -1,4 +1,22 @@
-const getall = async (firestore, req, res)=>{
+/**
+ * Module for managing zones
+ * @module Zones
+ */
+
+/**
+ * Gets all the documents from the zonas collection. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {GET} req
+ * @param {String} req.params.id - the id of the document to retrieve
+ *
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error - true if there was an error, else false.
+ * @param {String} [res.message] - Assigned only if error, includes de error message
+ * @param {JSON} [res.data] - Assigned only if no error
+ * @param {String} res.data.id
+ * @param {String} res.data.nombre
+ */
+const getall = async (firestore, req, res) => {
     const snapshot = await firestore.collection('zonas').get()
     try{
         const docs = snapshot.docs.map(doc =>{
@@ -19,6 +37,20 @@ const getall = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Gets the document with the specified id
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {GET} req
+ * @param {String} req.params.id - the id of the document to retrieve
+ *
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error - true if there was an error, else false.
+ * @param {String} [res.message] - Assigned only if error, includes de error message
+ * @param {JSON} [res.data] - Assigned only if no error
+ * @param {String} res.data.id
+ * @param {String} res.data.decanatos
+ * @param {String} res.data.parroaquias
+ */
 const getone = async (firestore, req, res) => {
     const collectionref = await firestore.collection('zonas')
     try {
@@ -73,6 +105,18 @@ const getone = async (firestore, req, res) => {
     }
 }
 
+/**
+ * Adds a new document to the 'Zonas' collection
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {POST} req
+ * @param {JSON} req.body
+ * @param {String} req.body.nombre - name of the new zone
+ *
+ * @param {JSON} res
+ * @param {Boolean} res.error - True if there was an error else false
+ * @param {String} [res.message] - Assigned if error = true, contains the error message
+ * @param {Number} [res.id] - Assigned if error = false, contains the id of the new zone
+ */
 const add = async (firebase, req, res)=>{
     const nuevaZona = {
         nombre: req.body.nombre

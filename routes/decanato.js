@@ -1,3 +1,12 @@
+const express = require('express')
+/**
+ * Module for managing Capacitations
+ * @module Capacitaciones
+ */
+
+/**
+ * Converts the data to be used in a csv file.
+ */
 const getall = async (firestore, req, res) =>{
     const snapshot = await firestore.collection('decanatos').get()
     const docs = snapshot.docs.map(doc => {
@@ -14,6 +23,9 @@ const getall = async (firestore, req, res) =>{
     }).status(200) 
 }
 
+/**
+ * Converts the data to be used in a csv file.
+ */
 const getone = async (firestore, req, res)=>{
     const collectionref = await firestore.collection('decanatos')
     try{

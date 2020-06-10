@@ -1,5 +1,13 @@
+/**
+ * Module for managing 'Admins'
+ * @module Admin
+ */
 const bcrypt = require('bcrypt-nodejs');
 
+/**
+ * /
+ * Verifies that the account is an Administrador
+ */
 const isAdmin = (req, res, next, redirect=false)=>{
 	if(req.user.tipo=='admin' || req.user.tipo=='superadmin') return next();
 	else {
@@ -14,6 +22,9 @@ const isAdmin = (req, res, next, redirect=false)=>{
 	}
 }
 
+/**
+ * /
+ * Gets all logins that are of type admin */
 const getLogins = async (firestore, req, res)=>{
 	const loginSnap = await firestore.collection('logins').where('tipo', 'in', ['admin', 'coordinador_general', 'acompañante_operativo']).get();
 	var logins = loginSnap.docs.map(a=>({ email: a.id, member_id: a.data().id, tipo: a.data().tipo }));
@@ -23,6 +34,10 @@ const getLogins = async (firestore, req, res)=>{
 	})
 }
 
+/**
+ * /
+ * Gets an specific admin
+ */
 const getOne = async (firestore, req, res)=>{
 	var { email } = req.body;
 	try{
@@ -57,6 +72,10 @@ const getOne = async (firestore, req, res)=>{
 	})
 }
 
+/**
+ * /
+ * Change the password for the admin.
+ */
 const changePassword = async (firestore, req, res)=>{
 	var { email, password } = req.body;
 	try{
@@ -81,6 +100,10 @@ const changePassword = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * /
+ * Registers a new admin
+ */
 const register = async (firestore, req, res)=>{
 	var {
 		nombre,
@@ -144,6 +167,10 @@ const register = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * /
+ * Deletes an specific admin
+ */
 const deleteAdmin = async (firestore, req, res)=>{
 	var { email } = req.body;
 	if(req.user.email.toLowerCase()==email.toLowerCase()){
@@ -176,6 +203,10 @@ const deleteAdmin = async (firestore, req, res)=>{
 	})
 }
 
+/**
+ * /
+ * Edits data from an specific admin
+ */
 const editAdmin = async (firestore, req, res)=>{
 	var {
 		id,

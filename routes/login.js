@@ -1,7 +1,15 @@
+/**
+ * Module for managing Login
+ * @module Login
+ */
+
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt-nodejs');
 const SECRET = 'R?<=2vYPXm)n*_kd,Hp.W2GG[hD3b2D/';
 
+/**
+ * Authenticates the password and the email are matched
+ */
 const authenticate = async (firestore, req, res)=>{
 	 var { password, email } = req.body;
     try{
@@ -45,6 +53,9 @@ const authenticate = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Verifies the token is sent is valid. 
+ */
 const verifyToken = (firestore)=>{
     return (req, res, next)=>{
         var token;
@@ -77,6 +88,9 @@ const verifyToken = (firestore)=>{
     }
 }
 
+/**
+ * Auxiluary function to check the validity of a token.
+ */
 const verify = async (firestore, token)=>{
     try{
         var decoded = jwt.verify(token, SECRET);
@@ -90,6 +104,9 @@ const verify = async (firestore, token)=>{
     }
 }
 
+/**
+ * Changes the password of a user
+ */
 const changePassword = async (firestore, req, res)=>{
 	var { old_password, new_password } = req.body;
 	if(new_password.length<5) return res.send({

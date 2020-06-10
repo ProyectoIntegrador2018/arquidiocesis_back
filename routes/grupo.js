@@ -2,6 +2,23 @@ let FieldValue = require('firebase-admin').firestore.FieldValue;
 const moment = require('moment');
 const Util = require('./util');
 
+/**
+ * Module for managing Groups
+ * @module Grupo
+ */
+
+/**
+ * Gets all group documents for the list
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {GET} req
+ * @param {String} req.params.id - the id of the document to retrieve
+ *
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error - true if there was an error, else false.
+ * @param {String} [res.message] - Assigned only if error, includes de error message
+ * @param {JSON} [res.data] - Assigned only if no error
+ * @param {String} res.data.grupos - List of groups
+ */
 const getall = async (firestore, req, res)=>{
     var grupos = [];
 
@@ -53,6 +70,18 @@ const getall = async (firestore, req, res)=>{
     })
 }
 
+/**
+ * Gets the group document with the specified id
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {GET} req
+ * @param {String} req.params.id - the id of the document to retrieve
+ *
+ * @param {JSON} res - Status 200
+ * @param {Bool} res.error - true if there was an error, else false.
+ * @param {String} [res.message] - Assigned only if error, includes de error message
+ * @param {JSON} [res.data] - Assigned only if no error
+ * @param {String} res.data.grupos - Information of requested group
+ */
 const getone = async (firestore, req, res)=>{
     try{
         var snapshot = await firestore.collection('grupos').doc(req.params.id).get();
@@ -133,6 +162,9 @@ const getone = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Gets a list of all the members who are in a 'Baja Temporal' state
+ */
 var getBajasTemporales = async (firestore, req, res)=>{
     var { id } = req.params;
     try{
@@ -164,6 +196,9 @@ var getBajasTemporales = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Adds a new group to the 'grupos' collection
+ */
 const add = async (firestore, req, res)=>{
     // Check if has access to add. (Is admin)
     if(!req.user.admin){
@@ -226,6 +261,9 @@ const add = async (firestore, req, res)=>{
     })
 }
 
+/**
+ * Edits the fields of an specific group
+ */
 const edit = async (firestore, req, res)=>{
     var {
         id,
@@ -279,6 +317,9 @@ const edit = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Removes a group from the group collection
+ */
 const remove = async (firestore, req, res)=>{
     var { id } = req.params;
     try{
@@ -317,6 +358,9 @@ const remove = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Changes the 'coordinador' field of an specific group
+ */
 const changeCoordinador = async (firestore, req, res)=>{
     var { id } = req.params;
     var { coordinador } = req.body;
@@ -359,6 +403,9 @@ const changeCoordinador = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Adds a new member to the 'Miembros' collection and assigns it a group. 
+ */
 const addMember = async (firestore, req, res)=>{
     var {
         grupo,
@@ -423,6 +470,9 @@ const addMember = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Retrieves the data of an specific member
+ */
 const getMember = async (firestore, req, res) => {
     var id = req.params.id;
     try {
@@ -442,7 +492,9 @@ const getMember = async (firestore, req, res) => {
     }
 }
 
-
+/**
+ * Edits the data of a member
+ */
 const editMember = async (firestore, req, res) => {
     var id = req.params.id;
     var {
@@ -501,6 +553,9 @@ const editMember = async (firestore, req, res) => {
     }
 }
 
+/**
+ * Edits the group a member belongs to.
+ */
 const editMemberGroup = async (firestore, req, res) => {
 	var miembro_id = req.params.id;
     var { grupo_id } = req.body;
@@ -523,6 +578,9 @@ const editMemberGroup = async (firestore, req, res) => {
     }
 }
 
+/**
+ * Edits the status of a member
+ */
 const editMemberStatus = async (firestore, req, res) => {
 	var id = req.params.id;
     var { status } = req.body;
@@ -556,6 +614,9 @@ const editMemberStatus = async (firestore, req, res) => {
     }
 }
 
+/**
+ * Retrieves an assistance list from the assitance collection
+ */
 const getAsistencia = async (firestore, req, res)=>{
 	var {id, fecha} = req.params;
 	try{
@@ -614,6 +675,10 @@ const getAsistencia = async (firestore, req, res)=>{
 	}
 }
 
+
+/**
+ * Retrieves an assistance list from the assitance collection
+ */
 const registerAsistencia = async (firestore, req, res) => {
     var id = req.params.id;
     var { fecha, miembros, force } = req.body;
@@ -656,6 +721,9 @@ const registerAsistencia = async (firestore, req, res) => {
     }
 }
 
+/**
+ * Retrieves an assistance list from the assitance collection
+ */
 const saveAsistencia = async (firestore, req, res) => {
     var { id, fecha } = req.params;
     var { miembros } = req.body;
@@ -688,6 +756,9 @@ const saveAsistencia = async (firestore, req, res) => {
     }
 }
 
+/**
+ * Edits the ficha Medica data from a member. 
+ */
 const editMemberFicha = async (firestore, req, res) => {
     var { tipo_sangre, alergico, servicio_medico, ambulancia, padecimientos } = req.body;
     var id = req.params.id;
@@ -715,6 +786,9 @@ const editMemberFicha = async (firestore, req, res) => {
     }
 }
 
+/**
+ * Generates a report that can be converted to an excel document of an asitance list.
+ */
 const getAsistenciasReport = async (firestore, req, res)=>{
     if(!req.user.admin){
         return res.sendStatus(404);
@@ -778,6 +852,9 @@ const getAsistenciasReport = async (firestore, req, res)=>{
     return csv.pipe(res);
 }
 
+/**
+ * Edits the ficha Medica data from a member.
+ */
 const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     if(!req.user.admin){
         return res.redirect('back');
@@ -843,6 +920,10 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     return csv.pipe(res);
 }
 
+
+/**
+ * Converts the data to be used in a csv file.
+ */
 var dump = async (firestore, req, res)=>{
     if(!req.user.admin){
         return res.redirect('back');
