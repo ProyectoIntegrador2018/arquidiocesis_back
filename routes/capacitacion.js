@@ -1,7 +1,32 @@
+/** 
+ * Module for managing 'capacitaciones' 
+ * @module Capacitacion
+ */
 const moment = require('moment');
 const firebase = require('firebase-admin')
+/** @alias module:Util */
 const Util = require('./util');
 
+/**
+ * Adds a new document to the 'Capacitation' collection 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {POST} req 
+ * @param {JSON} req.user - contains information regarding the currently signed in user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'coordinador'
+ * @param {String} req.user.admin - If user is admin or not 
+ * @param {JSON} req.body
+ * @param {JSON} req.body.payload
+ * @param {String} req.body.payload.nombre 
+ * @param {String} req.body.payload.encargado
+ * @param {String} req.body.payload.inicio - Beginning date of course YYYY-MM-DD
+ * @param {String} req.body.payload.fin - End date of course YYYY-MM-DD
+ * 
+ * @param {JSON} res 
+ * @param {Boolean} res.error - True if there was an error else false
+ * @param {Number} [res.code] - if error, code = 999 if user is not authorized for that operation 
+ * @param {String} [res.message] - Assigned if error = true, contains the error message
+ * @param {Number} [res.data] - Assigned if error = false, contains the write time of the operation 
+ */
 const add = async (firestore, req, res)=>{
     const payload = req.body
 	let nombre, encargado, inicio, fin
@@ -53,7 +78,22 @@ const add = async (firestore, req, res)=>{
         })
     }
 }
-
+/**
+ * Updates the coordinator incharge of a course
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {POST} req 
+ * @param {JSON} req.user - contains information regarding the currently signed in user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'coordinador'
+ * @param {String} req.user.admin - If user is admin or not 
+ * @param {JSON} req.body
+ * @param {String} req.body.id - The id of the course to change
+ * @param {String} req.body.coordinador - The id of the new coordinator in charge of the course
+ * 
+ * @param {JSON} res 
+ * @param {Bool} res.error - True if there was an error else false.
+ * @param {String} [res.message] - Assigned if error = true, contains the error message.
+ * @param {Bool} [res.data] - Assigned if error = false, Always true. 
+ */
 const changeCoordinador = async (firestore, req, res) => {
 	if(req.user.tipo=='coordinador'){
 		return res.send({
@@ -83,7 +123,17 @@ const changeCoordinador = async (firestore, req, res) => {
         })
     }
 }
-
+/**
+ * Deletes a document from the 'capacitacion' collection.
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {DELETE} req 
+ * @param {String} req.params.id - The id of the course to delete. 
+ * 
+ * @param {JSON} res
+ * @param {Bool} res.error - true if there was an error else false. 
+ * @param {String} [res.message] - assigned if error = true, contains the error message. 
+ * @param {Bool} [res.data] - assigned if error = false, always true.
+ */
 const deleteOne = async (firestore, req, res) => {
     var id = req.params.id;
     try {
@@ -110,7 +160,26 @@ const deleteOne = async (firestore, req, res) => {
         })
     }
 }
-
+/**
+ * Edits the course with the provided id
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {POST} req 
+ * @param {JSON} req.body
+ * @param {String} req.body.id
+ * @param {String} req.body.nombre
+ * @param {String} req.body.inicio - Start date of course, YYYY-MM-DD
+ * @param {String} req.body.fin - End date of course, YYYY-MM-DD
+ * 
+ * @param {JSON} req.user - Containts information regarding the currently signed-in user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'coordinador',...
+ * @param {Bool} req.user.admin - If the user is admin or not
+ * 
+ * @param {JSON} res 
+ * @param {Bool} res.error - True if there was an error 
+ * @param {Number} [res.code] - Assigned if error = true. code = 999 when the user is not authoraized for that action. 
+ * @param {String} [res.message] - Assigned if error = true. Containts the error message. 
+ * @param {Bool} [res.data] - Assigned if error = false. Always true. 	
+ */
 const edit = async (firestore, req, res)=>{
     var { id, nombre, inicio, fin } = req.body;
 
@@ -154,6 +223,23 @@ const edit = async (firestore, req, res)=>{
 
 
 /* copy pasted code, cambio de var a const y grupos a capacitaciones */
+/**
+ * Returns the list of attendess for a course of a given date. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {GET} req 
+ * @param {String} req.params.id - Course id
+ * @param {String} req.params.fecha - Date from which to find the attendance list, YYYY-MM-DD.
+ * 
+ * @param {JSON} res 
+ * @param {Bool} res.error - True if there is an error else false. 
+ * @param {Number} [res.code] - Assigned if error = true. Code = 34 for 'Not found'.
+ * @param {String} [res.message] - Assigned if error = true. Containts the error message. 
+ * @param {JSON} [res.data] - Assigned if error = false. 
+ * @param {Array<JSON>}  miembros - Array list of attendees.
+ * @param {String} miembros[].id - user id of attendee.
+ * @param {String} miembros[].nombre - name of attendee.
+ * @param {Bool} miembros[].assist - true if member did attend the course on that day. 
+ */
 const getAsistencia = async (firestore, req, res)=>{
 	const {id, fecha} = req.params;
 	try{
@@ -195,7 +281,24 @@ const getAsistencia = async (firestore, req, res)=>{
 		})
 	}
 }
-
+/**
+ * Registers the list of attendees for a course in a particular date
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {POST} req 
+ * @param {JSON} req.params
+ * 
+ * @param {String} req.params.id - Course id.
+ * @param {JSON} req.body
+ * @param {String} req.body.fecha - The date for the week currently being registered. YYYY-MM-DD.
+ * @param {Array<String>} req.body.miembros - The array of attendee ids. 
+ * @param {Bool} req.body.force - If true, it will override the previous list. 
+ * 
+ * @param {JSON} res 
+ * @param {Bool} res.error - true if there was an error else false.
+ * @param {Number} [res.code] - Assigned if error = true. Code = 52 if an attendee list already exists for that date. 
+ * @param {String} [res.message] - Assigned if error=true. Containts the error message. 
+ * @param {String} [res.data] - Assigned if error = false. Contains the date of the registered attendee list. YYYY-MM-DD.
+ */
 const registerAsistencia = async (firestore, req, res)=>{
 	const id = req.params.id;
 	const { fecha, miembros, force } = req.body;
@@ -238,6 +341,24 @@ const registerAsistencia = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * Registers the list of attendees for a course in a particular date
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {POST} req 
+ * @param {JSON} req.params
+ * @param {String} req.params.id - Course id.
+ * @param {String} req.params.fecha - The date of the attendance list being modified. YYYY-MM-DD.
+ * 
+ * @param {JSON} req.body
+ * @param {Array<String>} [req.body.miembros] - The array of attendee ids. 
+ * 
+ * @param {JSON} res 
+ * @param {Bool} res.error - true if there was an error else false.
+ * @param {String} [res.message] - Assigned if error=true. Containts the error message. 
+ * @param {JSON} [res.data] - Assigned if error = false. 
+ * @param {Bool} res.data.deleted - True if the previously registered asistance was deleted. 
+ * @param {String} res.data.fecha - Contains the date that was updated. YYYY-MM-DD.
+ */
 const saveAsistencia = async (firestore, req, res)=>{
 	const {id, fecha} = req.params;
 	const { miembros } = req.body;
@@ -270,6 +391,29 @@ const saveAsistencia = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * Retrieves the information of a document from the 'capacitaciones' collection. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {GET} req 
+ * @param {JSON} req.params
+ * @param {String} req.params.id - Course id.
+ * 
+ * @param {JSON} res 
+ * @param {Bool} res.error - true if there was an error else false.
+ * @param {String} [res.message] - Assigned if error=true. Containts the error message. 
+ * @param {JSON} [res.data] - Assigned if error = false. 
+ * @param {String} res.data.id  - Course id. 
+ * @param {Array<JSON>} res.data.participantes
+ * @param {String} res.data.participantes.id  - Attendee id. 
+ * @param {String} res.data.participantes.nombre  - Attendee name. 
+ * @param {String} res.data.participantes.appellido_paterno  - Attendee middle name. 
+ * @param {String} res.data.participantes.appellido_materno  - Attendee last name. 
+ * @param {Array<Array>} res.data.asistencias - An array that contains all the attendance lists. 
+ * @param {Array<String>} res.data.asistencias[].YYYY-MM-DD - Array of attendee ids for a particular date. 
+ * @param {String} res.data.encargado - The userid of the staff in charge of that course. 
+ * @param {String} res.data.inicio - The starting date for the course. 
+ * @param {String} res.data.fin - THe end date for the course. 
+ */
 const getone = async (firestore, req, res)=>{
 	const id = req.params.id
 	const snapshot = await firestore.collection('capacitaciones').doc(id).get()
@@ -305,6 +449,22 @@ const getone = async (firestore, req, res)=>{
 	})
 }
 
+/**
+ * Returns the document information of all participants for a specific course. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {GET} req 
+ * @param {JSON} req.params
+ * @param {String} req.params.id - Course id.
+ *
+ * @param {JSON} res
+ * @param {Bool} res.error - True if there was an error else false. 
+ * @param {String} [res.message] - Assigned if error = true. Contains the error message. 
+ * @param {JSON} [res.data]  
+ * @param {String} res.data.id  - The id of the course participant. 
+ * @param {String} res.data.name
+ * @param {String} res.data.apellido_paterno
+ * @param {String} res.data.apellido_materno
+ */
 const getParticipantes = async (firestore, req, res)=>{
 	var { id } = req.params;
 	try{
@@ -331,6 +491,24 @@ const getParticipantes = async (firestore, req, res)=>{
 	}
 }
 
+/**
+ * Returns the document information of all participants for a specific course. If the user is admin, it returns all the information of all the courses. If the user is a staff member, then it will only return the information of the courses the user is in charge of. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {GET} req 
+ * @param {JSON} req.user - Conains information about the currently logged user. 
+ * @param {String} req.user.id - The id of the currently logged user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'participante', ...
+ * @param {String} req.user.admin - True if the user has admin priviledges. 
+ *
+ * @param {JSON} res
+ * @param {Bool} res.error - True if there was an error else false. 
+ * @param {String} [res.message] - Assigned if error = true. Contains the error message. 
+ * @param {JSON} [res.data] 
+ * @param {String} res.data.id - The document id. 
+ * @param {String} res.data.encargado - The id of the staff in charge of that course. 
+ * @param {String} res.data.inicio - The starting date for the course. 
+ * @param {String} res.data.fin - THe end date for the course. 
+ */
 const getall = async (firestore, req, res)=>{
 	var snapshot;
 	if(req.user.admin || req.user.tipo.startsWith('acompañante')){
@@ -349,6 +527,24 @@ const getall = async (firestore, req, res)=>{
 		data: docs
 	})
 }
+
+
+/**
+ * Returns the full information of all course participants for a particular course in csv stream format. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {GET} req 
+ * @param {JSON} req.params
+ * @param {String} req.params.id - The id of the course. 
+ * @param {JSON} req.user - Conains information about the currently logged user. 
+ * @param {String} req.user.id - The id of the currently logged user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'participante', ...
+ * @param {String} req.user.admin - True if the user has admin priviledges. 
+ *
+ * @param {JSON} res
+ * @param {Bool} res.error - True if there was an error else false. 
+ * @param {String} [res.message] - Assigned if error = true. Contains the error message. 
+ * @param {JSON} [res.data] - CSV stream data. 
+ */
 const getAsistenciasReport = async (firestore, req, res)=>{
     if(!req.user.admin){
         return res.sendStatus(404);
@@ -389,6 +585,22 @@ const getAsistenciasReport = async (firestore, req, res)=>{
     return csv.pipe(res);
 }
 
+/**
+ * Returns the attendance record and general information information of all participants for a particular course in csv stream format. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {GET} req 
+ * @param {JSON} req.params
+ * @param {String} req.params.id - The id of the course. 
+ * @param {JSON} req.user - Conains information about the currently logged user. 
+ * @param {String} req.user.id - The id of the currently logged user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'participante', ...
+ * @param {String} req.user.admin - True if the user has admin priviledges. 
+ *
+ * @param {JSON} res
+ * @param {Bool} res.error - True if there was an error else false. 
+ * @param {String} [res.message] - Assigned if error = true. Contains the error message. 
+ * @param {JSON} [res.data] - CSV stream data. 
+ */
 const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     if(!req.user.admin){
         return res.redirect('back');
@@ -446,6 +658,22 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     return csv.pipe(res);
 }
 
+/**
+ * Returns all data regarding courses in csv stream data. 
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance.
+ * @param {GET} req 
+ * @param {JSON} req.params
+ * @param {String} req.params.id - The id of the course. 
+ * @param {JSON} req.user - Conains information about the currently logged user. 
+ * @param {String} req.user.id - The id of the currently logged user
+ * @param {String} req.user.tipo - The kind of user: 'acompañante', 'participante', ...
+ * @param {String} req.user.admin - True if the user has admin priviledges. 
+ *
+ * @param {JSON} res
+ * @param {Bool} res.error - True if there was an error else false. 
+ * @param {String} [res.message] - Assigned if error = true. Contains the error message. 
+ * @param {JSON} [res.data] - CSV stream data. 
+ */
 var dump = async (firestore, req, res)=>{
 	if(!req.user.admin){
         return res.redirect('back');
