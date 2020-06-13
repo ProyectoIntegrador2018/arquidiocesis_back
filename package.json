@@ -1,0 +1,40 @@
+{
+  "name": "arquidiocesis-back",
+  "version": "1.0.0",
+  "description": "APP de Arquidiocesis de Monterrey",
+  "main": "index.js",
+  "dependencies": {
+    "bcrypt": "^4.0.1",
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "csvjson": "^5.1.0",
+    "express": "^4.17.1",
+    "express-json": "^1.0.0",
+    "firebase-admin": "^8.10.0",
+    "iconv-lite": "^0.5.1",
+    "jsonstream": "^1.0.3",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.25.1",
+    "xlsx": "^0.16.2"
+  },
+  "devDependencies": {
+    "jsdoc": "^3.6.4",
+    "markdown-js": "0.0.4",
+    "nodemon": "^2.0.3"
+  },
+  "scripts": {
+    "docs": "jsdoc -c jsdoc.json",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProyectoIntegrador2018/arquidiocesis-back.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ProyectoIntegrador2018/arquidiocesis-back/issues"
+  },
+  "homepage": "https://github.com/ProyectoIntegrador2018/arquidiocesis-back#readme"
+}
