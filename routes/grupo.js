@@ -418,7 +418,10 @@ const addMember = async (firestore, req, res)=>{
         fecha_nacimiento,
         escolaridad,
         oficio,
-        domicilio
+        domicilio,
+        laptop,
+        smartphone,
+        facebook
     } = req.body;
 
     var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
@@ -450,6 +453,9 @@ const addMember = async (firestore, req, res)=>{
             grupo,
             estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva,
             fecha_registro: new Date(),
+            laptop,
+            smartphone,
+            facebook
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
@@ -507,7 +513,10 @@ const editMember = async (firestore, req, res) => {
         fecha_nacimiento,
         escolaridad,
         oficio,
-        domicilio
+        domicilio,
+        laptop,
+        smartphone,
+        facebook
     } = req.body;
     
     
@@ -539,7 +548,10 @@ const editMember = async (firestore, req, res) => {
             fecha_nacimiento: fn,
             escolaridad,
             oficio,
-            domicilio
+            domicilio,
+            laptop,
+            smartphone,
+            facebook
         });
         return res.send({
             error: false,
