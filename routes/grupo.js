@@ -421,7 +421,7 @@ const addMember = async (firestore, req, res)=>{
         domicilio,
         laptop,
         smartphone,
-        facebook
+        tablet
     } = req.body;
 
     var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
@@ -455,7 +455,7 @@ const addMember = async (firestore, req, res)=>{
             fecha_registro: new Date(),
             laptop,
             smartphone,
-            facebook
+            tablet
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
@@ -516,7 +516,7 @@ const editMember = async (firestore, req, res) => {
         domicilio,
         laptop,
         smartphone,
-        facebook
+        tablet
     } = req.body;
     
     
@@ -551,7 +551,7 @@ const editMember = async (firestore, req, res) => {
             domicilio,
             laptop,
             smartphone,
-            facebook
+            tablet
         });
         return res.send({
             error: false,
