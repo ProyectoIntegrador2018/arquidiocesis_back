@@ -8,6 +8,80 @@ const moment = require('moment');
 
 /**
  * /
+ * Gets all data in the acompañantes collection
+ */
+const getAll = async (firestore, req, res)=>{
+	const acompanantes_snap = await firestore.collection('acompanantes').get();
+	var acompanantes = acompanantes_snap.docs.map(doc => {return {id: doc.id, ...doc.data()}});
+	acompanantes.forEach(a => {
+		if (a.fecha_nacimiento && a.fecha_nacimiento._seconds) {
+				a.fecha_nacimiento = moment.unix(a.fecha_nacimiento._seconds).format('YYYY-MM-DD');
+		}
+	});
+
+	return res.send({
+		error: false,
+		data: acompanantes
+	});
+}
+
+/**
+ * /
+ * Gets the zona or decanato belonging to an acompanante
+ */
+const getZonaOrDecanato = async (firestore, req, res)=>{
+	console.log('getZonaOrDecanato start');
+	const { id } = req.params;
+
+	if (!id) {
+		return res.send({
+			error: true,
+			message: 'Es necesario el ID del acompañante.'
+		});
+	}
+	
+	try {
+		const zona = await firestore.collection('zonas').where('acompanante', '==', id).get();
+
+		if (!zona.empty) {
+			return res.send({
+				error: false,
+				data: {
+					zona: {
+						id: zona.docs[0].id,
+						...zona.docs[0].data(),
+					}
+				}
+			});
+		}
+	
+		const decanato = await firestore.collection('decanatos').where('acompanante', '==', id).get();
+	
+		if (!decanato.empty) {
+			return res.send({
+				error: false,
+				data: {
+					id: decanato.docs[0].id,
+					...decanato.docs[0].data(),
+				}
+			});
+		}
+
+		return res.send({
+			error: false,
+			data: {}
+		});
+	} catch (error) {
+		console.log('error :>> ', error);
+		return res.send({
+			error: true,
+			message: 'Error inesperado.'
+		});
+	}
+}
+
+/**
+ * /
  * Gets data from an specific acompanante
  */
 const getone = async (firestore, req, res)=>{
@@ -346,6 +420,8 @@ const edit = async (firestore, req, res)=>{
 }
 
 module.exports = {
+	getAll,
+	getZonaOrDecanato,
 	getone,
 	addZona,
 	addDecanato,
