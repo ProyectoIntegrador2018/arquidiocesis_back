@@ -252,7 +252,7 @@ const dump = async (firestore, req, res)=>{
             var dec = decanatos.find(a=>a.id==d.decanato);
             var z = dec ? zonas.find(a=>a.id==dec.zona) : null;
             parroquias.push([
-                a.id,
+                d.identificador || a.id,
                 d.nombre,
                 d.direccion,
                 d.colonia,
