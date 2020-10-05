@@ -126,7 +126,12 @@ const getCapillas = async (firestore, req, res)=>{
  */
 const getCoordinadores = async (firestore, req, res)=>{
     const coordinadores_snap = await firestore.collection('coordinadores').get()
-    var coordinadores = coordinadores_snap.docs.map(doc=>{return {id: doc.id, ...doc.data()}})
+    const coordinadores = coordinadores_snap.docs.map(doc => {
+        return {
+            id: doc.data().identificador || doc.id,
+            ...doc.data()
+        }
+    })
     
     coordinadores.forEach(a=>{
         if(a.fecha_nacimiento && a.fecha_nacimiento._seconds){
