@@ -171,21 +171,18 @@ const getDecanatos = async (firestore, req, res)=>{
             oficio: '',
             estado_civil: '' 
         }
-        return firestore.collection('zonas').doc(d.zona).get().then(zona_snap => {
-            var nombre_zona = zona_snap.data().nombre
-            if (acom_ref) {
-                return firestore.collection('acompanantes').doc(acom_ref).get().then(acom_snap => {
-                    acompanante = acom_snap.data()
-                    if(acompanante.fecha_nacimiento && acompanante.fecha_nacimiento._seconds){
-                        acompanante.fecha_nacimiento = moment.unix(acompanante.fecha_nacimiento._seconds).format('YYYY-MM-DD');
-                    }
-                    var { nombre, apellido_paterno, apellido_materno } = acompanante
-                    return{ id: doc.id, decanato: d.nombre, zona: nombre_zona, nombre_acom: nombre, ap_pat: apellido_paterno, ap_mat: apellido_materno, ...acompanante }
-                })
-            } else {
-                return{ id: doc.id, decanato: d.nombre, zona: nombre_zona, nombre_acom: '', ap_pat: '', ap_mat: '', ...acompanante }
-            }
-        })
+        if (acom_ref) {
+            return firestore.collection('acompanantes').doc(acom_ref).get().then(acom_snap => {
+                acompanante = acom_snap.data()
+                if(acompanante.fecha_nacimiento && acompanante.fecha_nacimiento._seconds){
+                    acompanante.fecha_nacimiento = moment.unix(acompanante.fecha_nacimiento._seconds).format('YYYY-MM-DD');
+                }
+                var { nombre, apellido_paterno, apellido_materno } = acompanante
+                return{ id: doc.id, decanato: d.nombre, zona: d.zona, nombre_acom: nombre, ap_pat: apellido_paterno, ap_mat: apellido_materno, ...acompanante }
+            })
+        } else {
+            return{ id: doc.id, decanato: d.nombre, zona: d.zona, nombre_acom: '', ap_pat: '', ap_mat: '', ...acompanante }
+        }
     })
 
     Promise.all(decanatos).then(decanatos_done => {
