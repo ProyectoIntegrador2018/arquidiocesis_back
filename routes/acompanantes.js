@@ -61,8 +61,10 @@ const getZonaOrDecanato = async (firestore, req, res)=>{
 			return res.send({
 				error: false,
 				data: {
-					id: decanato.docs[0].id,
-					...decanato.docs[0].data(),
+					decanato: {
+						id: decanato.docs[0].id,
+						...decanato.docs[0].data(),
+					}
 				}
 			});
 		}
