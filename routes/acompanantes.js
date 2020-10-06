@@ -161,7 +161,8 @@ const addZona = async (firestore, req, res)=>{
 			estado_civil,
 			escolaridad,
 			oficio,
-			domicilio
+			domicilio,
+			email
 		}
 		
 		var naRef = await firestore.collection('acompanantes').add(new_acompanante);
@@ -244,7 +245,8 @@ const addDecanato = async (firestore, req, res)=>{
 			estado_civil,
 			escolaridad,
 			oficio,
-			domicilio
+			domicilio,
+			email
 		}
 		
 		var naRef = await firestore.collection('acompanantes').add(new_acompanante);
