@@ -884,9 +884,9 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
         })
     });
 
-	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 1).get();
+	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 0).get();
 
-    var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...memSnap.docs.map(a=>a.id)])];
+    var members_id = [...new Set([...dates.map(a=>a.members), ...memSnap.docs.map(a=>a.id)])];
     var members = [];
     if(members_id.length>0){
         const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('miembros/'+a)));

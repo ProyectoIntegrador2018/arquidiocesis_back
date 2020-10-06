@@ -152,14 +152,48 @@ const getCoordinadores = async (firestore, req, res)=>{
  */
 const getDecanatos = async (firestore, req, res)=>{
     const decanatos_snap = await firestore.collection('decanatos').get()
-    var decanatos = decanatos_snap.docs.map(doc=>{return{id: doc.id, ...doc.data()}})
+    var decanatos = decanatos_snap.docs.map(doc=>{
+        var d = doc.data();
+        var acom_ref = d.acompanante;
+        var acompanante = { 
+            sexo: '',
+            fecha_nacimiento: '',
+            escolaridad: '',
+            email: '',
+            domicilio:
+                { 
+                    telefono_casa: '',
+                    colonia: '',
+                    municipio: '',
+                    domicilio: '',
+                    telefono_movil: '' 
+                },
+            oficio: '',
+            estado_civil: '' 
+        }
+        if (acom_ref) {
+            return firestore.collection('acompanantes').doc(acom_ref).get().then(acom_snap => {
+                acompanante = acom_snap.data()
+                if(acompanante.fecha_nacimiento && acompanante.fecha_nacimiento._seconds){
+                    acompanante.fecha_nacimiento = moment.unix(acompanante.fecha_nacimiento._seconds).format('YYYY-MM-DD');
+                }
+                var { nombre, apellido_paterno, apellido_materno } = acompanante
+                return{ id: doc.id, decanato: d.nombre, zona: d.zona, nombre_acom: nombre, ap_pat: apellido_paterno, ap_mat: apellido_materno, ...acompanante }
+            })
+        } else {
+            return{ id: doc.id, decanato: d.nombre, zona: d.zona, nombre_acom: '', ap_pat: '', ap_mat: '', ...acompanante }
+        }
+    })
 
-    var { headers, values } = convertJson(decanatos);
-    const xls = util.toXLS(headers, values);
+    Promise.all(decanatos).then(decanatos_done => {
+        var { values } = convertJson(decanatos_done);
+        var headers = ['ID Decanato', 'Nombre de Decanato', 'Zona', 'Nombre de Acompañante', 'Apellido Paterno', 'Apellido Materno', 'Sexo', 'Fecha Nacimiento', 'Escolaridad', 'Correo electrónico', 'Teléfono de Casa', 'Colonia', 'Municipio', 'Domicilio', 'Teléfono Móvil', 'Oficio', 'Estado Civil'];
+        const xls = util.toXLS(headers, values);
 
-    res.setHeader('Content-Type', 'application/vnd.ms-excel');
-    res.attachment('Decanatos.xls')
-    return xls.pipe(res);
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Decanatos.xls')
+        return xls.pipe(res);
+    })
 }
 
 /**
@@ -263,14 +297,46 @@ const getZonas = async(firestore, req, res)=>{
     const zonas_snap = await firestore.collection('zonas').get()
     var zonas = zonas_snap.docs.map(doc=>{
         var d = doc.data();
-        return{ id: doc.id, nombre: d.nombre, acompanante: (d.acompanante || '') }
+        var acom_ref = d.acompanante;
+        var acompanante = { 
+            sexo: '',
+            fecha_nacimiento: '',
+            escolaridad: '',
+            email: '',
+            domicilio:
+                { 
+                    telefono_casa: '',
+                    colonia: '',
+                    municipio: '',
+                    domicilio: '',
+                    telefono_movil: '' 
+                },
+            oficio: '',
+            estado_civil: '' 
+        }
+        if (acom_ref) {
+            return firestore.collection('acompanantes').doc(acom_ref).get().then(acom_snap => {
+                acompanante = acom_snap.data()
+                if(acompanante.fecha_nacimiento && acompanante.fecha_nacimiento._seconds){
+                    acompanante.fecha_nacimiento = moment.unix(acompanante.fecha_nacimiento._seconds).format('YYYY-MM-DD');
+                }
+                var { nombre, apellido_paterno, apellido_materno } = acompanante
+                return{ id: doc.id, nombre_zona: d.nombre, nombre_acom: nombre, ap_pat: apellido_paterno, ap_mat: apellido_materno, ...acompanante }
+            })
+        } else {
+            return{ id: doc.id, nombre_zona: d.nombre, nombre_acom: '', ap_pat: '', ap_mat: '', ...acompanante }
+        }
     })
-    var { headers, values } = convertJson(zonas);
-    const xls = util.toXLS(headers, values);
 
-    res.setHeader('Content-Type', 'application/vnd.ms-excel');
-    res.attachment('Zonas.xls')
-    return xls.pipe(res);
+    Promise.all(zonas).then(zonas_done => {
+        var { values } = convertJson(zonas_done);
+        var headers = ['ID Zona', 'Nombre de Zona', 'Nombre de Acompañante', 'Apellido Paterno', 'Apellido Materno', 'Sexo', 'Fecha Nacimiento', 'Escolaridad', 'Correo electrónico', 'Teléfono de Casa', 'Colonia', 'Municipio', 'Domicilio', 'Teléfono Móvil', 'Oficio', 'Estado Civil'];
+        const xls = util.toXLS(headers, values);
+
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Zonas.xls')
+        return xls.pipe(res);
+    })
 }
 
 /**
