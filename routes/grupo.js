@@ -418,7 +418,10 @@ const addMember = async (firestore, req, res)=>{
         fecha_nacimiento,
         escolaridad,
         oficio,
-        domicilio
+        domicilio,
+        laptop,
+        smartphone,
+        tablet
     } = req.body;
 
     var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
@@ -450,6 +453,9 @@ const addMember = async (firestore, req, res)=>{
             grupo,
             estatus: 0, // 0 = Activo, 1 = Baja Temporal, 2 = Baja definitiva,
             fecha_registro: new Date(),
+            laptop,
+            smartphone,
+            tablet
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
@@ -507,7 +513,10 @@ const editMember = async (firestore, req, res) => {
         fecha_nacimiento,
         escolaridad,
         oficio,
-        domicilio
+        domicilio,
+        laptop,
+        smartphone,
+        tablet
     } = req.body;
     
     
@@ -539,7 +548,10 @@ const editMember = async (firestore, req, res) => {
             fecha_nacimiento: fn,
             escolaridad,
             oficio,
-            domicilio
+            domicilio,
+            laptop,
+            smartphone,
+            tablet
         });
         return res.send({
             error: false,
@@ -872,9 +884,9 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
         })
     });
 
-	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 1).get();
+	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 0).get();
 
-    var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...memSnap.docs.map(a=>a.id)])];
+    var members_id = [...new Set([...dates.map(a=>a.members), ...memSnap.docs.map(a=>a.id)])];
     var members = [];
     if(members_id.length>0){
         const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('miembros/'+a)));

@@ -73,7 +73,8 @@ const getone = async(firestore, req, res)=>{
  * Adds a new parish to the 'parroquias' collection
  */
 const add = async (firestore, req, res)=>{
-    var {
+    const {
+        identificador,
         colonia,
         decanato,
         direccion,
@@ -83,10 +84,11 @@ const add = async (firestore, req, res)=>{
         telefono2
     } = req.body;
 
-    var nuevaParroquia = {
+    const nuevaParroquia = {
+        identificador,
         nombre,
-        direccion,
         colonia,
+        direccion,
         municipio,
         telefono1,
         telefono2,
@@ -103,6 +105,16 @@ const add = async (firestore, req, res)=>{
         })
     }
     
+    // Validate if a parroquia with identificador exists
+    const parroquia = await firestore.collection('parroquias').where('identificador', '==', nuevaParroquia.identificador).get();
+    
+    if (!parroquia.empty) {
+        return res.send({
+            error: true, 
+            message: 'Ya existe una parroquia con el identificador proporcionado.'
+        })
+    }
+
     // --- Add new parroquia --- // 
    // ----VVVVVVVVVVVVVVVV---- //
     const collrectionref = await firestore.collection('parroquias')
@@ -130,7 +142,7 @@ const remove = async (firestore, req, res)=>{
     if (!snapshot.exists){
         return res.send({
             error: true, 
-            message: 'no existe un aparroquia con ese id'
+            message: 'no existe un parroquia con ese id'
         })
     }
     const capillas = snapshot.data().capillas // lista de ids de capilla
@@ -240,7 +252,7 @@ const dump = async (firestore, req, res)=>{
             var dec = decanatos.find(a=>a.id==d.decanato);
             var z = dec ? zonas.find(a=>a.id==dec.zona) : null;
             parroquias.push([
-                a.id,
+                d.identificador || a.id,
                 d.nombre,
                 d.direccion,
                 d.colonia,

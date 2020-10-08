@@ -130,6 +130,8 @@ app.delete('/api/participante/:id', (req, res)=>participante.remove(firestore, r
 app.post('/api/participante/', (req, res)=>participante.add(firestore, req, res))
 app.post('/api/participante/edit', (req, res)=>participante.edit(firestore, req, res))
 
+app.get('/api/acompanantes', (req, res)=>acompanante.getAll(firestore, req, res));
+app.get('/api/acompanantes/:id/place', (req, res)=>acompanante.getZonaOrDecanato(firestore, req, res));
 app.post('/api/acompanante/zona', (req, res)=>acompanante.addZona(firestore, req, res));
 app.post('/api/acompanante/decanato', (req, res)=>acompanante.addDecanato(firestore, req, res));
 app.get('/api/acompanante/:id', (req, res)=>acompanante.getone(firestore, req, res));
