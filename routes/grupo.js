@@ -671,11 +671,13 @@ const getAsistencia = async (firestore, req, res)=>{
                 apellido_materno: m.apellido_materno,
                 assist: false
             })
-		})
+    })
+    
+    var agenda = assist.get('agenda');
 
 		return res.send({
 			error: false,
-			data: { miembros } 
+			data: { miembros, agenda } 
 		})
 
 	}catch(err){
@@ -693,7 +695,7 @@ const getAsistencia = async (firestore, req, res)=>{
  */
 const registerAsistencia = async (firestore, req, res) => {
     var id = req.params.id;
-    var { fecha, miembros, force } = req.body;
+    var { fecha, miembros, force, agenda } = req.body;
 
     var date = moment(fecha, 'YYYY-MM-DD');
     if (!date.isValid()) {
@@ -720,7 +722,7 @@ const registerAsistencia = async (firestore, req, res) => {
     }
 
     try {
-        await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+        await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros, agenda });
         return res.send({
             error: false,
             data: date.format('YYYY-MM-DD')
@@ -738,7 +740,7 @@ const registerAsistencia = async (firestore, req, res) => {
  */
 const saveAsistencia = async (firestore, req, res) => {
     var { id, fecha } = req.params;
-    var { miembros } = req.body;
+    var { miembros, agenda } = req.body;
 
     var date = moment(fecha, 'YYYY-MM-DD');
     if (!date.isValid()) {
@@ -753,7 +755,7 @@ const saveAsistencia = async (firestore, req, res) => {
                 data: { deleted: true, date: date.format('YYYY-MM-DD') }
             })
         } else {
-            await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+            await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros, agenda });
             return res.send({
                 error: false,
                 data: { deleted: false, date: date.format('YYYY-MM-DD') }
