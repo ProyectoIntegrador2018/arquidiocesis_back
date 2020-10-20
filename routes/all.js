@@ -178,10 +178,10 @@ const getDecanatos = async (firestore, req, res)=>{
                     acompanante.fecha_nacimiento = moment.unix(acompanante.fecha_nacimiento._seconds).format('YYYY-MM-DD');
                 }
                 var { nombre, apellido_paterno, apellido_materno } = acompanante
-                return{ id: doc.id, decanato: d.nombre, zona: d.zona, nombre_acom: nombre, ap_pat: apellido_paterno, ap_mat: apellido_materno, ...acompanante }
+                return{ id: doc.id, decanato: d.nombre, zona: d.nombreZona, nombre_acom: nombre, ap_pat: apellido_paterno, ap_mat: apellido_materno, ...acompanante }
             })
         } else {
-            return{ id: doc.id, decanato: d.nombre, zona: d.zona, nombre_acom: '', ap_pat: '', ap_mat: '', ...acompanante }
+            return{ id: doc.id, decanato: d.nombre, zona: d.nombreZona, nombre_acom: '', ap_pat: '', ap_mat: '', ...acompanante }
         }
     })
 
