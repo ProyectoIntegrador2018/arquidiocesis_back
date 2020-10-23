@@ -772,18 +772,27 @@ const saveAsistencia = async (firestore, req, res) => {
  * Edits the ficha Medica data from a member. 
  */
 const editMemberFicha = async (firestore, req, res) => {
-    var { tipo_sangre, alergico, servicio_medico, ambulancia, padecimientos } = req.body;
+    var { tipo_sangre, servicio_medico, alergico, alergico_desc,
+        p_cardiovascular, p_azucar, p_hipertension, p_sobrepeso, seguridad_social,
+        discapacidad, discapacidad_desc, ambulancia } = req.body;
     var id = req.params.id;
     try {
         var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
-        var ficha_medica = {
-            tipo_sangre: tipo_sangre,
-            alergico: alergico,
-            servicio_medico: servicio_medico,
-            ambulancia: ambulancia,
-            padecimientos: padecimientos
-        }
+        ficha_medica = {
+			tipo_sangre: tipo_sangre,
+			servicio_medico: servicio_medico,
+			alergico: alergico,
+			alergico_desc: alergico_desc,
+			p_cardiovascular: p_cardiovascular,
+			p_azucar: p_azucar,
+			p_hipertension: p_hipertension,
+			p_sobrepeso: p_sobrepeso,
+			seguridad_social: seguridad_social,
+			discapacidad: discapacidad,
+			discapacidad_desc: discapacidad_desc,
+			ambulancia: ambulancia
+		}
         await firestore.collection('miembros').doc(id).update({ ficha_medica });
         return res.send({
             error: false,
