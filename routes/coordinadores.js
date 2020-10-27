@@ -3,6 +3,7 @@ const moment = require('moment');
 
 const add = async(firestore, req, res)=>{
 	var {
+		identificador,
 		nombre,
 		apellido_paterno,
 		apellido_materno,
@@ -31,7 +32,18 @@ const add = async(firestore, req, res)=>{
 	var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
 	if(!fn.isValid()) fn = moment();
 
+	// Validate if a coordinador with identificador exists
+	const coordinador = await firestore.collection('coordinadores').where('identificador', '==', identificador).get();
+    
+	if (!coordinador.empty) {
+		return res.send({
+			error: true, 
+			message: 'Ya existe un coordinador con el identificador proporcionado.'
+		})
+	}
+
 	var newCoordinador = {
+		identificador,
 		nombre,
 		apellido_paterno,
 		apellido_materno,
@@ -42,7 +54,7 @@ const add = async(firestore, req, res)=>{
 		escolaridad,
 		oficio,
 		domicilio,
-  	}
+  }
 
 	var newLogin = {
 		password: bcrypt.hashSync(password),
@@ -50,7 +62,7 @@ const add = async(firestore, req, res)=>{
 		id: null
 	}
 
-	try{
+	try {
 		const docref = await firestore.collection('coordinadores').add(newCoordinador)
 		newLogin.id = docref.id
 		const login = await firestore.collection('logins').doc(email.toLowerCase()).set(newLogin);
@@ -62,14 +74,13 @@ const add = async(firestore, req, res)=>{
 				...newCoordinador
 			}
 		})
-	}catch(e){
+	} catch (e) {
 		console.log(e);
 		return res.send({
 			error: true,
 			message: 'Error inesperado.'
 		})
 	}
-
 }
 
 const getall = async (firestore, req, res)=>{

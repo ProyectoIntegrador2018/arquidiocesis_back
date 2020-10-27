@@ -683,20 +683,25 @@ const getAsistencia = async (firestore, req, res) => {
                 apellido_materno: m.apellido_materno,
                 assist: false
             })
-        })
 
-        return res.send({
-            error: false,
-            data: { miembros }
-        })
+    })
+    
+    var agenda = assist.get('agenda');
+    var commentarios = assist.get('commentarios');
 
-    } catch (err) {
-        console.error(err);
-        return res.send({
-            error: true,
-            message: 'Error inesperado.'
-        })
-    }
+		return res.send({
+			error: false,
+			data: { miembros, agenda, commentarios } 
+		})
+
+	}catch(err){
+		console.error(err);
+		return res.send({
+			error: true,
+			message: 'Error inesperado.'
+		})
+	}
+
 }
 
 
@@ -705,7 +710,7 @@ const getAsistencia = async (firestore, req, res) => {
  */
 const registerAsistencia = async (firestore, req, res) => {
     var id = req.params.id;
-    var { fecha, miembros, force } = req.body;
+    var { fecha, miembros, force, agenda, commentarios } = req.body;
 
     var date = moment(fecha, 'YYYY-MM-DD');
     if (!date.isValid()) {
@@ -732,7 +737,7 @@ const registerAsistencia = async (firestore, req, res) => {
     }
 
     try {
-        await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+        await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros, agenda, commentarios });
         return res.send({
             error: false,
             data: date.format('YYYY-MM-DD')
@@ -750,7 +755,7 @@ const registerAsistencia = async (firestore, req, res) => {
  */
 const saveAsistencia = async (firestore, req, res) => {
     var { id, fecha } = req.params;
-    var { miembros } = req.body;
+    var { miembros, agenda, commentarios } = req.body;
 
     var date = moment(fecha, 'YYYY-MM-DD');
     if (!date.isValid()) {
@@ -765,7 +770,7 @@ const saveAsistencia = async (firestore, req, res) => {
                 data: { deleted: true, date: date.format('YYYY-MM-DD') }
             })
         } else {
-            await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros });
+            await firestore.collection('grupos/' + id + '/asistencias').doc(date.format('YYYY-MM-DD')).set({ miembros, agenda, commentarios });
             return res.send({
                 error: false,
                 data: { deleted: false, date: date.format('YYYY-MM-DD') }
@@ -784,18 +789,27 @@ const saveAsistencia = async (firestore, req, res) => {
  * Edits the ficha Medica data from a member. 
  */
 const editMemberFicha = async (firestore, req, res) => {
-    var { tipo_sangre, alergico, servicio_medico, ambulancia, padecimientos } = req.body;
+    var { tipo_sangre, servicio_medico, alergico, alergico_desc,
+        p_cardiovascular, p_azucar, p_hipertension, p_sobrepeso, seguridad_social,
+        discapacidad, discapacidad_desc, ambulancia } = req.body;
     var id = req.params.id;
     try {
         var memberSnap = await firestore.collection('miembros').doc(id).get('nombre');
         if (!memberSnap.exists) return res.send({ error: true, message: 'Miembro no existe.', code: 1 });
-        var ficha_medica = {
-            tipo_sangre: tipo_sangre,
-            alergico: alergico,
-            servicio_medico: servicio_medico,
-            ambulancia: ambulancia,
-            padecimientos: padecimientos
-        }
+        ficha_medica = {
+			tipo_sangre: tipo_sangre,
+			servicio_medico: servicio_medico,
+			alergico: alergico,
+			alergico_desc: alergico_desc,
+			p_cardiovascular: p_cardiovascular,
+			p_azucar: p_azucar,
+			p_hipertension: p_hipertension,
+			p_sobrepeso: p_sobrepeso,
+			seguridad_social: seguridad_social,
+			discapacidad: discapacidad,
+			discapacidad_desc: discapacidad_desc,
+			ambulancia: ambulancia
+		}
         await firestore.collection('miembros').doc(id).update({ ficha_medica });
         return res.send({
             error: false,
@@ -877,7 +891,7 @@ const getAsistenciasReport = async (firestore, req, res) => {
 }
 
 /**
- * Edits the ficha Medica data from a member.
+ * Get asistance by group
  */
 const getAsistenciasAsistanceReport = async (firestore, req, res) => {
     if (!req.user.admin) {
@@ -888,37 +902,44 @@ const getAsistenciasAsistanceReport = async (firestore, req, res) => {
     var assistColl = await groupRef.collection('asistencias');
     var assistList = await assistColl.get();
     var dates = []
-    assistList.docs.forEach(a => {
-        if (!a.exists) return;
+
+    assistList.docs.forEach(a=>{
+        if(!a.exists) return;
+        const data = a.data()
+
         dates.push({
             date: a.id,
-            members: a.data().miembros
+            members: data.miembros,
+            agenda: data.agenda ? data.agenda : "",
+            commentarios: data.commentarios ? data.commentarios : ""
         })
     });
 
-    var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).where('estatus', '==', 1).get();
 
-    var members_id = [...new Set([...dates.map(a => a.members).flat(), ...memSnap.docs.map(a => a.id)])];
+	var memSnap = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
+
     var members = [];
-    if (members_id.length > 0) {
-        const asistSnap = await firestore.getAll(...members_id.map(a => firestore.doc('miembros/' + a)));
-        asistSnap.forEach(a => {
-            if (a.exists) {
-                var m = a.data();
-                members.push({
-                    id: a.id,
-                    nombre: m.nombre,
-                    apellido_paterno: m.apellido_paterno,
-                    apellido_materno: m.apellido_materno
-                })
-            }
-        });
-    }
+    memSnap.docs.forEach(a=>{
+        if(a.exists){
+            var m = a.data();
+            members.push({
+                id: a.id,
+                nombre: m.nombre,
+                apellido_paterno: m.apellido_paterno,
+                apellido_materno: m.apellido_materno
+            })
+        }
+    });
 
-    var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', ...dates.map(a => a.date)];
-    var values = []
-    for (var i of members) {
-        var date_assistance = dates.map(a => (a.members.findIndex(v => v == i.id) != -1 ? 'X' : ''));
+    var headers = ['IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', ...dates.map(a=>a.date)];
+    var values = [];
+
+    var headersSh2 = ['Fecha', 'Agenda', 'Comentarios Finales'];
+    var valuesSh2 = [];
+
+    for(var i of members){
+        var date_assistance = dates.map(a=>(a.members.findIndex(v=>v==i.id)!=-1 ? 'X' : ''));
+
         values.push([
             req.params.id,
             i.id,
@@ -929,6 +950,14 @@ const getAsistenciasAsistanceReport = async (firestore, req, res) => {
         ])
     }
 
+    dates.forEach(d => {
+        valuesSh2.push([
+            d.date,
+            d.agenda,
+            d.commentarios
+        ])
+    })
+
     var name = req.params.id;
     try {
         var group = await groupRef.get();
@@ -938,10 +967,13 @@ const getAsistenciasAsistanceReport = async (firestore, req, res) => {
     } catch (e) { }
 
 
-    var csv = Util.toXLS(headers, values);
+
+    
+    var xls = Util.toXLS2sheets(headers, values, headersSh2, valuesSh2);
     res.setHeader('Content-Type', 'application/vnd.ms-excel');
-    res.attachment('Asistencia-' + name.replace(/ /g, '_') + '.xls')
-    return csv.pipe(res);
+    res.attachment('Asistencia-'+name.replace(/ /g, '_')+'.xls')
+    return xls.pipe(res);
+
 }
 
 
