@@ -206,6 +206,7 @@ const getone = async (firestore, req, res)=>{
 const editCoordinador = async (firestore, req, res) => {
 	var id = req.params.id;
 	var { 
+		identificador,
 		apellido_paterno,
 		apellido_materno,
 		domicilio,
@@ -230,8 +231,25 @@ const editCoordinador = async (firestore, req, res) => {
 
 	try {
 		var memberSnap = await firestore.collection('coordinadores').doc(id).get();
-		if (!memberSnap.exists) return res.send({ error: true, message: 'Coordinador no existe.', code: 1 });
+		if (!memberSnap.exists) {
+			return res.send({
+				error: true,
+				message: 'Coordinador no existe.', code: 1
+			});
+		}
+
+		// Validate if a coordinador with identificador exists
+		const coordinador = await firestore.collection('coordinadores').where('identificador', '==', identificador).get();
+        
+		if (!coordinador.empty) {
+			return res.send({
+				error: true, 
+				message: 'Ya existe un coordinador con el identificador proporcionado.'
+			});
+		}
+
 		await firestore.collection('coordinadores').doc(id).update({
+			identificador,
 			apellido_paterno,
 			apellido_materno,
 			domicilio,
