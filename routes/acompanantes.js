@@ -111,6 +111,7 @@ const getone = async (firestore, req, res)=>{
  * Assigns the acompanante to an specific zone
  */
 const addZona = async (firestore, req, res)=>{
+	console.log('addZona start', req.body);
 	var {
 		zona,
 		nombre,
@@ -122,13 +123,11 @@ const addZona = async (firestore, req, res)=>{
 		escolaridad,
 		oficio,
 		domicilio,
-		
 		email,
 		password
 	} = req.body;
 
-
-	if(!req.user.admin){
+	if (!req.user.admin) {
 		return res.send({
 			error: true,
 			code: 999,
@@ -136,10 +135,10 @@ const addZona = async (firestore, req, res)=>{
 		})
 	}
 
-    var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
-    if(!fn.isValid()) fn = moment().toDate();
+  const fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+  if (!fn.isValid()) fn = moment().toDate();
 
-	try{
+	try {
 		var zonaSnap = await firestore.collection('zonas').doc(zona).get();
 		if(!zonaSnap.exists) return res.send({ error: true, message: 'Zona no existe.' });
 		var zona_data = zonaSnap.data();
@@ -206,11 +205,9 @@ const addDecanato = async (firestore, req, res)=>{
 		escolaridad,
 		oficio,
 		domicilio,
-		
 		email,
 		password
 	} = req.body;
-
 
 	if(!req.user.admin){
 		return res.send({
@@ -220,10 +217,10 @@ const addDecanato = async (firestore, req, res)=>{
 		})
 	}
 
-    var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
-    if(!fn.isValid()) fn = moment().toDate();
+  const fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+  if (!fn.isValid()) fn = moment().toDate();
 
-	try{
+	try {
 		var decanatoSnap = await firestore.collection('decanatos').doc(decanato).get();
 		if(!decanatoSnap.exists) return res.send({ error: true, message: 'Decanato no existe.' });
 		var decanato_data = decanatoSnap.data();

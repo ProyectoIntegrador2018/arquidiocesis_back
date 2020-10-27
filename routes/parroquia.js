@@ -184,7 +184,19 @@ const update = async (firestore, req, res)=>{
                 message: "No hay parroquia con ese id"
             })
         }
+
+        // Validate if a parroquia with identificador exists
+        const parroquia = await firestore.collection('parroquias').where('identificador', '==', payload.identificador).get();
+        
+        if (!parroquia.empty) {
+            return res.send({
+                error: true, 
+                message: 'Ya existe una parroquia con el identificador proporcionado.'
+            })
+        }
+
         await docref.set({
+            identificador: payload.identificador,
             nombre: payload.nombre,
             direccion: payload.direccion, 
             colonia: payload.colonia, 
