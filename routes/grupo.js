@@ -19,51 +19,51 @@ const Util = require('./util');
  * @param {JSON} [res.data] - Assigned only if no error
  * @param {String} res.data.grupos - List of groups
  */
-const getall = async (firestore, req, res)=>{
+const getall = async (firestore, req, res) => {
     var grupos = [];
 
-    if(req.user.admin || req.user.tipo.startsWith('acompañante')){ // Is admin, return all
+    if (req.user.admin || req.user.tipo.startsWith('acompañante')) { // Is admin, return all
         const snapshot = await firestore.collection('grupos').get();
         grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }else{
+    } else {
         const snapshot = await firestore.collection('grupos').where('coordinador', '==', req.user.id).get();
         grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
-	if(grupos.length>0){
-		// Get unique ids from parroquias and capillas
-		var pid = Array.from(new Set(grupos.map(a=>(a.parroquia || null)))).filter(a=>a!=null);
-		var cid = Array.from(new Set(grupos.map(a=>(a.capilla || null)))).filter(a=>a!=null);
-		
-		// Get parroquias
-		var parroquias = [];
-		if(pid.length>0){
-			var snapParroquias = await firestore.getAll(...pid.map(a=>firestore.doc('parroquias/'+a)));
-			snapParroquias.forEach(a=>{
-				if(!a.exists) return;
-				var d = a.data();
-				parroquias.push({ id: a.id, nombre: d.nombre });
-			})
-		}
+    if (grupos.length > 0) {
+        // Get unique ids from parroquias and capillas
+        var pid = Array.from(new Set(grupos.map(a => (a.parroquia || null)))).filter(a => a != null);
+        var cid = Array.from(new Set(grupos.map(a => (a.capilla || null)))).filter(a => a != null);
 
-		// Get capillas
-		var capillas = []
-		if(cid.length>0){
-			var snapCapillas = await firestore.getAll(...cid.map(a=>firestore.doc('capillas/'+a)));
-			snapCapillas.forEach(a=>{
-				if(!a.exists) return;
-				var d = a.data();
-				capillas.push({ id: a.id, nombre: d.nombre });
-			})
-		}
+        // Get parroquias
+        var parroquias = [];
+        if (pid.length > 0) {
+            var snapParroquias = await firestore.getAll(...pid.map(a => firestore.doc('parroquias/' + a)));
+            snapParroquias.forEach(a => {
+                if (!a.exists) return;
+                var d = a.data();
+                parroquias.push({ id: a.id, nombre: d.nombre });
+            })
+        }
 
-		for(var i of grupos){
-			if(i.parroquia){
-				i.parroquia = parroquias.find(a=>a.id==i.parroquia);
-			}else if(i.capilla){
-				i.capilla = capillas.find(a=>a.id==i.capilla);
-			}
-		}
-	}
+        // Get capillas
+        var capillas = []
+        if (cid.length > 0) {
+            var snapCapillas = await firestore.getAll(...cid.map(a => firestore.doc('capillas/' + a)));
+            snapCapillas.forEach(a => {
+                if (!a.exists) return;
+                var d = a.data();
+                capillas.push({ id: a.id, nombre: d.nombre });
+            })
+        }
+
+        for (var i of grupos) {
+            if (i.parroquia) {
+                i.parroquia = parroquias.find(a => a.id == i.parroquia);
+            } else if (i.capilla) {
+                i.capilla = capillas.find(a => a.id == i.capilla);
+            }
+        }
+    }
     res.send({
         error: false,
         data: grupos
@@ -82,58 +82,58 @@ const getall = async (firestore, req, res)=>{
  * @param {JSON} [res.data] - Assigned only if no error
  * @param {String} res.data.grupos - Information of requested group
  */
-const getone = async (firestore, req, res)=>{
-    try{
+const getone = async (firestore, req, res) => {
+    try {
         var snapshot = await firestore.collection('grupos').doc(req.params.id).get();
-        if (!snapshot.exists){
+        if (!snapshot.exists) {
             return res.send({
-                error: true, 
+                error: true,
                 message: 'there is no group with that id'
             })
         }
 
         var grupo = snapshot.data();
-        if(!req.user.admin && grupo.coordinador!=req.user.id && !req.user.tipo.startsWith('acompañante')){
+        if (!req.user.admin && grupo.coordinador != req.user.id && !req.user.tipo.startsWith('acompañante')) {
             return res.send({
                 error: true,
                 code: 999,
                 message: 'No tienes acceso a este grupo'
             })
         }
-    
+
         // Query a información de los miembros
         var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('estatus', '==', 0).get();
         var miembros = []
-        miembrosSnap.forEach(a=>{
-            if(!a.exists) return;
+        miembrosSnap.forEach(a => {
+            if (!a.exists) return;
             var m = a.data();
             miembros.push({ id: a.id, nombre: m.nombre, apellido_paterno: m.apellido_paterno });
         })
         grupo.miembros = miembros;
-    
-        if(grupo.parroquia){
+
+        if (grupo.parroquia) {
             // Grupo pertenece a parroquia, query a parroquia.
             var parrSnap = await firestore.collection('parroquias').doc(grupo.parroquia).get();
-            if(parrSnap.exists){
+            if (parrSnap.exists) {
                 grupo.parroquia = { id: parrSnap.id, nombre: parrSnap.data().nombre };
-            }else grupo.parroquia = false;
-        }else if(grupo.capilla){
+            } else grupo.parroquia = false;
+        } else if (grupo.capilla) {
             // Grupo pertenece a capilla, query a capilla y su parroquia.
             var capSnap = await firestore.collection('capillas').doc(grupo.capilla).get();
-            if(capSnap.exists){
+            if (capSnap.exists) {
                 grupo.capilla = { id: capSnap.id, nombre: capSnap.data().nombre };
                 var parrSnap = await firestore.collection('parroquias').where('capillas', 'array-contains', capSnap.id).select('nombre').get();
-                if(parrSnap.size>0){
+                if (parrSnap.size > 0) {
                     grupo.capilla.parroquia = { id: parrSnap.docs[0].id, nombre: parrSnap.docs[0].data().nombre };
                 }
-            }else grupo.capilla = false;
+            } else grupo.capilla = false;
         }
-        
-        if(grupo.coordinador){
+
+        if (grupo.coordinador) {
             var coordSnap = await firestore.collection('coordinadores').doc(grupo.coordinador).get();
-            if(!coordSnap.exists){
+            if (!coordSnap.exists) {
                 grupo.coordinador = null;
-            }else{
+            } else {
                 var d = coordSnap.data();
                 grupo.coordinador = {
                     id: coordSnap.id,
@@ -145,15 +145,15 @@ const getone = async (firestore, req, res)=>{
         }
 
         // Conseguir información sobre asistencias
-        const asistenciasSnap = await firestore.collection('grupos/'+req.params.id+'/asistencias').get();
-        var asistencias = asistenciasSnap.docs.map(doc=>doc.id);
+        const asistenciasSnap = await firestore.collection('grupos/' + req.params.id + '/asistencias').get();
+        var asistencias = asistenciasSnap.docs.map(doc => doc.id);
         grupo.asistencias = (asistencias || []);
 
         res.send({
-            error: false, 
+            error: false,
             data: grupo
         })
-    }catch(err){
+    } catch (err) {
         console.log(err);
         return res.send({
             error: true,
@@ -165,30 +165,30 @@ const getone = async (firestore, req, res)=>{
 /**
  * Gets a list of all the members who are in a 'Baja Temporal' state
  */
-var getBajasTemporales = async (firestore, req, res)=>{
+var getBajasTemporales = async (firestore, req, res) => {
     var { id } = req.params;
-    try{
+    try {
         var snapshot = await firestore.collection('grupos').doc(id).get();
-        if (!snapshot.exists){
+        if (!snapshot.exists) {
             return res.send({
-                error: true, 
+                error: true,
                 message: 'there is no group with that id'
             })
         }
-    
+
         // Query a información de los miembros
         var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', snapshot.id).where('estatus', '==', 1).get('nombre');
         var miembros = []
-        miembrosSnap.forEach(a=>{
-            if(!a.exists) return;
+        miembrosSnap.forEach(a => {
+            if (!a.exists) return;
             miembros.push({ id: a.id, nombre: a.data().nombre });
         });
-    
+
         return res.send({
             error: false,
             data: miembros
         })
-    }catch(e){
+    } catch (e) {
         return res.send({
             error: true,
             message: 'Mensaje inesperado'
@@ -199,9 +199,9 @@ var getBajasTemporales = async (firestore, req, res)=>{
 /**
  * Adds a new group to the 'grupos' collection
  */
-const add = async (firestore, req, res)=>{
+const add = async (firestore, req, res) => {
     // Check if has access to add. (Is admin)
-    if(!req.user.admin){
+    if (!req.user.admin) {
         return res.send({
             error: true,
             message: 'No tienes acceso a esta accion'
@@ -210,12 +210,12 @@ const add = async (firestore, req, res)=>{
 
 
     var { name, parroquia, capilla, coordinador } = req.body;
-    try{ 
-        const snapshot = await firestore.collection('coordinadores').doc(coordinador).get() 
-        if(!snapshot.exists) throw {message: 'no hay coordinador registrado con ese id'}
-        if ((!parroquia && !capilla)|| (parroquia && capilla)) throw {message: 'group needs capilla OR parroquia'}
-    } 
-    catch(err){
+    try {
+        const snapshot = await firestore.collection('coordinadores').doc(coordinador).get()
+        if (!snapshot.exists) throw { message: 'no hay coordinador registrado con ese id' }
+        if ((!parroquia && !capilla) || (parroquia && capilla)) throw { message: 'group needs capilla OR parroquia' }
+    }
+    catch (err) {
         return res.send({
             error: true,
             message: err.message
@@ -264,7 +264,7 @@ const add = async (firestore, req, res)=>{
 /**
  * Edits the fields of an specific group
  */
-const edit = async (firestore, req, res)=>{
+const edit = async (firestore, req, res) => {
     var {
         id,
         nombre,
@@ -273,29 +273,29 @@ const edit = async (firestore, req, res)=>{
     } = req.body;
 
     var data = { nombre };
-    if(capilla){
+    if (capilla) {
         data.capilla = capilla;
         data.parroquia = FieldValue.delete()
     }
-    else{
+    else {
         data.parroquia = parroquia;
         data.capilla = FieldValue.delete()
     }
 
     // CHECK IF HAS ACCESS
-    try{
+    try {
         // Checar si tiene acceso a editar el grupo
-        if(!req.user.admin){ // Checar si no es admin
+        if (!req.user.admin) { // Checar si no es admin
             var grupoSnap = await firestore.collection('grupos').doc(id)
             var grupo = grupoSnap.get();
-            if(!grupo.exists) return res.send({ error: true, message: 'Grupo no existe.' });
+            if (!grupo.exists) return res.send({ error: true, message: 'Grupo no existe.' });
 
             // Checar si el grupo pertenece al usuario.
-            if(grupo.data().coordinador!=req.user.id){
+            if (grupo.data().coordinador != req.user.id) {
                 return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
             }
         }
-    }catch(e){
+    } catch (e) {
         return res.send({
             error: true,
             message: 'Error inesperado.'
@@ -303,13 +303,13 @@ const edit = async (firestore, req, res)=>{
     }
 
     // DO UPDATE
-    try{
+    try {
         await firestore.collection('grupos').doc(id).update(data);
         return res.send({
             error: false,
             data: true
         })
-    }catch(err){
+    } catch (err) {
         return res.send({
             error: true,
             message: 'Error inesperado.'
@@ -320,25 +320,25 @@ const edit = async (firestore, req, res)=>{
 /**
  * Removes a group from the group collection
  */
-const remove = async (firestore, req, res)=>{
+const remove = async (firestore, req, res) => {
     var { id } = req.params;
-    try{
+    try {
         var grupoSnap = await firestore.collection('grupos').doc(id)
         // Checar si tiene acceso a editar el grupo
-        if(!req.user.admin){ // Checar si no es admin
+        if (!req.user.admin) { // Checar si no es admin
             var grupo = grupoSnap.get();
-            if(!grupo.exists) return res.send({ error: true, message: 'Grupo no existe.' });
+            if (!grupo.exists) return res.send({ error: true, message: 'Grupo no existe.' });
 
             // Checar si el grupo pertenece al usuario.
-            if(grupo.data().coordinador!=req.user.id){
+            if (grupo.data().coordinador != req.user.id) {
                 return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
             }
         }
-        
+
         // Eliminar miembros
         let batch = firestore.batch();
         const memberSnap = await firestore.collection('miembros').where('grupo', '==', id).get();
-        memberSnap.docs.forEach(doc=>{
+        memberSnap.docs.forEach(doc => {
             batch.delete(doc.ref);
         });
         await batch.commit();
@@ -348,9 +348,9 @@ const remove = async (firestore, req, res)=>{
 
         return res.send({
             error: false,
-            data: true 
+            data: true
         });
-    }catch(e){
+    } catch (e) {
         return res.send({
             error: true,
             message: 'Error inesperado.'
@@ -361,22 +361,22 @@ const remove = async (firestore, req, res)=>{
 /**
  * Changes the 'coordinador' field of an specific group
  */
-const changeCoordinador = async (firestore, req, res)=>{
+const changeCoordinador = async (firestore, req, res) => {
     var { id } = req.params;
     var { coordinador } = req.body;
-    try{
+    try {
         var grupoSnap = await firestore.collection('grupos').doc(id)
         // Checar si tiene acceso a editar el grupo
-        if(!req.user.admin){ // Checar si no es admin
+        if (!req.user.admin) { // Checar si no es admin
             var grupo = grupoSnap.get();
-            if(!grupo.exists) return res.send({ error: true, message: 'Grupo no existe.' });
+            if (!grupo.exists) return res.send({ error: true, message: 'Grupo no existe.' });
 
             // Checar si el grupo pertenece al usuario.
-            if(req.user.tipo=='coordinador'){
-                if(grupo.data().coordinador!=req.user.id){
+            if (req.user.tipo == 'coordinador') {
+                if (grupo.data().coordinador != req.user.id) {
                     return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
                 }
-            }else if(req.user.tipo=='acompañante_decanato' || req.user.tipo=='acompañante_zona'){
+            } else if (req.user.tipo == 'acompañante_decanato' || req.user.tipo == 'acompañante_zona') {
                 return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
                 // var parroquiaSnap = await firestore.collection('parroquia').doc(grupo.data().parroquia).get()
                 // if(!parroquiaSnap.exists) return res.send({ error: true, message: 'No tienes acceso a este grupo.' });
@@ -385,17 +385,17 @@ const changeCoordinador = async (firestore, req, res)=>{
                 // }
             }
         }
-       
+
         const coordSnap = await firestore.collection('coordinadores').doc(coordinador).get();
-        if(!coordSnap.exists) return res.send({ error: true, message: 'El coordinador no existe.' });
-        
+        if (!coordSnap.exists) return res.send({ error: true, message: 'El coordinador no existe.' });
+
         await grupoSnap.update({ coordinador });
 
         return res.send({
             error: false,
-            data: true 
+            data: true
         });
-    }catch(e){
+    } catch (e) {
         return res.send({
             error: true,
             message: 'Error inesperado.'
@@ -406,7 +406,7 @@ const changeCoordinador = async (firestore, req, res)=>{
 /**
  * Adds a new member to the 'Miembros' collection and assigns it a group. 
  */
-const addMember = async (firestore, req, res)=>{
+const addMember = async (firestore, req, res) => {
     var {
         grupo,
         nombre,
@@ -421,17 +421,20 @@ const addMember = async (firestore, req, res)=>{
         domicilio,
         laptop,
         smartphone,
-        tablet
+        tablet,
+        facebook,
+        twitter,
+        instagram
     } = req.body;
 
     var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
-    if(!fn.isValid()) fn = moment();
+    if (!fn.isValid()) fn = moment();
 
-    try{
+    try {
         var groupSnap = await firestore.collection('grupos').doc(grupo).get();
-        if(!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
-        
-        if(!req.user.admin && req.user.id!=groupSnap.data().coordinador){
+        if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+
+        if (!req.user.admin && req.user.id != groupSnap.data().coordinador) {
             return res.send({
                 error: true,
                 code: 999,
@@ -455,7 +458,10 @@ const addMember = async (firestore, req, res)=>{
             fecha_registro: new Date(),
             laptop,
             smartphone,
-            tablet
+            tablet,
+            facebook,
+            twitter,
+            instagram
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
@@ -516,22 +522,25 @@ const editMember = async (firestore, req, res) => {
         domicilio,
         laptop,
         smartphone,
-        tablet
+        tablet,
+        facebook,
+        twitter,
+        instagram
     } = req.body;
-    
-    
-    var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
-    if(!fn.isValid()) fn = moment();
 
-    try{
+
+    var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+    if (!fn.isValid()) fn = moment();
+
+    try {
         var miembroSnap = await firestore.collection('miembros').doc(id).get();
-        if(!miembroSnap.exists) return res.send({ error: true, message: 'No existe el miembro' });
+        if (!miembroSnap.exists) return res.send({ error: true, message: 'No existe el miembro' });
         var miembro = miembroSnap.data();
 
         var groupSnap = await firestore.collection('grupos').doc(miembro.grupo).get();
-        if(!groupSnap.exists) return res.send({ error: true, message: 'El grupo no existe' });
+        if (!groupSnap.exists) return res.send({ error: true, message: 'El grupo no existe' });
 
-        if(!req.user.admin && req.user.id!=groupSnap.data().coordinador){
+        if (!req.user.admin && req.user.id != groupSnap.data().coordinador) {
             return res.send({
                 error: true,
                 code: 999,
@@ -551,13 +560,16 @@ const editMember = async (firestore, req, res) => {
             domicilio,
             laptop,
             smartphone,
-            tablet
+            tablet,
+            facebook,
+            twitter,
+            instagram
         });
         return res.send({
             error: false,
             data: true
         })
-    }catch(e){
+    } catch (e) {
         return res.send({
             error: true,
             message: 'Error inesperado'
@@ -569,7 +581,7 @@ const editMember = async (firestore, req, res) => {
  * Edits the group a member belongs to.
  */
 const editMemberGroup = async (firestore, req, res) => {
-	var miembro_id = req.params.id;
+    var miembro_id = req.params.id;
     var { grupo_id } = req.body;
     try {
         var groupSnap = await firestore.collection('grupos').doc(grupo_id).get('miembros');
@@ -594,17 +606,17 @@ const editMemberGroup = async (firestore, req, res) => {
  * Edits the status of a member
  */
 const editMemberStatus = async (firestore, req, res) => {
-	var id = req.params.id;
+    var id = req.params.id;
     var { status } = req.body;
     try {
         var miembroSnap = await firestore.collection('miembros').doc(id).get();
-        if(!miembroSnap.exists) return res.send({ error: true, message: 'No existe el miembro' });
+        if (!miembroSnap.exists) return res.send({ error: true, message: 'No existe el miembro' });
         var miembro = miembroSnap.data();
 
         var groupSnap = await firestore.collection('grupos').doc(miembro.grupo).get();
-        if(!groupSnap.exists) return res.send({ error: true, message: 'El grupo no existe' });
+        if (!groupSnap.exists) return res.send({ error: true, message: 'El grupo no existe' });
 
-        if(!req.user.admin && req.user.id!=groupSnap.data().coordinador){
+        if (!req.user.admin && req.user.id != groupSnap.data().coordinador) {
             return res.send({
                 error: true,
                 code: 999,
@@ -629,44 +641,44 @@ const editMemberStatus = async (firestore, req, res) => {
 /**
  * Retrieves an assistance list from the assitance collection
  */
-const getAsistencia = async (firestore, req, res)=>{
-	var {id, fecha} = req.params;
-	try{
-		var assist = await firestore.collection('grupos/'+id+'/asistencias').doc(fecha).get();
-		if(!assist.exists){
-			return res.send({
-				error: true,
-				code: 34, // Arbitrary number
-				message: 'No such assistance'
-			});
-		}
-		var groupSnap = await firestore.collection('grupos').doc(id).get();
-		if(!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
+const getAsistencia = async (firestore, req, res) => {
+    var { id, fecha } = req.params;
+    try {
+        var assist = await firestore.collection('grupos/' + id + '/asistencias').doc(fecha).get();
+        if (!assist.exists) {
+            return res.send({
+                error: true,
+                code: 34, // Arbitrary number
+                message: 'No such assistance'
+            });
+        }
+        var groupSnap = await firestore.collection('grupos').doc(id).get();
+        if (!groupSnap.exists) return res.send({ error: true, message: 'Grupo no existe.', code: 1 });
 
-		var asistentes = assist.get('miembros');
-		var miembros = []
-		const asistSnap = await firestore.getAll(...asistentes.map(a=>firestore.doc('miembros/'+a)));
-		asistSnap.forEach(a=>{
-			if(a.exists){
+        var asistentes = assist.get('miembros');
+        var miembros = []
+        const asistSnap = await firestore.getAll(...asistentes.map(a => firestore.doc('miembros/' + a)));
+        asistSnap.forEach(a => {
+            if (a.exists) {
                 var m = a.data();
-                miembros.push({ 
-                    id: a.id, 
-                    nombre: m.nombre, 
+                miembros.push({
+                    id: a.id,
+                    nombre: m.nombre,
                     apellido_paterno: m.apellido_paterno,
                     apellido_materno: m.apellido_materno,
-                    assist: assist.get('miembros').findIndex(b=>b==a.id)!=-1 
+                    assist: assist.get('miembros').findIndex(b => b == a.id) != -1
                 })
             }
-		});
+        });
 
-		var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('estatus', '==', 0).get();
-		miembrosSnap.forEach(a=>{
-			if(!a.exists) return;
-            if(asistentes.findIndex(b=>b==a.id)!=-1) return;
+        var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('estatus', '==', 0).get();
+        miembrosSnap.forEach(a => {
+            if (!a.exists) return;
+            if (asistentes.findIndex(b => b == a.id) != -1) return;
             var m = a.data();
-			miembros.push({ 
-                id: a.id, 
-                nombre: m.nombre, 
+            miembros.push({
+                id: a.id,
+                nombre: m.nombre,
                 apellido_paterno: m.apellido_paterno,
                 apellido_materno: m.apellido_materno,
                 assist: false
@@ -813,24 +825,24 @@ const editMemberFicha = async (firestore, req, res) => {
 /**
  * Generates a report that can be converted to an excel document of an asitance list.
  */
-const getAsistenciasReport = async (firestore, req, res)=>{
-    if(!req.user.admin){
+const getAsistenciasReport = async (firestore, req, res) => {
+    if (!req.user.admin) {
         return res.sendStatus(404);
     }
 
     var miembros = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
     var headers = [
-      'IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 
-      'Fecha Nacimiento', 'Fecha registro', 
-      'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Estatus', 
-      'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa',
-      'Ambulancia', 'Alergico', 'Tipo Sangre', 'Servicio Medico', 'Padecimientos'
+        'IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno',
+        'Fecha Nacimiento', 'Fecha registro',
+        'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Estatus',
+        'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa',
+        'Ambulancia', 'Alergico', 'Tipo Sangre', 'Servicio Medico', 'Padecimientos'
     ];
     var values = []
-    for(var i of miembros.docs){
-        if(!i.exists) continue;
+    for (var i of miembros.docs) {
+        if (!i.exists) continue;
         var d = i.data();
-		if(d.estatus>=2) continue;
+        if (d.estatus >= 2) continue;
         values.push([
             d.grupo,
             i.id,
@@ -844,34 +856,34 @@ const getAsistenciasReport = async (firestore, req, res)=>{
             d.escolaridad,
             d.oficio,
             d.estado_civil,
-            d.estatus==0 ? 'Activo' : (d.estatus==1 ? 'Baja temporal' : 'Baja definitiva'),
+            d.estatus == 0 ? 'Activo' : (d.estatus == 1 ? 'Baja temporal' : 'Baja definitiva'),
             d.domicilio.domicilio,
             d.domicilio.colonia,
             d.domicilio.municipio,
             d.domicilio.telefono_movil,
-			d.domicilio.telefono_casa,
-			...(d.ficha_medica ? [
-				d.ficha_medica.ambulancia ? 'SI' : 'NO',
-				d.ficha_medica.alergico ? 'SI' : 'NO',
-				d.ficha_medica.tipo_sangre,
-				d.ficha_medica.servicio_medico,
-				d.ficha_medica.padecimientos
-			] : ['','','','',''])
+            d.domicilio.telefono_casa,
+            ...(d.ficha_medica ? [
+                d.ficha_medica.ambulancia ? 'SI' : 'NO',
+                d.ficha_medica.alergico ? 'SI' : 'NO',
+                d.ficha_medica.tipo_sangre,
+                d.ficha_medica.servicio_medico,
+                d.ficha_medica.padecimientos
+            ] : ['', '', '', '', ''])
         ]);
     }
 
     var csv = Util.toXLS(headers, values);
 
     var name = req.params.id;
-    try{
+    try {
         var group = await firestore.collection('grupos').doc(req.params.id).get();
-        if(group.exists){
+        if (group.exists) {
             name = group.data().nombre;
         }
-    }catch(e){ }
-    
+    } catch (e) { }
+
     res.setHeader('Content-Type', 'application/vnd.ms-excel');
-    res.attachment('Miembros-'+name.replace(/ /g, '_')+'.xls')
+    res.attachment('Miembros-' + name.replace(/ /g, '_') + '.xls')
 
     return csv.pipe(res);
 }
@@ -879,8 +891,8 @@ const getAsistenciasReport = async (firestore, req, res)=>{
 /**
  * Get asistance by group
  */
-const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
-    if(!req.user.admin){
+const getAsistenciasAsistanceReport = async (firestore, req, res) => {
+    if (!req.user.admin) {
         return res.redirect('back');
     }
 
@@ -941,12 +953,13 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
     })
 
     var name = req.params.id;
-    try{
+    try {
         var group = await groupRef.get();
-        if(group.exists){
+        if (group.exists) {
             name = group.data().nombre;
         }
-    }catch(e){ }
+    } catch (e) { }
+
 
     
     var xls = Util.toXLS2sheets(headers, values, headersSh2, valuesSh2);
@@ -959,20 +972,20 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
 /**
  * Converts the data to be used in a csv file.
  */
-var dump = async (firestore, req, res)=>{
-    if(!req.user.admin){
+var dump = async (firestore, req, res) => {
+    if (!req.user.admin) {
         return res.redirect('back');
     }
 
-    try{
+    try {
         var gruposSnap = await firestore.collection('grupos').get();
 
-        var coordIds = [...new Set(gruposSnap.docs.map(a=>a.data().coordinador).filter(a=>(a ? true : false)))];
+        var coordIds = [...new Set(gruposSnap.docs.map(a => a.data().coordinador).filter(a => (a ? true : false)))];
         var coordinadores = []
-        if(coordIds.length>0){
-            var coordSnap = await firestore.getAll(...coordIds.map(a=>firestore.doc('coordinadores/'+a)))
-            coordSnap.forEach(a=>{
-                if(!a.exists) return;
+        if (coordIds.length > 0) {
+            var coordSnap = await firestore.getAll(...coordIds.map(a => firestore.doc('coordinadores/' + a)))
+            coordSnap.forEach(a => {
+                if (!a.exists) return;
                 coordinadores.push({
                     id: a.id,
                     ...a.data()
@@ -980,15 +993,15 @@ var dump = async (firestore, req, res)=>{
             })
         }
 
-        var parroquiaId = [...new Set(gruposSnap.docs.map(a=>a.data().parroquia).filter(a=>(a ? true : false)))];
-        var capillaId = [...new Set(gruposSnap.docs.map(a=>a.data().capilla).filter(a=>(a ? true : false)))];
+        var parroquiaId = [...new Set(gruposSnap.docs.map(a => a.data().parroquia).filter(a => (a ? true : false)))];
+        var capillaId = [...new Set(gruposSnap.docs.map(a => a.data().capilla).filter(a => (a ? true : false)))];
 
         var parroquias = [];
         var capillas = [];
-        if(parroquiaId.length>0){
-            var parrSnap = await firestore.getAll(...parroquiaId.map(a=>firestore.doc('parroquias/'+a)))
-            parrSnap.forEach(a=>{
-                if(!a.exists) return;
+        if (parroquiaId.length > 0) {
+            var parrSnap = await firestore.getAll(...parroquiaId.map(a => firestore.doc('parroquias/' + a)))
+            parrSnap.forEach(a => {
+                if (!a.exists) return;
                 parroquias.push({
                     id: a.id,
                     ...a.data()
@@ -996,24 +1009,24 @@ var dump = async (firestore, req, res)=>{
             })
         }
 
-        if(capillaId.length>0){
-            var capSnap = await firestore.getAll(...capillaId.map(a=>firestore.doc('capillas/'+a)))
-            capSnap.forEach(a=>{
-                if(!a.exists) return;
+        if (capillaId.length > 0) {
+            var capSnap = await firestore.getAll(...capillaId.map(a => firestore.doc('capillas/' + a)))
+            capSnap.forEach(a => {
+                if (!a.exists) return;
                 capillas.push({
                     id: a.id,
                     ...a.data()
                 });
             })
-        }        
+        }
 
         var grupos = []
-        gruposSnap.docs.forEach(a=>{
-            if(!a.exists) return;
+        gruposSnap.docs.forEach(a => {
+            if (!a.exists) return;
             var d = a.data();
-            var c = d.capilla ? capillas.find(a=>a.id==d.capilla) : null
-            var p = d.parroquia ? parroquias.find(a=>a.id==d.parroquia) : null
-            var coord = coordinadores.find(a=>a.id==d.coordinador);
+            var c = d.capilla ? capillas.find(a => a.id == d.capilla) : null
+            var p = d.parroquia ? parroquias.find(a => a.id == d.parroquia) : null
+            var coord = coordinadores.find(a => a.id == d.coordinador);
             grupos.push([
                 a.id,
                 d.nombre,
@@ -1021,31 +1034,31 @@ var dump = async (firestore, req, res)=>{
                 coord.id,
                 `${coord.nombre} ${coord.apellido_paterno} ${coord.apellido_materno}`,
                 (c ? 'Capilla' : 'Parroquia'),
-                ...(!p ? ['',''] : [
+                ...(!p ? ['', ''] : [
                     p.id,
                     p.nombre
                 ]),
-                ...(!c ? ['',''] : [
+                ...(!c ? ['', ''] : [
                     c.id,
                     c.nombre
                 ])
             ]);
         });
 
-        var headers = [ 'IDGrupo', 'Nombre', 'Fecha creación', 'IDCoordinador', 'Coordinador', 'Pertenece a', 'IDParroquia', 'Nombre Parroquia', 'IDCapilla', 'IDCapilla' ]
+        var headers = ['IDGrupo', 'Nombre', 'Fecha creación', 'IDCoordinador', 'Coordinador', 'Pertenece a', 'IDParroquia', 'Nombre Parroquia', 'IDCapilla', 'IDCapilla']
         var csv = Util.toXLS(headers, grupos);
 
         res.setHeader('Content-Type', 'application/vnd.ms-excel');
         res.attachment('Grupos.xls')
         return csv.pipe(res)
-    }catch(e){
+    } catch (e) {
         return res.redirect('back');
     }
-} 
+}
 
 module.exports = {
-    getall, 
-    getone, 
+    getall,
+    getone,
     edit,
     add,
     remove,
