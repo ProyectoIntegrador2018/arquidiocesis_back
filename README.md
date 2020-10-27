@@ -31,6 +31,10 @@ APP de Arquidiocesis de Monterrey
 | Diego Martínez  | A01176489@itesm.mx | Product Owner Proxy                |
 | Fernando López  | A01172527@itesm.mx | Administración de la configuración |
 | Carlos Tamez    | A00817514@itesm.mx | Administrador del Proyecto         |
+| Andrés Sánchez  | A00819118@itesm.mx | Development                        |
+| Carlos Miranda  | A00817390@itesm.mx | Development                        |
+| Gerardo Suarez  | A00817505@itesm.mx | Development                        |
+| Rolando Mata    | A00816442@itesm.mx | Development                        |
 
 ### Technology Stack
 
