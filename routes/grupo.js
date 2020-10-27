@@ -674,7 +674,7 @@ const getAsistencia = async (firestore, req, res)=>{
     })
     
     var agenda = assist.get('agenda');
-    var commentarios = assist.get('agenda');
+    var commentarios = assist.get('commentarios');
 
 		return res.send({
 			error: false,
