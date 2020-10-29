@@ -238,14 +238,16 @@ const editCoordinador = async (firestore, req, res) => {
 			});
 		}
 
-		// Validate if a coordinador with identificador exists
-		const coordinador = await firestore.collection('coordinadores').where('identificador', '==', identificador).get();
-        
-		if (!coordinador.empty) {
-			return res.send({
-				error: true, 
-				message: 'Ya existe un coordinador con el identificador proporcionado.'
-			});
+		if (memberSnap.data().identificador !== identificador) {
+			// Validate if a coordinador with identificador exists
+			const coordinador = await firestore.collection('coordinadores').where('identificador', '==', identificador).get();
+					
+			if (!coordinador.empty) {
+				return res.send({
+					error: true, 
+					message: 'Ya existe un coordinador con el identificador proporcionado.'
+				});
+			}
 		}
 
 		await firestore.collection('coordinadores').doc(id).update({
