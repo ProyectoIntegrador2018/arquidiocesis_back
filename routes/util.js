@@ -37,6 +37,20 @@ function toXLS(header, values){
 	return stream;
 }
 
+function toXLS2sheets(header1, values1, header2, values2) {
+  const book = xlsx.utils.book_new();
+  const sheet1 = xlsx.utils.aoa_to_sheet([header1, ...values1]);
+  xlsx.utils.book_append_sheet(book, sheet1, 'sheet1');
+  const sheet2 = xlsx.utils.aoa_to_sheet([header2, ...values2]);
+  xlsx.utils.book_append_sheet(book, sheet2, 'sheet2');
+  var buf = xlsx.write(book, { type: 'buffer', bookType: 'xls' })
+  var stream = new Readable;
+  stream.push(buf);
+  stream.push(null);
+  
+  return stream;
+}
+
 /**
  * Flatten an object, used to generate the XLS
  * https://stackoverflow.com/a/53739792
@@ -63,5 +77,6 @@ function flattenObject(ob) {
 module.exports = {
 	toCSV,
 	toXLS,
+	toXLS2sheets,
 	flattenObject
 }

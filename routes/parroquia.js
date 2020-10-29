@@ -173,6 +173,8 @@ const remove = async (firestore, req, res)=>{
  * Changes data from a parish in the'parroquias' collection
  */
 const update = async (firestore, req, res)=>{
+    console.log('update start');
+
     try { 
         const payload = req.body
         const id = payload.parroquia
@@ -184,7 +186,21 @@ const update = async (firestore, req, res)=>{
                 message: "No hay parroquia con ese id"
             })
         }
+        
+        if (snapshot.data().identificador !== payload.identificador) {
+            // Validate if a parroquia with identificador exists
+            const parroquia = await firestore.collection('parroquias').where('identificador', '==', payload.identificador).get();
+            
+            if (!parroquia.empty) {
+                return res.send({
+                    error: true, 
+                    message: 'Ya existe una parroquia con el identificador proporcionado.'
+                })
+            }
+        }
+
         await docref.set({
+            identificador: payload.identificador,
             nombre: payload.nombre,
             direccion: payload.direccion, 
             colonia: payload.colonia, 
