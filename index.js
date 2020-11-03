@@ -153,7 +153,7 @@ app.get('/api/reporte/participantes', (req, res)=>all.getParticipantes(firestore
 app.get('/api/reporte/zonas', (req, res)=>all.getZonas(firestore, req, res))
 app.get('/api/reporte/all', (req, res)=>all.getall(firestore, req, res))
 
-app.get('/api/estadisticas/servicioMedico', (req, res) => estadisticas.getServicioMedico(firestore, req, res))
+app.get('/api/estadisticas/', (req, res) => estadisticas.getEstadisticas(firestore, req, res))
 
 // No route found
 app.all('*', (req, res) => {
