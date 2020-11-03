@@ -15,6 +15,7 @@ const zonas = require('./routes/zonas')
 const capacitacion = require('./routes/capacitacion')
 const acompanante = require('./routes/acompanantes')
 const participante = require('./routes/participante')
+const estadisticas = require('./routes/estadisticas')
 const all = require('./routes/all')
 
 app.use(cors())
@@ -151,6 +152,8 @@ app.get('/api/reporte/parroquias', (req, res)=>all.getParroquias(firestore, req,
 app.get('/api/reporte/participantes', (req, res)=>all.getParticipantes(firestore, req, res))
 app.get('/api/reporte/zonas', (req, res)=>all.getZonas(firestore, req, res))
 app.get('/api/reporte/all', (req, res)=>all.getall(firestore, req, res))
+
+app.get('/api/estadisticas/servicioMedico', (req, res) => estadisticas.getServicioMedico(firestore, req, res))
 
 // No route found
 app.all('*', (req, res) => {
