@@ -18,12 +18,23 @@ const getEstadisticas = async (firestore, req, res) => {
   }
 
   var alergico = 0;
+  var lista_alergias = [];
   var problema_cardiovascular = 0;
   var problema_azucar = 0;
   var problema_hipertension = 0;
   var problema_sobrepeso = 0;
 
   var discapacidad = 0;
+  var lista_discapacidad = [];
+
+  var escolaridad = {
+    ninguno: 0,
+    primaria: 0,
+    secundaria: 0,
+    preparatoria: 0,
+    carrera_tecnica: 0,
+    profesional: 0
+  }
 
   var total = 0;
 
@@ -42,7 +53,11 @@ const getEstadisticas = async (firestore, req, res) => {
     else if(mservicio == "Ninguno") servicio.ninguno++;
 
     //Checking alergico
-    if(ficha_medica.alergico == true) alergico++;
+    if(ficha_medica.alergico == true) { 
+      alergico++;
+      lista_alergias.push(ficha_medica.alergico_desc);
+    }
+
 
     // Checking problema cardiovascular
     if(ficha_medica.p_cardiovascular == true) problema_cardiovascular++;
@@ -57,7 +72,10 @@ const getEstadisticas = async (firestore, req, res) => {
     if(ficha_medica.p_sobrepeso == true) problema_sobrepeso++;
 
     // Checking discapacidad
-    if(ficha_medica.discapacidad == true) discapacidad++;
+    if(ficha_medica.discapacidad == true) { 
+      discapacidad++;
+      lista_discapacidad.push(ficha_medica.discapacidad_desc);
+    }
 
     // Checking seguridad social
     var mSeguridad = ficha_medica.seguridad_social;
@@ -65,8 +83,20 @@ const getEstadisticas = async (firestore, req, res) => {
     else if(mSeguridad == "Pensionado") seguridadSocial.pensionado++;
     else if(mSeguridad == "Jubilado") seguridadSocial.jubilado++;
     else if(mSeguridad == "Apoyo Federal") seguridadSocial.apoyo_federal++;
+
+
+    // Checking escolaridad
+    var mEscolaridad = mdata.escolaridad;
+    if(mEscolaridad == "Ninguno") escolaridad.ninguno++;
+    else if(mEscolaridad == "Primaria") escolaridad.primaria++;
+    else if(mEscolaridad == "Secundaria") escolaridad.secundaria++;
+    else if(mEscolaridad == "Preparatoria") escolaridad.preparatoria++;
+    else if(mEscolaridad == "Carrera Técnica") escolaridad.carrera_tecnica++;
+    else if(mEscolaridad == "Profesional") escolaridad.profesional++;
+
   })
 
+  
   res.send({
     error: false,
     servicio_medico: {
@@ -75,16 +105,26 @@ const getEstadisticas = async (firestore, req, res) => {
       ninguno: servicio.ninguno / total * 100,
     },
     alergico: alergico / total * 100,
+    alergico_desc: lista_alergias,
     p_cardiovascular: problema_cardiovascular / total * 100,
     p_azucar: problema_azucar / total * 100,
     p_hipertension: problema_hipertension / total * 100,
     p_sobrepeso: problema_sobrepeso / total * 100,
     discapacidad: discapacidad / total * 100,
+    discapacidad_desc: lista_discapacidad,
     seguridad_social: {
       pensionado: seguridadSocial.pensionado / total * 100,
       jubilado: seguridadSocial.jubilado / total * 100,
       apoyo_federal: seguridadSocial.apoyo_federal / total * 100,
       ninguno: seguridadSocial.ninguno / total * 100
+    },
+    escolaridad: {
+      ninguno: escolaridad.ninguno / total * 100,
+      primaria: escolaridad.primaria / total * 100,
+      secundaria: escolaridad.secundaria / total * 100,
+      preparatoria: escolaridad.preparatoria / total * 100,
+      carrera_tecnica: escolaridad.carrera_tecnica / total * 100,
+      profesional: escolaridad.profesional / total * 100
     }
   })
 }
