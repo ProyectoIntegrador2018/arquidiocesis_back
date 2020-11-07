@@ -77,7 +77,41 @@ const add = async (firestore, req, res) => {
   }
 };
 
+const remove = async (firestore, req, res) => {
+  console.log("eventos.remove start", req.params);
+  var { id } = req.params;
+
+  if (!req.user.admin) {
+    return res.send({
+      error: true,
+      code: 999,
+      message: "No tienes acceso a esta acción",
+    });
+  }
+
+  try {
+    const snapshot = await firestore
+      .collection("eventos")
+      .doc(id)
+      .get("nombre");
+
+    if (!snapshot.exists)
+      return res.send({
+        error: true,
+        message: "El evento no existe",
+      });
+
+    await firestore.collection("eventos").doc(id).delete();
+
+    return res.send({ error: false, data: true });
+  } catch (error) {
+    console.log("error :>> ", error);
+    return res.send({ error: true, message: "Mensaje inesperado" });
+  }
+};
+
 module.exports = {
   getAll,
   add,
+  remove,
 };
