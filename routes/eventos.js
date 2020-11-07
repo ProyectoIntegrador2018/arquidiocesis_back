@@ -110,8 +110,54 @@ const remove = async (firestore, req, res) => {
   }
 };
 
+/**
+ * Edits the fields of an specific event
+ */
+const edit = async (firestore, req, res) => {
+  console.log("eventos.edit start", req.params.id, req.body);
+
+  if (!req.user.admin) {
+    return res.send({
+      error: true,
+      code: 999,
+      message: "No tienes acceso a esta acción",
+    });
+  }
+
+  const id = req.params.id;
+  const eventData = req.body;
+
+  try {
+    // Verify if other event has the same name
+    const snapshot = await firestore
+      .collection("eventos")
+      .where("nombre", "==", eventData.nombre)
+      .get();
+
+    if (
+      snapshot.docs.length > 0 &&
+      snapshot.docs[0].nombre !== eventData.nombre
+    ) {
+      return res.send({
+        error: true,
+        message: "Ya existe un evento con ese nombre.",
+      });
+    }
+
+    await firestore.collection("eventos").doc(id).update(eventData);
+    return res.send({ error: false, data: true });
+  } catch (error) {
+    console.log("error :>> ", error);
+    return res.send({
+      error: true,
+      message: "Error inesperado.",
+    });
+  }
+};
+
 module.exports = {
   getAll,
   add,
   remove,
+  edit,
 };

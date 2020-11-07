@@ -84,6 +84,7 @@ app.get('/api/capillas/dump/:random', (req, res)=>{capillas.dump(firestore, req,
 app.get('/api/eventos', (req, res)=>{eventos.getAll(firestore, req, res)})
 app.post('/api/eventos', (req, res)=>{eventos.add(firestore, req, res)})
 app.delete('/api/eventos/:id', (req, res)=>{eventos.remove(firestore, req, res)})
+app.post('/api/eventos/:id/edit', (req, res)=>eventos.edit(firestore, req, res));
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/dump', (req, res) => { grupos.dump(firestore, req, res) })
