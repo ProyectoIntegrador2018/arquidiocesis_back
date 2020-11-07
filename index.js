@@ -81,6 +81,7 @@ app.get('/api/capillas/:id', (req, res) => capillas.getone(firestore, req, res))
 app.post('/api/capillas/edit', (req, res)=>capillas.edit(firestore, req, res))
 app.get('/api/capillas/dump/:random', (req, res)=>{capillas.dump(firestore, req, res)})
 
+app.get('/api/eventos', (req, res)=>{eventos.getAll(firestore, req, res)})
 app.post('/api/eventos', (req, res)=>{eventos.add(firestore, req, res)})
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
