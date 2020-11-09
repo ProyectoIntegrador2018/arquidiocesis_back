@@ -424,7 +424,8 @@ const addMember = async (firestore, req, res) => {
         tablet,
         facebook,
         twitter,
-        instagram
+        instagram,
+        ficha_medica
     } = req.body;
 
     var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
@@ -461,7 +462,8 @@ const addMember = async (firestore, req, res) => {
             tablet,
             facebook,
             twitter,
-            instagram
+            instagram,
+            ficha_medica
         }
         var memberRef = await firestore.collection('miembros').add(new_member);
         new_member.id = memberRef.id;
