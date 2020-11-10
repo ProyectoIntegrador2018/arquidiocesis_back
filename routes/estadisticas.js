@@ -23,6 +23,7 @@ const getEstadisticas = async (firestore, req, res) => {
   var problema_azucar = 0;
   var problema_hipertension = 0;
   var problema_sobrepeso = 0;
+  var ningun_problema = 0;
 
   var discapacidad = 0;
   var lista_discapacidad = [];
@@ -53,26 +54,30 @@ const getEstadisticas = async (firestore, req, res) => {
     else if(mservicio == "Ninguno") servicio.ninguno++;
 
     //Checking alergico
-    if(ficha_medica.alergico == true) { 
+    if(ficha_medica.alergico) { 
       alergico++;
       lista_alergias.push(ficha_medica.alergico_desc);
     }
 
 
     // Checking problema cardiovascular
-    if(ficha_medica.p_cardiovascular == true) problema_cardiovascular++;
+    if(ficha_medica.p_cardiovascular) problema_cardiovascular++;
 
     // Checking problema de azucar
-    if(ficha_medica.p_azucar == true) problema_azucar++;
+    if(ficha_medica.p_azucar) problema_azucar++;
 
     // Checking problema hipertension
-    if(ficha_medica.p_hipertension == true) problema_hipertension++;
+    if(ficha_medica.p_hipertension) problema_hipertension++;
 
     // Checking problema sobrepeso
-    if(ficha_medica.p_sobrepeso == true) problema_sobrepeso++;
+    if(ficha_medica.p_sobrepeso) problema_sobrepeso++;
+
+    // Checking ningun problema de salud
+    if(!ficha_medica.p_cardiovascular && !ficha_medica.p_azucar
+      && !ficha_medica.p_hipertension && !ficha_medica.p_sobrepeso) ningun_problema++;
 
     // Checking discapacidad
-    if(ficha_medica.discapacidad == true) { 
+    if(ficha_medica.discapacidad) { 
       discapacidad++;
       lista_discapacidad.push(ficha_medica.discapacidad_desc);
     }
@@ -99,6 +104,7 @@ const getEstadisticas = async (firestore, req, res) => {
   
   res.send({
     error: false,
+    total: total,
     servicio_medico: {
       publico: servicio.publico / total * 100,
       privado: servicio.privado / total * 100,
@@ -106,10 +112,11 @@ const getEstadisticas = async (firestore, req, res) => {
     },
     alergico: alergico / total * 100,
     alergico_desc: lista_alergias,
-    p_cardiovascular: problema_cardiovascular / total * 100,
-    p_azucar: problema_azucar / total * 100,
-    p_hipertension: problema_hipertension / total * 100,
-    p_sobrepeso: problema_sobrepeso / total * 100,
+    p_cardiovascular: problema_cardiovascular,
+    p_azucar: problema_azucar,
+    p_hipertension: problema_hipertension,
+    p_sobrepeso: problema_sobrepeso,
+    p_ninguno: ningun_problema,
     discapacidad: discapacidad / total * 100,
     discapacidad_desc: lista_discapacidad,
     seguridad_social: {
