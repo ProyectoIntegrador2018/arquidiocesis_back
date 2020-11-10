@@ -54,30 +54,30 @@ const getEstadisticas = async (firestore, req, res) => {
     else if(mservicio == "Ninguno") servicio.ninguno++;
 
     //Checking alergico
-    if(ficha_medica.alergico) { 
+    if(ficha_medica.alergico == true) { 
       alergico++;
       lista_alergias.push(ficha_medica.alergico_desc);
     }
 
 
     // Checking problema cardiovascular
-    if(ficha_medica.p_cardiovascular) problema_cardiovascular++;
+    if(ficha_medica.p_cardiovascular == true) problema_cardiovascular++;
 
     // Checking problema de azucar
-    if(ficha_medica.p_azucar) problema_azucar++;
+    if(ficha_medica.p_azucar == true) problema_azucar++;
 
     // Checking problema hipertension
-    if(ficha_medica.p_hipertension) problema_hipertension++;
+    if(ficha_medica.p_hipertension == true) problema_hipertension++;
 
     // Checking problema sobrepeso
-    if(ficha_medica.p_sobrepeso) problema_sobrepeso++;
+    if(ficha_medica.p_sobrepeso == true) problema_sobrepeso++;
 
     // Checking ningun problema de salud
-    if(!ficha_medica.p_cardiovascular && !ficha_medica.p_azucar
-      && !ficha_medica.p_hipertension && !ficha_medica.p_sobrepeso) ningun_problema++;
+    if(ficha_medica.p_cardiovascular == false && ficha_medica.p_azucar == false
+      && ficha_medica.p_hipertension == false && ficha_medica.p_sobrepeso == false) ningun_problema++;
 
     // Checking discapacidad
-    if(ficha_medica.discapacidad) { 
+    if(ficha_medica.discapacidad == true) { 
       discapacidad++;
       lista_discapacidad.push(ficha_medica.discapacidad_desc);
     }
