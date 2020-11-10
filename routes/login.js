@@ -76,8 +76,9 @@ const verifyToken = (firestore)=>{
         verify(firestore, token).then(user=>{
             if(user){
                 req.user = user;
-                req.user.admin = user.tipo=='admin' || user.tipo=='superadmin' || user.tipo=='coordinador_general' || user.tipo=='acompañante_operativo';
-                req.user.readonly = user.tipo=='coordinador_general' || user.tipo=='acompañante_operativo';
+                // *** Falta ver donde van cada uno de los tipos nuevos ***
+                req.user.admin = user.tipo=='admin' || user.tipo=='superadmin' || user.tipo=='coordinador' || user.tipo=='acompañante_zona' || user.tipo=='acompañanate_decanato';
+                req.user.readonly = user.tipo=='coordinador' || user.tipo=='acompañante_zona' || user.tipo=='acompañanate_decanato';
                 return next();
             }else return res.send({
                 error: true,

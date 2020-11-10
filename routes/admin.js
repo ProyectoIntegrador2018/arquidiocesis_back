@@ -26,7 +26,7 @@ const isAdmin = (req, res, next, redirect=false)=>{
  * /
  * Gets all logins that are of type admin */
 const getLogins = async (firestore, req, res)=>{
-	const loginSnap = await firestore.collection('logins').where('tipo', 'in', ['admin', 'coordinador_general', 'acompañante_operativo']).get();
+	const loginSnap = await firestore.collection('logins').where('tipo', 'in', ['admin', 'integrante_chm', 'coordinador', 'acompañante_zona', 'acompañante_decanato', 'capacitacion']).get();
 	var logins = loginSnap.docs.map(a=>({ email: a.id, member_id: a.data().id, tipo: a.data().tipo }));
 	return res.send({
 		error: false,
@@ -115,7 +115,7 @@ const register = async (firestore, req, res)=>{
 		password
 	} = req.body;
 
-	if(['admin', 'coordinador_general', 'acompañante_operativo'].indexOf(tipo)==-1){
+	if(['admin', 'coordinador', 'integrante_chm', 'acompañante_zona', 'acompañante_decanato', 'capacitacion'].indexOf(tipo)==-1){
 		return res.send({
 			error: true,
 			message: 'Tipo de usuario invalido'
@@ -217,7 +217,7 @@ const editAdmin = async (firestore, req, res)=>{
 		tipo
 	} = req.body;
 
-	if(['admin', 'coordinador_general', 'acompañante_operativo'].indexOf(tipo)==-1){
+	if(['admin', 'integrante_chm', 'coordinador', 'acompañante_zona', 'acompañante_decanato', 'capacitacion'].indexOf(tipo)==-1){
 		return res.send({
 			error: true,
 			message: 'Tipo de usuario invalido'
