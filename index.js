@@ -9,6 +9,7 @@ const decanato = require('./routes/decanato')
 const login = require('./routes/login')
 const admins = require('./routes/admin')
 const capillas  = require('./routes/capillas')
+const eventos = require('./routes/eventos')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
@@ -79,6 +80,11 @@ app.delete('/api/capillas/:id', (req, res) => capillas.remove(firestore, req, re
 app.get('/api/capillas/:id', (req, res) => capillas.getone(firestore, req, res))
 app.post('/api/capillas/edit', (req, res)=>capillas.edit(firestore, req, res))
 app.get('/api/capillas/dump/:random', (req, res)=>{capillas.dump(firestore, req, res)})
+
+app.get('/api/eventos', (req, res)=>{eventos.getAll(firestore, req, res)})
+app.post('/api/eventos', (req, res)=>{eventos.add(firestore, req, res)})
+app.delete('/api/eventos/:id', (req, res)=>{eventos.remove(firestore, req, res)})
+app.post('/api/eventos/:id/edit', (req, res)=>eventos.edit(firestore, req, res));
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/dump', (req, res) => { grupos.dump(firestore, req, res) })
