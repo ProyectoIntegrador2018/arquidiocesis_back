@@ -646,7 +646,6 @@ const editMemberStatus = async (firestore, req, res) => {
 const getAsistencia = async (firestore, req, res) => {
     var { id, fecha } = req.params;
     try {
-        console.log("test1");
         var assist = await firestore.collection('grupos/' + id + '/asistencias').doc(fecha).get();
         if (!assist.exists) {
             return res.send({
