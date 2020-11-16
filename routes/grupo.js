@@ -646,6 +646,7 @@ const editMemberStatus = async (firestore, req, res) => {
 const getAsistencia = async (firestore, req, res) => {
     var { id, fecha } = req.params;
     try {
+        console.log("test1");
         var assist = await firestore.collection('grupos/' + id + '/asistencias').doc(fecha).get();
         if (!assist.exists) {
             return res.send({
@@ -659,19 +660,21 @@ const getAsistencia = async (firestore, req, res) => {
 
         var asistentes = assist.get('miembros');
         var miembros = []
-        const asistSnap = await firestore.getAll(...asistentes.map(a => firestore.doc('miembros/' + a)));
-        asistSnap.forEach(a => {
-            if (a.exists) {
-                var m = a.data();
-                miembros.push({
-                    id: a.id,
-                    nombre: m.nombre,
-                    apellido_paterno: m.apellido_paterno,
-                    apellido_materno: m.apellido_materno,
-                    assist: assist.get('miembros').findIndex(b => b == a.id) != -1
-                })
-            }
-        });
+        if(asistentes.length != 0) {
+          const asistSnap = await firestore.getAll(...asistentes.map(a => firestore.doc('miembros/' + a)));
+          asistSnap.forEach(a => {
+              if (a.exists) {
+                  var m = a.data();
+                  miembros.push({
+                      id: a.id,
+                      nombre: m.nombre,
+                      apellido_paterno: m.apellido_paterno,
+                      apellido_materno: m.apellido_materno,
+                      assist: assist.get('miembros').findIndex(b => b == a.id) != -1
+                  })
+              }
+          });
+        }
 
         var miembrosSnap = await firestore.collection('miembros').where('grupo', '==', groupSnap.id).where('estatus', '==', 0).get();
         miembrosSnap.forEach(a => {
@@ -685,8 +688,7 @@ const getAsistencia = async (firestore, req, res) => {
                 apellido_materno: m.apellido_materno,
                 assist: false
             })
-
-    })
+          })
     
     var agenda = assist.get('agenda');
     var commentarios = assist.get('commentarios');
