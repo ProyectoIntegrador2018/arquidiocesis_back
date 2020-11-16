@@ -10,6 +10,7 @@ const login = require('./routes/login')
 const admins = require('./routes/admin')
 const capillas  = require('./routes/capillas')
 const eventos = require('./routes/eventos')
+const objetivos = require('./routes/objetivos')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
@@ -86,6 +87,9 @@ app.get('/api/eventos', (req, res)=>{eventos.getAll(firestore, req, res)})
 app.post('/api/eventos', (req, res)=>{eventos.add(firestore, req, res)})
 app.delete('/api/eventos/:id', (req, res)=>{eventos.remove(firestore, req, res)})
 app.post('/api/eventos/:id/edit', (req, res)=>eventos.edit(firestore, req, res));
+
+app.get('/api/objetivos', (req, res)=>{objetivos.getAll(firestore, req, res)})
+app.patch('/api/objetivos', (req, res)=>{objetivos.updateOne(firestore, req, res)})
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/dump', (req, res) => { grupos.dump(firestore, req, res) })
