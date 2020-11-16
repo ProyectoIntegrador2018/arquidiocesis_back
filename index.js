@@ -103,6 +103,7 @@ app.post('/api/grupos/miembro/:id/edit/ficha', (req, res) => { grupos.editMember
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
+app.get('/api/coordinadores/acompanante/:id', (req, res)=>coordinadores.getForAcompanante(firestore, req, res));
 app.post('/api/coordinadores', (req, res) => coordinadores.add(firestore, req, res));
 app.post('/api/coordinadores/:id/edit', (req, res) => coordinadores.editCoordinador(firestore, req, res));
 app.delete('/api/coordinadores/:id', (req, res) => coordinadores.remove(firestore, req, res));
