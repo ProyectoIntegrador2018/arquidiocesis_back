@@ -546,10 +546,6 @@ const getall = async (firestore, req, res)=>{
  * @param {JSON} [res.data] - CSV stream data. 
  */
 const getAsistenciasReport = async (firestore, req, res)=>{
-    if(!req.user.admin){
-        return res.sendStatus(404);
-    }
-
     var miembros = await firestore.collection('participantes').where('capacitacion', '==', req.params.id).where('eliminado', '==', false).get();
     var headers = ['IDMiembro', 'Nombre Corto', 'Nombre', 'Apellido Paterno', 'Apellido Materno', 'Fecha nacimiento', 'Fecha registro', 'Correo electrónico', 'Sexo', 'Escolaridad', 'Oficio', 'Estado Civil', 'Domicilio', 'Colonia', 'Municipio', 'Telefono Movil', 'Telefono Casa'];
     var values = []
@@ -602,10 +598,6 @@ const getAsistenciasReport = async (firestore, req, res)=>{
  * @param {JSON} [res.data] - CSV stream data. 
  */
 const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
-    if(!req.user.admin){
-        return res.redirect('back');
-    }
-
     var groupRef = await firestore.collection('capacitaciones').doc(req.params.id);
     var assistColl = await groupRef.collection('asistencias');
     var assistList = await assistColl.get();
@@ -620,7 +612,7 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
 	
 	var partSnap = await firestore.collection('participantes').where('capacitacion', '==', req.params.id).where('eliminado', '==', false).get();
 
-	var members_id = [...new Set([...dates.map(a=>a.members).flat(), ...partSnap.docs.map(a=>a.id)])];
+	var members_id = [...new Set([...dates.map(a=>a.members), ...partSnap.docs.map(a=>a.id)])];
 	var members = [];
 	if(members_id.length>0){
 		const asistSnap = await firestore.getAll(...members_id.map(a=>firestore.doc('participantes/'+a)));
@@ -650,7 +642,7 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
             i.apellido_materno,
             ...date_assistance
         ])
-    }
+		}
     
     var csv = Util.toXLS(headers, values);
     res.setHeader('Content-Type', 'application/vnd.ms-excel');
@@ -675,10 +667,6 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
  * @param {JSON} [res.data] - CSV stream data. 
  */
 var dump = async (firestore, req, res)=>{
-	if(!req.user.admin){
-        return res.redirect('back');
-    }
-
     try{
         var capSnap = await firestore.collection('capacitaciones').get();
 
@@ -723,9 +711,9 @@ var dump = async (firestore, req, res)=>{
 }
 
 module.exports = {
-    add,
-    getAsistencia,
-    registerAsistencia,
+	add,
+	getAsistencia,
+	registerAsistencia,
 	saveAsistencia,
 	getone, 
 	getall,
