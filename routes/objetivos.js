@@ -4,10 +4,10 @@
  */
 
 /**
- * Gets all objectives documents for the list
+ * Gets all objectives documents for a given year
  */
-const getAll = async (firestore, req, res) => {
-    console.log("objetivos.getAll start");
+const getAllByYear = async (firestore, req, res) => {
+    console.log("objetivos.getAll start", req.params);
   
     // Check if has access to add (is admin)
     if (!req.user.admin) {
@@ -18,7 +18,10 @@ const getAll = async (firestore, req, res) => {
     }
   
     try {
-      const snapshot = await firestore.collection("objetivos").get();
+      const snapshot = await firestore
+        .collection("objetivos")
+        .where("year", "==", parseInt(req.params.year))
+        .get();
       const objectives = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   
       return res.send({ error: false, data: objectives });
@@ -29,7 +32,7 @@ const getAll = async (firestore, req, res) => {
   };
   
   /**
-   * Adds a new objective to the 'objetivos' collection
+   * Updates a new objective
    */
   const updateOne = async (firestore, req, res) => {
     console.log("objetivos.add start", req.body);
@@ -42,34 +45,23 @@ const getAll = async (firestore, req, res) => {
       });
     }
   
-    const { id, decanatoId, p, cg, oc1, oc2, oc3} = req.body;
+    const { id, p, cg, oc1, oc2, oc3} = req.body;
+
+    if (!id || p === undefined || cg === undefined || oc1 === undefined || oc2 === undefined || oc3 === undefined) {
+      return res.send({ error: true, message: "Hacen falta datos para actualizar el objetivo" });
+    }
   
     try {
-        const newObjective = {
-          decanatoId,
-          p,
-          cg,
-          oc1,
-          oc2,
-          oc3
-        };
-        var objetivoSnap = await firestore.collection('objetivos').doc(id).get();
-        if (!objetivoSnap.exists){
-            const docref = await firestore.collection("objetivos").add(newObjective);
-            newObjective.id = docref.id;
-        
-            return res.send({
-              error: false,
-              data: newObjective,
-            }); 
-        }
+      const objetivoSnap = await firestore.collection('objetivos').doc(id).get();
+      if (!objetivoSnap.exists){
+        return res.send({ error: true, message: "El objetivo no existe" });
+      }
+
+      const objective = { p, cg, oc1, oc2, oc3 };
       
-    //   Update new objective
-      await firestore.collection('objetivos').doc(id).update(newObjective);
-		return res.send({
-			error: false,
-			data: true
-		})
+      // Update new objective
+      await firestore.collection('objetivos').doc(id).update(objective);
+      return res.send({ error: false, data: true })
     } catch (error) {
       console.log("error :>> ", error);
       return res.send({ error: true, message: err.message });
@@ -78,6 +70,6 @@ const getAll = async (firestore, req, res) => {
 
   
   module.exports = {
-    getAll,
+    getAllByYear,
     updateOne
   };
