@@ -22,7 +22,7 @@ const Util = require('./util');
 const getall = async (firestore, req, res) => {
     var grupos = [];
 
-    if (req.user.admin || req.user.tipo.startsWith('acompañante')) { // Is admin, return all
+    if (req.user.tipo != 'coordinador') { // Return all
         const snapshot = await firestore.collection('grupos').get();
         grupos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } else {
@@ -68,6 +68,111 @@ const getall = async (firestore, req, res) => {
         error: false,
         data: grupos
     })
+}
+
+// Divide array into chunks of the specified size
+var chunks = function(array, size) {
+    var results = [];
+    while (array.length) {
+      results.push(array.splice(0, size));
+    }
+    return results;
+};
+
+/**
+ * Get groups in acompanante's zona or decanato
+ * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
+ * @param {GET} req
+ * @param {JSON} res - Status 200
+ */
+const getForAcompanante = async (firestore, req, res) => {
+    try{
+		const acom = req.params.id;
+		var decanatos = [];
+		var parroquias = [];
+		var grupos = [];
+		var decanRef, parroquiasRef, gruposRef;
+
+		const zonaRef = await firestore.collection('zonas').where('acompanante', '==', acom).get();
+
+		if (!zonaRef.empty) {
+			const zonaId = zonaRef.docs[0].id;
+			decanRef = await firestore.collection('decanatos').where('zona', '==', zonaId).get();
+		} else {
+			decanRef = await firestore.collection('decanatos').where('acompanante', '==', acom).get();
+		}
+
+		if (!decanRef.empty) {
+			decanatos = decanRef.docs.map(d=>d.id);
+			decanatos = chunks(decanatos, 10);
+			for (dec of decanatos) {
+				parroquiasRef = await firestore.collection('parroquias').where('decanato', 'in', dec).get();
+				if (!parroquiasRef.empty) {
+					parroquiasRef.docs.forEach(p => parroquias.push(p.id));
+				}
+			}
+		} else {
+			throw Error("Acompañante no asignado a Zona o Decanato");
+		}
+
+		if (parroquias.length > 0) {
+			parroquias = chunks(parroquias, 10);
+			for (parr of parroquias) {
+				gruposRef = await firestore.collection('grupos').where('parroquia', 'in', parr).get();
+				if (!gruposRef.empty) {
+					gruposRef.docs.forEach(doc => grupos.push({ id: doc.id, ...doc.data() }));
+				}
+			}
+		} else {
+			throw Error("Error buscando parroquias de zona o decanato");
+        }
+        
+        if (grupos.length > 0) {
+            // Get unique ids from parroquias and capillas
+            var pid = Array.from(new Set(grupos.map(a => (a.parroquia || null)))).filter(a => a != null);
+            var cid = Array.from(new Set(grupos.map(a => (a.capilla || null)))).filter(a => a != null);
+    
+            // Get parroquias
+            var parroquias = [];
+            if (pid.length > 0) {
+                var snapParroquias = await firestore.getAll(...pid.map(a => firestore.doc('parroquias/' + a)));
+                snapParroquias.forEach(a => {
+                    if (!a.exists) return;
+                    var d = a.data();
+                    parroquias.push({ id: a.id, nombre: d.nombre });
+                })
+            }
+    
+            // Get capillas
+            var capillas = []
+            if (cid.length > 0) {
+                var snapCapillas = await firestore.getAll(...cid.map(a => firestore.doc('capillas/' + a)));
+                snapCapillas.forEach(a => {
+                    if (!a.exists) return;
+                    var d = a.data();
+                    capillas.push({ id: a.id, nombre: d.nombre });
+                })
+            }
+    
+            for (var i of grupos) {
+                if (i.parroquia) {
+                    i.parroquia = parroquias.find(a => a.id == i.parroquia);
+                } else if (i.capilla) {
+                    i.capilla = capillas.find(a => a.id == i.capilla);
+                }
+            }
+        }
+
+		return res.send({
+			error: false,
+			data: grupos
+		})
+	} catch(e) {
+		return res.send({
+			error: true,
+			message: e.message
+		})
+	}
 }
 
 /**
@@ -200,15 +305,6 @@ var getBajasTemporales = async (firestore, req, res) => {
  * Adds a new group to the 'grupos' collection
  */
 const add = async (firestore, req, res) => {
-    // Check if has access to add. (Is admin)
-    if (!req.user.admin) {
-        return res.send({
-            error: true,
-            message: 'No tienes acceso a esta accion'
-        })
-    }
-
-
     var { name, parroquia, capilla, coordinador } = req.body;
     try {
         const snapshot = await firestore.collection('coordinadores').doc(coordinador).get()
@@ -830,10 +926,6 @@ const editMemberFicha = async (firestore, req, res) => {
  * Generates a report that can be converted to an excel document of an asitance list.
  */
 const getAsistenciasReport = async (firestore, req, res) => {
-    if (!req.user.admin) {
-        return res.sendStatus(404);
-    }
-
     var miembros = await firestore.collection('miembros').where('grupo', '==', req.params.id).get();
     var headers = [
         'IDGrupo', 'IDMiembro', 'Nombre', 'Apellido Paterno', 'Apellido Materno',
@@ -896,10 +988,6 @@ const getAsistenciasReport = async (firestore, req, res) => {
  * Get asistance by group
  */
 const getAsistenciasAsistanceReport = async (firestore, req, res) => {
-    if (!req.user.admin) {
-        return res.redirect('back');
-    }
-
     var groupRef = await firestore.collection('grupos').doc(req.params.id);
     var assistColl = await groupRef.collection('asistencias');
     var assistList = await assistColl.get();
@@ -983,10 +1071,6 @@ const getAsistenciasAsistanceReport = async (firestore, req, res) => {
  * Converts the data to be used in a csv file.
  */
 var dump = async (firestore, req, res) => {
-    if (!req.user.admin) {
-        return res.redirect('back');
-    }
-
     try {
         var gruposSnap = await firestore.collection('grupos').get();
 
@@ -1068,6 +1152,7 @@ var dump = async (firestore, req, res) => {
 
 module.exports = {
     getall,
+    getForAcompanante,
     getone,
     edit,
     add,
