@@ -23,8 +23,32 @@ const getAllByYear = async (firestore, req, res) => {
         .where("year", "==", parseInt(req.params.year))
         .get();
       const objectives = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const objectivesByZonas = {};
+
+      for (let i = 0; i < objectives.length; i++) {
+        const objective = objectives[i];
+        const decanatoSnap = await firestore.collection('decanatos').doc(objective.decanatoId).get();
+
+        if (!decanatoSnap.exists) {
+          throw new Error('Decanato doest not exist');
+        }
+
+        const decanato = decanatoSnap.data();
+
+        if (!objectivesByZonas[decanato.nombreZona]) {
+          objectivesByZonas[decanato.nombreZona] = [{
+            decanato: decanato.nombre,
+            objetivos: objective,
+          }]
+        } else {
+          objectivesByZonas[decanato.nombreZona].push({
+            decanato: decanato.nombre,
+            objectivos: objective,
+          });
+        }
+      }
   
-      return res.send({ error: false, data: objectives });
+      return res.send({ error: false, data: objectivesByZonas });
     } catch (error) {
       console.log("error :>> ", error);
       return res.send({ error: true, message: err.message });
