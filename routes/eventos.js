@@ -9,14 +9,6 @@
 const getAll = async (firestore, req, res) => {
     console.log("eventos.getAll start");
   
-    // Check if has access to add (is admin)
-    if (!req.user.admin) {
-      return res.send({
-        error: true,
-        message: "No tienes acceso a esta accion",
-      });
-    }
-  
     try {
       const snapshot = await firestore.collection("eventos").get();
       const events = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
