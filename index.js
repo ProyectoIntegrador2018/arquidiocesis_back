@@ -9,12 +9,15 @@ const decanato = require('./routes/decanato')
 const login = require('./routes/login')
 const admins = require('./routes/admin')
 const capillas  = require('./routes/capillas')
+const eventos = require('./routes/eventos')
+const objetivos = require('./routes/objetivos')
 const grupos = require('./routes/grupo')
 const coordinadores = require('./routes/coordinadores')
 const zonas = require('./routes/zonas')
 const capacitacion = require('./routes/capacitacion')
 const acompanante = require('./routes/acompanantes')
 const participante = require('./routes/participante')
+const estadisticas = require('./routes/estadisticas')
 const all = require('./routes/all')
 
 app.use(cors())
@@ -69,6 +72,7 @@ app.get('/api/parroquias/:id', (req, res)=>{parroquias.getone(firestore, req, re
 app.delete('/api/parroquias/:id', (req, res)=>parroquias.remove(firestore, req, res))
 app.post('/api/parroquias/edit', (req, res)=>parroquias.udpate(firestore, req, res))
 app.get('/api/parroquias/dump/:random', (req, res)=>{parroquias.dump(firestore, req, res)})
+app.get('/api/parroquias/dumpAcompanante/:id', (req, res)=>{parroquias.dumpForAcompanante(firestore, req, res)})
 
 app.get('/api/decanatos', (req, res)=>{decanato.getall(firestore, req, res)})
 app.get('/api/decanatos/:id', (req, res)=>{decanato.getone(firestore, req, res)})
@@ -79,8 +83,18 @@ app.delete('/api/capillas/:id', (req, res) => capillas.remove(firestore, req, re
 app.get('/api/capillas/:id', (req, res) => capillas.getone(firestore, req, res))
 app.post('/api/capillas/edit', (req, res)=>capillas.edit(firestore, req, res))
 app.get('/api/capillas/dump/:random', (req, res)=>{capillas.dump(firestore, req, res)})
+app.get('/api/capillas/dumpAcompanante/:id', (req, res)=>{capillas.dumpForAcompanante(firestore, req, res)})
+
+app.get('/api/eventos', (req, res)=>{eventos.getAll(firestore, req, res)})
+app.post('/api/eventos', (req, res)=>{eventos.add(firestore, req, res)})
+app.delete('/api/eventos/:id', (req, res)=>{eventos.remove(firestore, req, res)})
+app.post('/api/eventos/:id/edit', (req, res)=>eventos.edit(firestore, req, res));
+
+app.get('/api/objetivos/:year', (req, res)=>{objetivos.getAllByYear(firestore, req, res)})
+app.patch('/api/objetivos', (req, res)=>{objetivos.updateOne(firestore, req, res)})
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
+app.get('/api/grupos/acompanante/:id', (req, res)=>{grupos.getForAcompanante(firestore, req, res)})
 app.get('/api/grupos/dump', (req, res) => { grupos.dump(firestore, req, res) })
 app.get('/api/grupos/:id', (req, res)=>{grupos.getone(firestore, req, res)})
 app.get('/api/grupos/:id/bajas', (req, res)=>{grupos.getBajasTemporales(firestore, req, res)})
@@ -102,6 +116,7 @@ app.post('/api/grupos/miembro/:id/edit/ficha', (req, res) => { grupos.editMember
 
 app.get('/api/coordinadores', (req, res)=>coordinadores.getall(firestore, req, res));
 app.get('/api/coordinadores/:id', (req, res)=>coordinadores.getone(firestore, req, res));
+app.get('/api/coordinadores/acompanante/:id', (req, res)=>coordinadores.getForAcompanante(firestore, req, res));
 app.post('/api/coordinadores', (req, res) => coordinadores.add(firestore, req, res));
 app.post('/api/coordinadores/:id/edit', (req, res) => coordinadores.editCoordinador(firestore, req, res));
 app.delete('/api/coordinadores/:id', (req, res) => coordinadores.remove(firestore, req, res));
@@ -137,13 +152,14 @@ app.post('/api/acompanante/decanato', (req, res)=>acompanante.addDecanato(firest
 app.get('/api/acompanante/:id', (req, res)=>acompanante.getone(firestore, req, res));
 app.post('/api/acompanante/edit', (req, res)=>acompanante.edit(firestore, req, res));
 
-app.get('/api/reporte*', (req, res, next)=>admins.isAdmin(req, res, next, true));
 app.get('/api/reporte/acompanantes', (req, res)=>all.getAcompanantes(firestore, req, res))
 app.get('/api/reporte/admins', (req, res)=>all.getAdmins(firestore, req, res))
 app.get('/api/reporte/capacitaciones', (req, res)=>all.getCapacitaciones(firestore, req, res))
 app.get('/api/reporte/capillas', (req, res)=>all.getCapillas(firestore, req, res))
 app.get('/api/reporte/coordinadores', (req, res)=>all.getCoordinadores(firestore, req, res))
+app.get('/api/reporte/coordinadoresAcompanante/:id', (req, res)=>all.getCoordinadoresForAcompanante(firestore, req, res))
 app.get('/api/reporte/decanatos', (req, res)=>all.getDecanatos(firestore, req, res))
+app.get('/api/reporte/decanatosAcompanante/:id', (req, res)=>all.decanatosForAcompanante(firestore, req, res))
 app.get('/api/reporte/grupos', (req, res)=>all.getGrupos(firestore, req, res))
 app.get('/api/reporte/logins', (req, res)=>all.getLogins(firestore, req, res))
 app.get('/api/reporte/miembros', (req, res)=>all.getMiembros(firestore, req, res))
@@ -151,6 +167,8 @@ app.get('/api/reporte/parroquias', (req, res)=>all.getParroquias(firestore, req,
 app.get('/api/reporte/participantes', (req, res)=>all.getParticipantes(firestore, req, res))
 app.get('/api/reporte/zonas', (req, res)=>all.getZonas(firestore, req, res))
 app.get('/api/reporte/all', (req, res)=>all.getall(firestore, req, res))
+
+app.get('/api/estadisticas/', (req, res) => estadisticas.getEstadisticas(firestore, req, res))
 
 // No route found
 app.all('*', (req, res) => {

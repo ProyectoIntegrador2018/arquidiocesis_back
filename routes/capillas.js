@@ -121,9 +121,6 @@ const edit = async (firestore, req, res)=>{
  * Converts the data to be used in a csv file.
  */
 const dump = async (firestore, req, res)=>{
-    if(!req.user.admin){
-        return res.redirect('back');
-    }
     try{
         var capiSnap = await firestore.collection('capillas').get();
         var parroquiaId = [...new Set(capiSnap.docs.map(a=>a.data().parroquia))];
@@ -167,10 +164,84 @@ const dump = async (firestore, req, res)=>{
     }
 }
 
+// Divide array into chunks of the specified size
+var chunks = function(array, size) {
+    var results = [];
+    while (array.length) {
+      results.push(array.splice(0, size));
+    }
+    return results;
+};
+
+const dumpForAcompanante = async (firestore, req, res)=> {
+    try{
+		const acom = req.params.id;
+		var decanatos = [];
+        var parroquias = [];
+        var capillas = [];
+		var decanRef, parroquiasRef, capillasRef;
+
+		const zonaRef = await firestore.collection('zonas').where('acompanante', '==', acom).get();
+		if (!zonaRef.empty) {
+			const zonaId = zonaRef.docs[0].id;
+			decanRef = await firestore.collection('decanatos').where('zona', '==', zonaId).get();
+		} else {
+			decanRef = await firestore.collection('decanatos').where('acompanante', '==', acom).get();
+		}
+
+		if (!decanRef.empty) {
+			decanatos = decanRef.docs.map(d=>d.id);
+			decanatos = chunks(decanatos, 10);
+			for (dec of decanatos) {
+				parroquiasRef = await firestore.collection('parroquias').where('decanato', 'in', dec).get();
+				if (!parroquiasRef.empty) {
+                    parroquiasRef.docs.forEach(p => parroquias.push({id:p.id, nombre:p.data().nombre}));
+                }
+			}
+		} else {
+			throw Error("Acompañante no asignado a Zona o Decanato");
+        }
+
+        if (parroquias.length > 0) {
+			for (parr of parroquias) {
+				capillasRef = await firestore.collection('capillas').where('parroquia', '==', parr.id).get();
+				if (!capillasRef.empty) {
+					capillasRef.docs.forEach(doc => {
+                        var d = doc.data();
+                        capillas.push([
+                            doc.id,
+                            d.nombre,
+                            d.direccion,
+                            d.colonia,
+                            d.municipio,
+                            d.telefono1,
+                            d.telefono2,
+                            parr.id,
+                            parr.nombre
+                        ]);
+                    });
+				}
+			}
+		} else {
+			throw Error("Error buscando parroquias de zona o decanato");
+        }
+        
+        var headers = ['IDCapilla', 'Nombre', 'Direccion', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDParroquia', 'Nombre Parroquia'];
+		var csv = Util.toXLS(headers, capillas);
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Capillas.xls')
+        return csv.pipe(res);
+    }catch(e){
+        console.log(e);
+        return res.redirect('back');
+    }
+}
+
 module.exports = {
     add: add, 
     remove: remove,
     getone: getone,
     edit: edit,
-    dump: dump
+    dump: dump,
+    dumpForAcompanante: dumpForAcompanante
 }

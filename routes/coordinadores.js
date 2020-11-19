@@ -203,6 +203,90 @@ const getone = async (firestore, req, res)=>{
 	}
 }
 
+var chunks = function(array, size) {
+  var results = [];
+  while (array.length) {
+    results.push(array.splice(0, size));
+  }
+  return results;
+};
+
+const getForAcompanante = async (firestore, req, res)=>{
+	try{
+		const acom = req.params.id;
+		var decanatos = [];
+		var coordisIds = [];
+		var parroquias = [];
+		var coordinadores = [];
+		var decanRef, parroquiasRef, gruposRef;
+
+		const zonaRef = await firestore.collection('zonas').where('acompanante', '==', acom).get();
+
+		if (!zonaRef.empty) {
+			const zonaId = zonaRef.docs[0].id;
+			decanRef = await firestore.collection('decanatos').where('zona', '==', zonaId).get();
+		} else {
+			decanRef = await firestore.collection('decanatos').where('acompanante', '==', acom).get();
+		}
+
+		if (!decanRef.empty) {
+			decanatos = decanRef.docs.map(d=>d.id);
+			decanatos = chunks(decanatos, 10);
+			for (dec of decanatos) {
+				parroquiasRef = await firestore.collection('parroquias').where('decanato', 'in', dec).get();
+				if (!parroquiasRef.empty) {
+					parroquiasRef.docs.forEach(p => parroquias.push(p.id));
+				}
+			}
+		} else {
+			throw Error("Acompañante no asignado a Zona o Decanato");
+		}
+
+		if (parroquias.length > 0) {
+			parroquias = chunks(parroquias, 10);
+			for (parr of parroquias) {
+				gruposRef = await firestore.collection('grupos').where('parroquia', 'in', parr).get();
+				if (!gruposRef.empty) {
+					gruposRef.docs.forEach(g => coordisIds.push(g.data().coordinador));
+				}
+			}
+		} else {
+			throw Error("Error buscando parroquias de zona o decanato");
+		}
+
+		if (coordisIds.length > 0) {
+			coordisIds = chunks(coordisIds, 10);
+			for (coord of coordisIds) {
+				const coordisRef = await firestore.getAll(...coord.map(c=>firestore.doc('coordinadores/'+c)));
+				if (!coordisRef.empty) {
+					coordisRef.forEach(doc => {
+						var d = doc.data()
+						coordinadores.push({ 
+							id: doc.id,
+							nombre: d.nombre,
+							apellido_paterno: d.apellido_paterno,
+							apellido_materno: d.apellido_materno,
+							email: d.email
+						});
+					})
+				}
+			}
+		} else {
+			throw Error("Error buscando coordinadores de los grupos");
+		}
+
+		return res.send({
+			error: false,
+			data: coordinadores
+		})
+	} catch(e) {
+		return res.send({
+			error: true,
+			message: e.message
+		})
+	}
+}
+
 const editCoordinador = async (firestore, req, res) => {
 	var id = req.params.id;
 	var { 
@@ -314,6 +398,7 @@ module.exports = {
 	add,
 	getall,
 	getone,
+	getForAcompanante,
 	editCoordinador,
 	remove
 }

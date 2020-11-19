@@ -226,9 +226,6 @@ const update = async (firestore, req, res)=>{
  * Collects data from the 'parroquias collection to transfer to an .csv document. 
  */
 const dump = async (firestore, req, res)=>{
-    if(!req.user.admin){
-        return res.redirect('back');
-    }
     var parroquias = []
     var headers = ['IDParroquia', 'Nombre', 'Dirección', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDDecanato', 'Decanato', 'IDZona', 'Zona'];
     try{
@@ -296,12 +293,73 @@ const dump = async (firestore, req, res)=>{
     }
 }
 
+const dumpForAcompanante = async (firestore, req, res)=> {
+    var headers = ['IDParroquia', 'Nombre', 'Dirección', 'Colonia', 'Municipio', 'Telefono1', 'Telefono2', 'IDDecanato', 'Decanato', 'IDZona', 'Zona'];
+    try{
+		const acom = req.params.id;
+		var decanatos = [];
+		var parroquias = [];
+		var decanRef, parroquiasRef;
+
+		const zonaRef = await firestore.collection('zonas').where('acompanante', '==', acom).get();
+		if (!zonaRef.empty) {
+			const zonaId = zonaRef.docs[0].id;
+			decanRef = await firestore.collection('decanatos').where('zona', '==', zonaId).get();
+		} else {
+			decanRef = await firestore.collection('decanatos').where('acompanante', '==', acom).get();
+		}
+
+		if (!decanRef.empty) {
+			decanRef.docs.forEach(d => {
+                decanatos.push({
+                    id: d.id, 
+                    nombre: d.data().nombre,
+                    zona: d.data().zona,
+                    nombreZona: d.data().nombreZona
+                }) 
+            });
+			for (dec of decanatos) {
+				parroquiasRef = await firestore.collection('parroquias').where('decanato', '==', dec.id).get();
+				if (!parroquiasRef.empty) {
+                    parroquiasRef.docs.forEach(p => {
+                        d = p.data()
+                        parroquias.push([
+                            p.id,
+                            d.nombre,
+                            d.direccion,
+                            d.colonia,
+                            d.municipio,
+                            d.telefono1,
+                            d.telefono2,
+                            dec.id,
+                            dec.nombre,
+                            dec.zona,
+                            dec.nombreZona
+                        ])
+                    });
+                }
+			}
+		} else {
+			throw Error("Acompañante no asignado a Zona o Decanato");
+        }
+        
+		var csv = Util.toXLS(headers, parroquias);
+        res.setHeader('Content-Type', 'application/vnd.ms-excel');
+        res.attachment('Parroquias.xls')
+        return csv.pipe(res);
+    }catch(e){
+        console.log(e);
+        return res.redirect('back');
+    }
+}
+
 module.exports = {
     getall: getall, 
     getone: getone,
     add: add, 
     remove: remove,
     udpate: update,
-    dump: dump
+    dump: dump,
+    dumpForAcompanante: dumpForAcompanante
 }
 
