@@ -43,7 +43,7 @@ const getAllByYear = async (firestore, req, res) => {
         } else {
           objectivesByZonas[decanato.nombreZona].push({
             decanato: decanato.nombre,
-            objectivos: objective,
+            objetivos: objective,
           });
         }
       }
