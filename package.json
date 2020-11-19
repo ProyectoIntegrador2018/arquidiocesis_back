@@ -1,6 +1,6 @@
 {
   "name": "arquidiocesis-back",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "APP de Arquidiocesis de Monterrey",
   "main": "index.js",
   "scripts": {
