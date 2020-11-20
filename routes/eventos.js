@@ -126,15 +126,11 @@ const getAll = async (firestore, req, res) => {
         .where("nombre", "==", eventData.nombre)
         .get();
   
-      if (
-        snapshot.docs.length > 0 &&
-        snapshot.docs[0].nombre !== eventData.nombre
-      ) {
-        return res.send({
-          error: true,
-          message: "Ya existe un evento con ese nombre.",
-        });
-      }
+      snapshot.docs.forEach(doc => {
+        if (doc.id !== id) {
+          throw Error("Ya existe un evento con ese nombre.");
+        }
+      })
   
       await firestore.collection("eventos").doc(id).update(eventData);
       return res.send({ error: false, data: true });
@@ -142,7 +138,7 @@ const getAll = async (firestore, req, res) => {
       console.log("error :>> ", error);
       return res.send({
         error: true,
-        message: "Error inesperado.",
+        message: error.message,
       });
     }
   };
