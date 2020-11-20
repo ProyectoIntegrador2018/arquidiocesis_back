@@ -91,7 +91,7 @@ app.delete('/api/eventos/:id', (req, res)=>{eventos.remove(firestore, req, res)}
 app.post('/api/eventos/:id/edit', (req, res)=>eventos.edit(firestore, req, res));
 
 app.get('/api/objetivos/:year', (req, res)=>{objetivos.getAllByYear(firestore, req, res)})
-app.patch('/api/objetivos', (req, res)=>{objetivos.updateOne(firestore, req, res)})
+app.post('/api/objetivos', (req, res)=>{objetivos.updateOne(firestore, req, res)})
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/acompanante/:id', (req, res)=>{grupos.getForAcompanante(firestore, req, res)})
