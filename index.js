@@ -64,7 +64,7 @@ app.post('/api/admin/users/get', (req, res)=>admins.getOne(firestore, req, res))
 app.post('/api/admin/users/add', (req, res)=>admins.register(firestore, req, res));
 app.post('/api/admin/users/password', (req, res)=>admins.changePassword(firestore, req, res));
 app.post('/api/admin/users/delete', (req, res)=>admins.deleteAdmin(firestore, req, res));
-app.post('/api/admin/users/edit', (req, res)=>admins.editAdmin(firestore, req, res));
+app.post('/api/admin/users/edit', (req, res)=>admins.editUserDetail(firestore, req, res));
 
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})

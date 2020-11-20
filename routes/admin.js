@@ -36,10 +36,11 @@ const getLogins = async (firestore, req, res)=>{
 
 /**
  * /
- * Gets an specific admin
+ * Gets a specific user
  */
 const getOne = async (firestore, req, res)=>{
-	var { email } = req.body;
+	var { id, email, type } = req.body;
+	
 	try{
 		var loginSnap = await firestore.collection('logins').doc(email.toLowerCase()).get();
 		if(!loginSnap.exists) return res.send({
@@ -48,7 +49,25 @@ const getOne = async (firestore, req, res)=>{
 		})
 		var login = loginSnap.data();
 		var member;
-		var memberSnap = await firestore.collection('admins').doc(login.id).get();
+		var memberSnap;
+
+		switch(type) {
+			case 'admin':
+			case 'integrante_chm':
+			case 'capacitacion':
+				memberSnap = await firestore.collection('admins').doc(id).get();
+				break;
+			case 'acompañante_zona':
+			case 'acompañante_decanato':
+				memberSnap = await firestore.collection('acompanantes').doc(id).get();
+				break;
+			case 'coordinador':
+				memberSnap = await firestore.collection('coordinadores').doc(id).get();
+				break;
+			default:
+				throw Error('Tipo de usuario no valido');
+		}
+
 		if(!memberSnap.exists){
 			member = {
 				email: loginSnap.id,
@@ -60,6 +79,7 @@ const getOne = async (firestore, req, res)=>{
 			member.tipo = login.tipo
 		}
 	}catch(e){
+		console.log(e.message);
 		return res.send({
 			error: true,
 			message: 'Error inesperado.'
@@ -205,11 +225,12 @@ const deleteAdmin = async (firestore, req, res)=>{
 
 /**
  * /
- * Edits data from an specific admin
+ * Edits data from a specific user
  */
-const editAdmin = async (firestore, req, res)=>{
+const editUserDetail = async (firestore, req, res)=>{
 	var {
 		id,
+		email,
 		nombre,
 		apellido_paterno,
 		apellido_materno,
@@ -235,20 +256,41 @@ const editAdmin = async (firestore, req, res)=>{
 	}
 
 	try{
-		var loginSnap = await firestore.collection('logins').doc(id.toLowerCase()).get();
+		var loginSnap = await firestore.collection('logins').doc(email.toLowerCase()).get();
 		if(!loginSnap.exists) return res.send({
 			error: true,
 			message: 'Usuario no existe',
 		});
-		await firestore.collection('logins').doc(id.toLowerCase()).update({ tipo });
-		await firestore.collection('admins').doc(loginSnap.data().id).update(miembro);
+
+		var collection;
+
+		switch(tipo) {
+			case 'admin':
+			case 'integrante_chm':
+			case 'capacitacion':
+				collection = 'admins';
+				break;
+			case 'acompañante_zona':
+			case 'acompañante_decanato':
+				collection = 'acompanantes';
+				break;
+			case 'coordinador':
+				collection = 'coordinadores';
+				break;
+			default:
+				throw Error('Tipo de usuario no valido');
+		}
+
+		await firestore.collection('logins').doc(email.toLowerCase()).update({ tipo });
+		await firestore.collection(collection).doc(id).update(miembro);
 		miembro.tipo = tipo;
-		miembro.email = id.toLowerCase();
+		miembro.email = email.toLowerCase();
 		return res.send({
 			error: false,
 			data: miembro
 		})
 	}catch(e){
+		console.log(e.message);
 		return res.send({
 			error: false,
 			message: 'Error inesperado.'
@@ -263,5 +305,5 @@ module.exports = {
 	register,
 	deleteAdmin,
 	changePassword,
-	editAdmin
+	editUserDetail
 }
