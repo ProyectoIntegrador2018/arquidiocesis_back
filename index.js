@@ -139,6 +139,7 @@ app.post('/api/capacitacion/:id/asistencia', (req, res)=>capacitacion.registerAs
 app.get('/api/capacitacion/:id', (req, res)=>capacitacion.getone(firestore, req, res))
 app.get('/api/capacitacion/:id/participantes', (req, res)=>capacitacion.getParticipantes(firestore, req, res))
 app.get('/api/capacitacion/', (req, res)=>capacitacion.getall(firestore, req, res))
+app.get('/api/capacitadores', (req, res) => capacitacion.getCapacitadores(firestore, req, res))
 
 app.get('/api/participante/:id', (req, res)=>participante.getone(firestore, req, res))
 app.delete('/api/participante/:id', (req, res)=>participante.remove(firestore, req, res))

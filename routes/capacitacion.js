@@ -710,6 +710,37 @@ var dump = async (firestore, req, res)=>{
     }
 }
 
+/**
+ * Get all logins with type capacitacion
+ */
+const getCapacitadores = async (firestore, req, res) => {
+	var logins = [];
+	const loginSnap = await firestore.collection('logins').where('tipo', '==', 'capacitacion').get();
+	for (l of loginSnap.docs) {
+		const info = await firestore.collection('admins').doc(l.data().id).get();
+		if (!info.data().apellido_materno) {
+			logins.push({
+				id: l.data().id,
+				email: l.id,
+				apellido_materno: '',
+				...info.data()
+			})
+		} else {
+			logins.push({
+				id: l.data().id,
+				email: l.id,
+				...info.data()
+			})
+		}
+		
+	}
+
+	return res.send({
+		error: false,
+		data: logins,
+	})
+}
+
 module.exports = {
 	add,
 	getAsistencia,
@@ -723,5 +754,6 @@ module.exports = {
 	getAsistenciasReport,
 	getAsistenciasAsistanceReport,
 	getParticipantes,
+	getCapacitadores,
 	dump
 }
