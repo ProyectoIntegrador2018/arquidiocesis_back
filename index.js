@@ -89,6 +89,7 @@ app.get('/api/eventos', (req, res)=>{eventos.getAll(firestore, req, res)})
 app.post('/api/eventos', (req, res)=>{eventos.add(firestore, req, res)})
 app.delete('/api/eventos/:id', (req, res)=>{eventos.remove(firestore, req, res)})
 app.post('/api/eventos/:id/edit', (req, res)=>eventos.edit(firestore, req, res));
+app.get('/api/eventos/dump/:random', (req, res)=>{eventos.dump(firestore, req, res)})
 
 app.get('/api/objetivos/:year', (req, res)=>{objetivos.getAllByYear(firestore, req, res)})
 app.post('/api/objetivos', (req, res)=>{objetivos.updateOne(firestore, req, res)})
