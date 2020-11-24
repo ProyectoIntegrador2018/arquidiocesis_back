@@ -64,7 +64,7 @@ app.post('/api/admin/users/get', (req, res)=>admins.getOne(firestore, req, res))
 app.post('/api/admin/users/add', (req, res)=>admins.register(firestore, req, res));
 app.post('/api/admin/users/password', (req, res)=>admins.changePassword(firestore, req, res));
 app.post('/api/admin/users/delete', (req, res)=>admins.deleteAdmin(firestore, req, res));
-app.post('/api/admin/users/edit', (req, res)=>admins.editAdmin(firestore, req, res));
+app.post('/api/admin/users/edit', (req, res)=>admins.editUserDetail(firestore, req, res));
 
 app.get('/api/parroquias', (req, res)=>{parroquias.getall(firestore, req, res)})
 app.post('/api/parroquias', (req, res)=>{parroquias.add(firestore, req, res)})
@@ -89,9 +89,10 @@ app.get('/api/eventos', (req, res)=>{eventos.getAll(firestore, req, res)})
 app.post('/api/eventos', (req, res)=>{eventos.add(firestore, req, res)})
 app.delete('/api/eventos/:id', (req, res)=>{eventos.remove(firestore, req, res)})
 app.post('/api/eventos/:id/edit', (req, res)=>eventos.edit(firestore, req, res));
+app.get('/api/eventos/dump/:random', (req, res)=>{eventos.dump(firestore, req, res)})
 
 app.get('/api/objetivos/:year', (req, res)=>{objetivos.getAllByYear(firestore, req, res)})
-app.patch('/api/objetivos', (req, res)=>{objetivos.updateOne(firestore, req, res)})
+app.post('/api/objetivos', (req, res)=>{objetivos.updateOne(firestore, req, res)})
 
 app.get('/api/grupos', (req, res)=>{grupos.getall(firestore, req, res)})
 app.get('/api/grupos/acompanante/:id', (req, res)=>{grupos.getForAcompanante(firestore, req, res)})
@@ -139,6 +140,7 @@ app.post('/api/capacitacion/:id/asistencia', (req, res)=>capacitacion.registerAs
 app.get('/api/capacitacion/:id', (req, res)=>capacitacion.getone(firestore, req, res))
 app.get('/api/capacitacion/:id/participantes', (req, res)=>capacitacion.getParticipantes(firestore, req, res))
 app.get('/api/capacitacion/', (req, res)=>capacitacion.getall(firestore, req, res))
+app.get('/api/capacitadores', (req, res) => capacitacion.getCapacitadores(firestore, req, res))
 
 app.get('/api/participante/:id', (req, res)=>participante.getone(firestore, req, res))
 app.delete('/api/participante/:id', (req, res)=>participante.remove(firestore, req, res))

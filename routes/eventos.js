@@ -2,6 +2,8 @@
  * Module for managing Eventos
  * @module Evento
  */
+const moment = require('moment');
+const Util = require('./util');
 
 /**
  * Gets all events documents for the list
@@ -126,15 +128,11 @@ const getAll = async (firestore, req, res) => {
         .where("nombre", "==", eventData.nombre)
         .get();
   
-      if (
-        snapshot.docs.length > 0 &&
-        snapshot.docs[0].nombre !== eventData.nombre
-      ) {
-        return res.send({
-          error: true,
-          message: "Ya existe un evento con ese nombre.",
-        });
-      }
+      snapshot.docs.forEach(doc => {
+        if (doc.id !== id) {
+          throw Error("Ya existe un evento con ese nombre.");
+        }
+      })
   
       await firestore.collection("eventos").doc(id).update(eventData);
       return res.send({ error: false, data: true });
@@ -142,14 +140,51 @@ const getAll = async (firestore, req, res) => {
       console.log("error :>> ", error);
       return res.send({
         error: true,
-        message: "Error inesperado.",
+        message: error.message,
       });
     }
   };
+
+  /**
+ * Collects data from the eventos collection to transfer to an .csv document. 
+ */
+const dump = async (firestore, req, res)=>{
+  var eventos = []
+  var headers = ['Evento', 'Responsable', 'Fechas', 'Fecha de creación'];
+  try{
+      var eventsSnap = await firestore.collection('eventos').get();
+      if(eventsSnap.docs.length==0){
+          var csv = toXLS(headers, []);
+          res.setHeader('Content-Type', 'application/vnd.ms-excel');
+          res.attachment('Eventos.xls')
+          return csv.pipe(res);
+      }
+
+      eventsSnap.docs.forEach(ev=>{
+          if(!ev.exists) return;
+          var d = ev.data();
+          eventos.push([
+            d.nombre,
+            d.responsable,
+            d.fechas,
+            (d.fecha_creada && d.fecha_creada._seconds) ? moment.unix(d.fecha_creada._seconds).format('YYYY-MM-DD') : ''
+          ])
+      });
+
+      var csv = Util.toXLS(headers, eventos);
+      res.setHeader('Content-Type', 'application/vnd.ms-excel');
+      res.attachment('Eventos.xls')
+      return csv.pipe(res);
+  }catch(e){
+      console.log(e);
+      return res.redirect('back');
+  }
+}
   
   module.exports = {
     getAll,
     add,
     remove,
     edit,
+    dump,
   };
