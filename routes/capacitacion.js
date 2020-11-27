@@ -52,8 +52,10 @@ const add = async (firestore, req, res)=>{
     }
 
     //validar que exista en coordinador 
-    let snapshot = await firestore.collection('coordinadores').doc(encargado).get()
-    if (!snapshot.exists){
+		let snapshot = await firestore.collection('logins').where('tipo', '==', 'capacitacion')
+			.where('id', '==', encargado).get();
+
+    if (snapshot.empty){
         return res.send({
             error: true, 
             message: 'No hay capacitador con eses id'
@@ -94,7 +96,7 @@ const add = async (firestore, req, res)=>{
  * @param {String} [res.message] - Assigned if error = true, contains the error message.
  * @param {Bool} [res.data] - Assigned if error = false, Always true. 
  */
-const changeCoordinador = async (firestore, req, res) => {
+const changeCapacitador = async (firestore, req, res) => {
 	if(req.user.tipo=='coordinador'){
 		return res.send({
 			error: true,
@@ -102,15 +104,16 @@ const changeCoordinador = async (firestore, req, res) => {
 		})
 	}
 
-	var { id, coordinador } = req.body;
+	var { id, capacitador } = req.body;
     try {
-        var memberSnap = await firestore.collection('coordinadores').doc(coordinador).get('nombre');
-        if (!memberSnap.exists) return res.send({ error: true, message: 'Coordinador no existe', code: 1 });
+        var memberSnap = await firestore.collection('logins').where('tipo', '==', 'capacitacion')
+					.where('id', '==', capacitador).get();
+        if (memberSnap.empty) return res.send({ error: true, message: 'Capacitador no existe', code: 1 });
 
         var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get('encargado');
         if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Capacitacion no existe', code: 1 });
 
-        await firestore.collection('capacitaciones').doc(id).update({ encargado: coordinador });
+        await firestore.collection('capacitaciones').doc(id).update({ encargado: capacitador });
         return res.send({
             error: false,
             data: true
@@ -748,7 +751,7 @@ module.exports = {
 	saveAsistencia,
 	getone, 
 	getall,
-	changeCoordinador,
+	changeCapacitador,
 	edit,
 	deleteOne,
 	getAsistenciasReport,
