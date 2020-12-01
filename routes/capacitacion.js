@@ -52,8 +52,10 @@ const add = async (firestore, req, res)=>{
     }
 
     //validar que exista en coordinador 
-    let snapshot = await firestore.collection('coordinadores').doc(encargado).get()
-    if (!snapshot.exists){
+		let snapshot = await firestore.collection('logins').where('tipo', '==', 'capacitacion')
+			.where('id', '==', encargado).get();
+
+    if (snapshot.empty){
         return res.send({
             error: true, 
             message: 'No hay capacitador con eses id'
@@ -94,7 +96,7 @@ const add = async (firestore, req, res)=>{
  * @param {String} [res.message] - Assigned if error = true, contains the error message.
  * @param {Bool} [res.data] - Assigned if error = false, Always true. 
  */
-const changeCoordinador = async (firestore, req, res) => {
+const changeCapacitador = async (firestore, req, res) => {
 	if(req.user.tipo=='coordinador'){
 		return res.send({
 			error: true,
@@ -102,15 +104,16 @@ const changeCoordinador = async (firestore, req, res) => {
 		})
 	}
 
-	var { id, coordinador } = req.body;
+	var { id, capacitador } = req.body;
     try {
-        var memberSnap = await firestore.collection('coordinadores').doc(coordinador).get('nombre');
-        if (!memberSnap.exists) return res.send({ error: true, message: 'Coordinador no existe', code: 1 });
+        var memberSnap = await firestore.collection('logins').where('tipo', '==', 'capacitacion')
+					.where('id', '==', capacitador).get();
+        if (memberSnap.empty) return res.send({ error: true, message: 'Capacitador no existe', code: 1 });
 
         var capacitacionSnap = await firestore.collection('capacitaciones').doc(id).get('encargado');
         if (!capacitacionSnap.exists) return res.send({ error: true, message: 'Capacitacion no existe', code: 1 });
 
-        await firestore.collection('capacitaciones').doc(id).update({ encargado: coordinador });
+        await firestore.collection('capacitaciones').doc(id).update({ encargado: capacitador });
         return res.send({
             error: false,
             data: true
@@ -669,36 +672,45 @@ const getAsistenciasAsistanceReport = async (firestore, req, res)=>{
 var dump = async (firestore, req, res)=>{
     try{
         var capSnap = await firestore.collection('capacitaciones').get();
-
-        var coordIds = [...new Set(capSnap.docs.map(a=>a.data().encargado).filter(a=>(a ? true : false)))];
-        var coordinadores = []
-        if(coordIds.length>0){
-            var coordSnap = await firestore.getAll(...coordIds.map(a=>firestore.doc('coordinadores/'+a)))
-            coordSnap.forEach(a=>{
-                if(!a.exists) return;
-                coordinadores.push({
-                    id: a.id,
-                    ...a.data()
-                });
-            })
-        }  
+				
+				var capacitadores = [];
+				const loginSnap = await firestore.collection('logins').where('tipo', '==', 'capacitacion').get();
+				for (l of loginSnap.docs) {
+					const info = await firestore.collection('admins').doc(l.data().id).get();
+					if (!info.data().apellido_materno) {
+						capacitadores.push({
+							id: l.data().id,
+							email: l.id,
+							apellido_materno: '',
+							...info.data()
+						})
+					} else {
+						capacitadores.push({
+							id: l.data().id,
+							email: l.id,
+							...info.data()
+						})
+					}
+					
+				}
 
         var capacitaciones = []
         capSnap.docs.forEach(a=>{
             if(!a.exists) return;
             var d = a.data();
-            var coord = coordinadores.find(a=>a.id==d.encargado);
+            var cap = capacitadores.find(a=>a.id==d.encargado);
             capacitaciones.push([
                 a.id,
                 d.nombre,
-                coord.id,
-				`${coord.nombre} ${coord.apellido_paterno} ${coord.apellido_materno}`,
+                cap.id,
+				`${cap.nombre} ${cap.apellido_paterno} ${cap.apellido_materno}`,
+				cap.email,
 				(d.inicio && d.inicio._seconds) ? moment.unix(d.inicio._seconds).format('YYYY-MM-DD') : '',
 				(d.fin && d.fin._seconds) ? moment.unix(d.fin._seconds).format('YYYY-MM-DD') : ''
             ]);
         });
 
-        var headers = [ 'IDCapacitacion', 'Nombre', 'IDCoordinador', 'Coordinador', 'Fecha inicio', 'Fech fin' ];
+        var headers = [ 'IDCapacitacion', 'Nombre', 'IDCoordinador', 'Coordinador', 'Email', 'Fecha inicio', 'Fech fin' ];
         var csv = Util.toXLS(headers, capacitaciones);
 
         res.setHeader('Content-Type', 'application/vnd.ms-excel');
@@ -748,7 +760,7 @@ module.exports = {
 	saveAsistencia,
 	getone, 
 	getall,
-	changeCoordinador,
+	changeCapacitador,
 	edit,
 	deleteOne,
 	getAsistenciasReport,
