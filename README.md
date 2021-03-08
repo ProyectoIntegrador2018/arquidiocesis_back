@@ -25,16 +25,20 @@ APP de Arquidiocesis de Monterrey
 
 ### Team
 
-| Name            | Email              | Role                               |
-| --------------- | ------------------ | ---------------------------------- |
-| Roberto Treviño | A01282035@itesm.mx | SCRUM Master/ Líder                |
-| Diego Martínez  | A01176489@itesm.mx | Product Owner Proxy                |
-| Fernando López  | A01172527@itesm.mx | Administración de la configuración |
-| Carlos Tamez    | A00817514@itesm.mx | Administrador del Proyecto         |
-| Andrés Sánchez  | A00819118@itesm.mx | Development                        |
-| Carlos Miranda  | A00817390@itesm.mx | Development                        |
-| Gerardo Suarez  | A00817505@itesm.mx | Development                        |
-| Rolando Mata    | A00816442@itesm.mx | Development                        |
+| Name              | Email              | Role                               |
+| ----------------- | ------------------ | ---------------------------------- |
+| César Barraza     | A01176786@itesm.mx | Administración de la configuración |
+| Daniel Gaytán     | A00819362@itesm.mx | Product Owner Proxy                |
+| Patricio Saldivar | A10282504@itesm.mx | SCRUM Master / Líder               |
+| Martín Rivas      | A00818919@itesm.mx | Administrador del Proyecto         |
+| Roberto Treviño   | A01282035@itesm.mx | Development                        |
+| Diego Martínez    | A01176489@itesm.mx | Development                        |
+| Fernando López    | A01172527@itesm.mx | Development                        |
+| Carlos Tamez      | A00817514@itesm.mx | Development                        | 
+| Andrés Sánchez    | A00819118@itesm.mx | Development                        |
+| Carlos Miranda    | A00817390@itesm.mx | Development                        |
+| Gerardo Suarez    | A00817505@itesm.mx | Development                        |
+| Rolando Mata      | A00816442@itesm.mx | Development                        |
 
 ### Technology Stack
 
