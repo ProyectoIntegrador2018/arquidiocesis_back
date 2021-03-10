@@ -20,7 +20,7 @@ const Util = require('./util');
         const snapshot = await roleref.get()
         if (!snapshot.exists){
             return res.send({
-                error: true,
+                error: true, 
                 message: 'couldn\'t find role with the given id'
             })
         }
@@ -36,7 +36,7 @@ const Util = require('./util');
         const snapshot = await canalref.get()
         if (!snapshot.exists){
             return res.send({
-                error: true,
+                error: true, 
                 message: 'couldn\'t find canal with the given id'
             })
         }
@@ -52,12 +52,10 @@ const Util = require('./util');
    
      // --------- success ----------//
      // ----------VVVVVVV-----------//
-     res.status(200).send({
+     res.send({
         error: false,
         data: docref.id
      })
- }
 
- module.exports = {
-     add: add
+
  }
