@@ -8,7 +8,8 @@
     "docs": "jsdoc -c jsdoc.json",
     "start": "node index.js",
     "start:dev": "nodemon index.js",
-    "lint": "node ./node_modules/eslint/bin/eslint --ext .js ."
+    "lint": "node ./node_modules/eslint/bin/eslint --ext .js .",
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "bcrypt": "^4.0.1",
@@ -35,9 +36,11 @@
     "eslint-config-prettier": "^8.1.0",
     "husky": "4.2.5",
     "jsdoc": "^3.6.4",
+    "lint-staged": "^10.5.4",
     "markdown-js": "0.0.4",
     "nodemon": "^2.0.3",
-    "prettier": "2.2.1"
+    "prettier": "2.2.1",
+    "pretty-quick": "^3.1.0"
   },
   "repository": {
     "type": "git",
@@ -56,7 +59,13 @@
   },
   "husky": {
     "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "pretty-quick --staged && lint-staged"
     }
+  },
+  "lint-staged": {
+    "*.js": [
+      "node ./node_modules/eslint/bin/eslint --fix"
+    ]
   }
 }
