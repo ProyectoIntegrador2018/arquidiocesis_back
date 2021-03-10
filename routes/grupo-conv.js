@@ -52,10 +52,13 @@ const Util = require('./util');
    
      // --------- success ----------//
      // ----------VVVVVVV-----------//
-     res.send({
+     res.status(200).send({
         error: false,
         data: docref.id
      })
 
+ }
 
+ module.exports = {
+     add: add
  }
