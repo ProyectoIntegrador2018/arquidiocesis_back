@@ -17,4 +17,4 @@ jobs:
         run: yarn install --frozen-lock
 
       - name: Test app
-        run: yarn test
+        run: yarn run test
