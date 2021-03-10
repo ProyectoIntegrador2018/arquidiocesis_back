@@ -8,7 +8,8 @@
     "docs": "jsdoc -c jsdoc.json",
     "start": "node index.js",
     "start:dev": "nodemon index.js",
-    "lint": "node ./node_modules/eslint/bin/eslint --ext .js ."
+    "lint": "node ./node_modules/eslint/bin/eslint --ext .js .",
+    "test": "jest"
   },
   "dependencies": {
     "bcrypt": "^4.0.1",
@@ -35,6 +36,7 @@
     "eslint-config-prettier": "^8.1.0",
     "firestore-jest-mock": "^0.9.0",
     "husky": "4.2.5",
+    "jest": "^26.6.3",
     "jsdoc": "^3.6.4",
     "markdown-js": "0.0.4",
     "nodemon": "^2.0.7",
