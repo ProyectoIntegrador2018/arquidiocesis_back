@@ -1,31 +1,31 @@
-let FieldValue = require('firebase-admin').firestore.FieldValue
-const moment = require('moment')
-const Util = require('./util')
+let FieldValue = require('firebase-admin').firestore.FieldValue;
+const moment = require('moment');
+const Util = require('./util');
 
 const getEstadisticas = async (firestore, req, res) => {
   var servicio = {
     publico: 0,
     privado: 0,
     ninguno: 0,
-  }
+  };
 
   var seguridadSocial = {
     pensionado: 0,
     jubilado: 0,
     apoyo_federal: 0,
     ninguno: 0,
-  }
+  };
 
-  var alergico = 0
-  var lista_alergias = []
-  var problema_cardiovascular = 0
-  var problema_azucar = 0
-  var problema_hipertension = 0
-  var problema_sobrepeso = 0
-  var ningun_problema = 0
+  var alergico = 0;
+  var lista_alergias = [];
+  var problema_cardiovascular = 0;
+  var problema_azucar = 0;
+  var problema_hipertension = 0;
+  var problema_sobrepeso = 0;
+  var ningun_problema = 0;
 
-  var discapacidad = 0
-  var lista_discapacidad = []
+  var discapacidad = 0;
+  var lista_discapacidad = [];
 
   var escolaridad = {
     ninguno: 0,
@@ -34,41 +34,41 @@ const getEstadisticas = async (firestore, req, res) => {
     preparatoria: 0,
     carrera_tecnica: 0,
     profesional: 0,
-  }
+  };
 
-  var total = 0
+  var total = 0;
 
-  var miembros = await firestore.collection('miembros').get()
+  var miembros = await firestore.collection('miembros').get();
   miembros.forEach((miembro) => {
-    var mdata = miembro.data()
-    total++
+    var mdata = miembro.data();
+    total++;
 
     // Checking servicio medico
-    var ficha_medica = mdata.ficha_medica
-    if (ficha_medica == undefined) return
+    var ficha_medica = mdata.ficha_medica;
+    if (ficha_medica == undefined) return;
 
-    var mservicio = ficha_medica.servicio_medico
-    if (mservicio == 'Público') servicio.publico++
-    else if (mservicio == 'Privado') servicio.privado++
-    else if (mservicio == 'Ninguno') servicio.ninguno++
+    var mservicio = ficha_medica.servicio_medico;
+    if (mservicio == 'Público') servicio.publico++;
+    else if (mservicio == 'Privado') servicio.privado++;
+    else if (mservicio == 'Ninguno') servicio.ninguno++;
 
     //Checking alergico
     if (ficha_medica.alergico == true) {
-      alergico++
-      lista_alergias.push(ficha_medica.alergico_desc)
+      alergico++;
+      lista_alergias.push(ficha_medica.alergico_desc);
     }
 
     // Checking problema cardiovascular
-    if (ficha_medica.p_cardiovascular == true) problema_cardiovascular++
+    if (ficha_medica.p_cardiovascular == true) problema_cardiovascular++;
 
     // Checking problema de azucar
-    if (ficha_medica.p_azucar == true) problema_azucar++
+    if (ficha_medica.p_azucar == true) problema_azucar++;
 
     // Checking problema hipertension
-    if (ficha_medica.p_hipertension == true) problema_hipertension++
+    if (ficha_medica.p_hipertension == true) problema_hipertension++;
 
     // Checking problema sobrepeso
-    if (ficha_medica.p_sobrepeso == true) problema_sobrepeso++
+    if (ficha_medica.p_sobrepeso == true) problema_sobrepeso++;
 
     // Checking ningun problema de salud
     if (
@@ -77,30 +77,30 @@ const getEstadisticas = async (firestore, req, res) => {
       ficha_medica.p_hipertension == false &&
       ficha_medica.p_sobrepeso == false
     )
-      ningun_problema++
+      ningun_problema++;
 
     // Checking discapacidad
     if (ficha_medica.discapacidad == true) {
-      discapacidad++
-      lista_discapacidad.push(ficha_medica.discapacidad_desc)
+      discapacidad++;
+      lista_discapacidad.push(ficha_medica.discapacidad_desc);
     }
 
     // Checking seguridad social
-    var mSeguridad = ficha_medica.seguridad_social
-    if (mSeguridad == 'Ninguno') seguridadSocial.ninguno++
-    else if (mSeguridad == 'Pensionado') seguridadSocial.pensionado++
-    else if (mSeguridad == 'Jubilado') seguridadSocial.jubilado++
-    else if (mSeguridad == 'Apoyo Federal') seguridadSocial.apoyo_federal++
+    var mSeguridad = ficha_medica.seguridad_social;
+    if (mSeguridad == 'Ninguno') seguridadSocial.ninguno++;
+    else if (mSeguridad == 'Pensionado') seguridadSocial.pensionado++;
+    else if (mSeguridad == 'Jubilado') seguridadSocial.jubilado++;
+    else if (mSeguridad == 'Apoyo Federal') seguridadSocial.apoyo_federal++;
 
     // Checking escolaridad
-    var mEscolaridad = mdata.escolaridad
-    if (mEscolaridad == 'Ninguno') escolaridad.ninguno++
-    else if (mEscolaridad == 'Primaria') escolaridad.primaria++
-    else if (mEscolaridad == 'Secundaria') escolaridad.secundaria++
-    else if (mEscolaridad == 'Preparatoria') escolaridad.preparatoria++
-    else if (mEscolaridad == 'Carrera Técnica') escolaridad.carrera_tecnica++
-    else if (mEscolaridad == 'Profesional') escolaridad.profesional++
-  })
+    var mEscolaridad = mdata.escolaridad;
+    if (mEscolaridad == 'Ninguno') escolaridad.ninguno++;
+    else if (mEscolaridad == 'Primaria') escolaridad.primaria++;
+    else if (mEscolaridad == 'Secundaria') escolaridad.secundaria++;
+    else if (mEscolaridad == 'Preparatoria') escolaridad.preparatoria++;
+    else if (mEscolaridad == 'Carrera Técnica') escolaridad.carrera_tecnica++;
+    else if (mEscolaridad == 'Profesional') escolaridad.profesional++;
+  });
 
   res.send({
     error: false,
@@ -133,9 +133,9 @@ const getEstadisticas = async (firestore, req, res) => {
       carrera_tecnica: (escolaridad.carrera_tecnica / total) * 100,
       profesional: (escolaridad.profesional / total) * 100,
     },
-  })
-}
+  });
+};
 
 module.exports = {
   getEstadisticas,
-}
+};
