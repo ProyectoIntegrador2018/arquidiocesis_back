@@ -2,8 +2,8 @@
  * Module for managing participants
  * @module Participante
  */
-const moment = require('moment')
-const firebase = require('firebase-admin')
+const moment = require('moment');
+const firebase = require('firebase-admin');
 
 /**
  * Adds a new document in the 'participantes' collection with the provided information in the request.body
@@ -53,23 +53,23 @@ const add = async (firestore, req, res) => {
     oficio,
     capacitacion,
     domicilio,
-  } = req.body
+  } = req.body;
 
   //validar capacitacion
   const snapshot = await firestore
     .collection('capacitaciones')
     .doc(capacitacion)
-    .get()
+    .get();
   if (!snapshot.exists) {
     return res.send({
       error: false,
       message: 'no hay capacitacion con ese id',
-    })
+    });
   }
 
   var fn = firebase.firestore.Timestamp.fromDate(
     moment(fecha_nacimiento, 'YYYY-MM-DD').toDate()
-  )
+  );
 
   var newPart = await firestore.collection('participantes').add({
     nombre,
@@ -86,12 +86,12 @@ const add = async (firestore, req, res) => {
     capacitacion,
     eliminado: false,
     fecha_registro: new Date(),
-  })
+  });
   return res.send({
     error: false,
     data: newPart.id,
-  })
-}
+  });
+};
 
 /**
  * Edits a document id the specified body.id in the collection 'participantes' with the data provided in the request.body
@@ -130,20 +130,20 @@ const edit = async (firestore, req, res) => {
     escolaridad,
     oficio,
     domicilio,
-  } = req.body
+  } = req.body;
 
   //validate participante
-  const usersnap = await firestore.collection('participantes').doc(id).get()
+  const usersnap = await firestore.collection('participantes').doc(id).get();
   if (!usersnap.exists) {
     return res.send({
       error: true,
       message: 'no hay participante con ese id',
-    })
+    });
   }
 
   var fn = firebase.firestore.Timestamp.fromDate(
     moment(fecha_nacimiento, 'YYYY-MM-DD').toDate()
-  )
+  );
 
   const result = await firestore.collection('participantes').doc(id).set(
     {
@@ -160,20 +160,20 @@ const edit = async (firestore, req, res) => {
       domicilio,
     },
     { merge: true }
-  )
+  );
 
   if (!result) {
     return res.send({
       error: true,
       message: 'error writing to db',
-    })
+    });
   }
 
   return res.send({
     error: false,
     data: true,
-  })
-}
+  });
+};
 /**
  * Gets the document with the specified id
  * @param {firebase.firestore} firestore - preinitialized firebase-admin.firestore() instance
@@ -199,13 +199,13 @@ const edit = async (firestore, req, res) => {
  * @param {String} res.data.domicilio
  */
 var getone = async (firestore, req, res) => {
-  var { id } = req.params
-  const usersnap = await firestore.collection('participantes').doc(id).get()
+  var { id } = req.params;
+  const usersnap = await firestore.collection('participantes').doc(id).get();
   if (!usersnap.exists) {
     return res.send({
       error: true,
       message: 'El participante no existe.',
-    })
+    });
   }
 
   return res.send({
@@ -214,8 +214,8 @@ var getone = async (firestore, req, res) => {
       id: usersnap.id,
       ...usersnap.data(),
     },
-  })
-}
+  });
+};
 
 /**
  * Updates the status of a document from collection 'participantes' to 'eliminado'
@@ -229,23 +229,23 @@ var getone = async (firestore, req, res) => {
  * @param {Bool} [res.data]  - always true
  */
 var remove = async (firestore, req, res) => {
-  var { id } = req.params
-  const usersnap = await firestore.collection('participantes').doc(id).get()
+  var { id } = req.params;
+  const usersnap = await firestore.collection('participantes').doc(id).get();
   if (!usersnap.exists) {
-    return res.send({ error: false, data: true })
+    return res.send({ error: false, data: true });
   }
   await firestore.collection('participantes').doc(id).update({
     eliminado: true,
-  })
+  });
   return res.send({
     error: false,
     data: true,
-  })
-}
+  });
+};
 
 module.exports = {
   add: add,
   edit: edit,
   getone,
   remove,
-}
+};

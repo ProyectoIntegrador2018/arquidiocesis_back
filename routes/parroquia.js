@@ -3,31 +3,31 @@
  * @module Parroquia
  */
 
-const Util = require('./util')
+const Util = require('./util');
 
 /**
  * Retrieves all parishes from the 'parroquias´' collection
  */
 const getall = async (firestore, req, res) => {
-  const snapshot = await firestore.collection('parroquias').get()
+  const snapshot = await firestore.collection('parroquias').get();
   try {
     const docs = snapshot.docs.map((doc) => {
       return {
         id: doc.id,
         nombre: doc.data().nombre,
-      }
-    })
+      };
+    });
     res.send({
       error: false,
       data: docs,
-    })
+    });
   } catch (err) {
     res.send({
       error: true,
       message: 'Error inesperado.',
-    })
+    });
   }
-}
+};
 
 /**
  * Retrieves an specific parish from the 'parroquias´' collection
@@ -36,35 +36,35 @@ const getone = async (firestore, req, res) => {
   const snapshot = await firestore
     .collection('parroquias')
     .doc(req.params.id)
-    .get()
+    .get();
   //validate parroquia
   if (!snapshot.exists) {
     return res.send({
       error: true,
       message: 'No parroquia with that ID.',
-    })
+    });
   }
-  var parroquia = snapshot.data()
-  var capillas = []
+  var parroquia = snapshot.data();
+  var capillas = [];
   // Conseguir información sobre capillas.
   var cap = await firestore
     .collection('capillas')
     .where('parroquia', '==', snapshot.id)
-    .get()
+    .get();
   cap.forEach((a) => {
-    if (!a.exists) return
-    capillas.push({ ...a.data(), id: a.id })
-  })
+    if (!a.exists) return;
+    capillas.push({ ...a.data(), id: a.id });
+  });
 
   // Conseguir información sobre el decanato
   if (parroquia.decanato) {
-    const dec = await firestore.doc('decanatos/' + parroquia.decanato).get()
+    const dec = await firestore.doc('decanatos/' + parroquia.decanato).get();
     if (dec.exists)
       parroquia.decanato = {
         nombre: dec.data().nombre,
         id: dec.id,
-      }
-    else parroquia.decanato = null
+      };
+    else parroquia.decanato = null;
   }
   res.send({
     error: false,
@@ -73,8 +73,8 @@ const getone = async (firestore, req, res) => {
       ...parroquia,
       capillas,
     },
-  })
-}
+  });
+};
 
 /**
  * Adds a new parish to the 'parroquias' collection
@@ -89,7 +89,7 @@ const add = async (firestore, req, res) => {
     nombre,
     telefono1,
     telefono2,
-  } = req.body
+  } = req.body;
 
   const nuevaParroquia = {
     identificador,
@@ -100,48 +100,48 @@ const add = async (firestore, req, res) => {
     telefono1,
     telefono2,
     decanato,
-  }
+  };
 
   // --- validate decanato --- //
   // ---VVVVVVVVVVVVVVVVVV---- //
-  const snapshot = await firestore.collection('decanatos').doc(decanato).get()
+  const snapshot = await firestore.collection('decanatos').doc(decanato).get();
   if (!snapshot.exists) {
     return res.send({
       error: true,
       message: 'there is no decanato with that id',
-    })
+    });
   }
 
   // Validate if a parroquia with identificador exists
   const parroquia = await firestore
     .collection('parroquias')
     .where('identificador', '==', nuevaParroquia.identificador)
-    .get()
+    .get();
 
   if (!parroquia.empty) {
     return res.send({
       error: true,
       message: 'Ya existe una parroquia con el identificador proporcionado.',
-    })
+    });
   }
 
   // --- Add new parroquia --- //
   // ----VVVVVVVVVVVVVVVV---- //
-  const collrectionref = await firestore.collection('parroquias')
+  const collrectionref = await firestore.collection('parroquias');
   try {
-    const docref = await collrectionref.add(nuevaParroquia)
-    nuevaParroquia.id = docref.id
+    const docref = await collrectionref.add(nuevaParroquia);
+    nuevaParroquia.id = docref.id;
     res.send({
       error: false,
       data: nuevaParroquia,
-    })
+    });
   } catch (err) {
     res.send({
       error: true,
       message: err.message,
-    })
+    });
   }
-}
+};
 
 /**
  * Removes a parish from the 'parroquias' collection
@@ -151,53 +151,53 @@ const remove = async (firestore, req, res) => {
   const snapshot = await firestore
     .collection('parroquias')
     .doc(req.params.id)
-    .get()
+    .get();
   if (!snapshot.exists) {
     return res.send({
       error: true,
       message: 'no existe un parroquia con ese id',
-    })
+    });
   }
-  const capillas = snapshot.data().capillas // lista de ids de capilla
-  const capillas_borradas = []
+  const capillas = snapshot.data().capillas; // lista de ids de capilla
+  const capillas_borradas = [];
   if (capillas) {
     for (let capilla of capillas) {
       //validate capilla
-      const snapshot = await firestore.collection('capillas').doc(capilla).get()
+      const snapshot = await firestore.collection('capillas').doc(capilla).get();
       if (snapshot.exists) {
-        capillas_borradas.push({ id: snapshot.id, ...snapshot.data() })
-        await firestore.collection('capillas').doc(capilla).delete()
+        capillas_borradas.push({ id: snapshot.id, ...snapshot.data() });
+        await firestore.collection('capillas').doc(capilla).delete();
       }
     }
   }
-  await firestore.collection('parroquias').doc(req.params.id).delete()
-  const parroquia = snapshot.data()
-  parroquia.capillas_borradas = capillas_borradas
+  await firestore.collection('parroquias').doc(req.params.id).delete();
+  const parroquia = snapshot.data();
+  parroquia.capillas_borradas = capillas_borradas;
   res.send({
     error: false,
     data: {
       id: req.params.id,
       ...parroquia,
     },
-  })
-}
+  });
+};
 
 /**
  * Changes data from a parish in the'parroquias' collection
  */
 const update = async (firestore, req, res) => {
-  console.log('update start')
+  console.log('update start');
 
   try {
-    const payload = req.body
-    const id = payload.parroquia
-    const docref = firestore.collection('parroquias').doc(id)
-    let snapshot = await docref.get()
+    const payload = req.body;
+    const id = payload.parroquia;
+    const docref = firestore.collection('parroquias').doc(id);
+    let snapshot = await docref.get();
     if (!snapshot.exists) {
       return res.send({
         error: true,
         message: 'No hay parroquia con ese id',
-      })
+      });
     }
 
     if (snapshot.data().identificador !== payload.identificador) {
@@ -205,14 +205,14 @@ const update = async (firestore, req, res) => {
       const parroquia = await firestore
         .collection('parroquias')
         .where('identificador', '==', payload.identificador)
-        .get()
+        .get();
 
       if (!parroquia.empty) {
         return res.send({
           error: true,
           message:
             'Ya existe una parroquia con el identificador proporcionado.',
-        })
+        });
       }
     }
 
@@ -228,25 +228,25 @@ const update = async (firestore, req, res) => {
         decanato: payload.decanato,
       },
       { merge: true }
-    )
-    snapshot = await docref.get()
+    );
+    snapshot = await docref.get();
     res.send({
       error: false,
       data: snapshot.data(),
-    })
+    });
   } catch (err) {
     res.send({
       error: true,
       message: err.message,
-    })
+    });
   }
-}
+};
 
 /**
  * Collects data from the 'parroquias collection to transfer to an .csv document.
  */
 const dump = async (firestore, req, res) => {
-  var parroquias = []
+  var parroquias = [];
   var headers = [
     'IDParroquia',
     'Nombre',
@@ -259,47 +259,47 @@ const dump = async (firestore, req, res) => {
     'Decanato',
     'IDZona',
     'Zona',
-  ]
+  ];
   try {
-    var parrSnap = await firestore.collection('parroquias').get()
+    var parrSnap = await firestore.collection('parroquias').get();
     if (parrSnap.docs.length == 0) {
-      var csv = toXLS(headers, [])
-      res.setHeader('Content-Type', 'application/vnd.ms-excel')
-      res.attachment('Parroquias.xls')
-      return csv.pipe(res)
+      var csv = toXLS(headers, []);
+      res.setHeader('Content-Type', 'application/vnd.ms-excel');
+      res.attachment('Parroquias.xls');
+      return csv.pipe(res);
     }
 
-    var decanatoId = [...new Set(parrSnap.docs.map((a) => a.data().decanato))]
+    var decanatoId = [...new Set(parrSnap.docs.map((a) => a.data().decanato))];
     var decaSnap = await firestore.getAll(
       ...decanatoId.map((a) => firestore.doc('decanatos/' + a))
-    )
-    var decanatos = []
+    );
+    var decanatos = [];
     decaSnap.forEach((a) => {
-      if (!a.exists) return
+      if (!a.exists) return;
       decanatos.push({
         id: a.id,
         ...a.data(),
-      })
-    })
+      });
+    });
 
-    var zonasId = [...new Set(decanatos.map((a) => a.zona))]
+    var zonasId = [...new Set(decanatos.map((a) => a.zona))];
     var zonaSnap = await firestore.getAll(
       ...zonasId.map((a) => firestore.doc('zonas/' + a))
-    )
-    var zonas = []
+    );
+    var zonas = [];
     zonaSnap.forEach((a) => {
-      if (!a.exists) return
+      if (!a.exists) return;
       zonas.push({
         id: a.id,
         ...a.data(),
-      })
-    })
+      });
+    });
 
     parrSnap.docs.forEach((a) => {
-      if (!a.exists) return
-      var d = a.data()
-      var dec = decanatos.find((a) => a.id == d.decanato)
-      var z = dec ? zonas.find((a) => a.id == dec.zona) : null
+      if (!a.exists) return;
+      var d = a.data();
+      var dec = decanatos.find((a) => a.id == d.decanato);
+      var z = dec ? zonas.find((a) => a.id == dec.zona) : null;
       parroquias.push([
         d.identificador || a.id,
         d.nombre,
@@ -310,18 +310,18 @@ const dump = async (firestore, req, res) => {
         d.telefono2,
         ...(!dec ? [] : [dec.id, dec.nombre]),
         ...(!z ? [] : [z.id, z.nombre]),
-      ])
-    })
+      ]);
+    });
 
-    var csv = Util.toXLS(headers, parroquias)
-    res.setHeader('Content-Type', 'application/vnd.ms-excel')
-    res.attachment('Parroquias.xls')
-    return csv.pipe(res)
+    var csv = Util.toXLS(headers, parroquias);
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.attachment('Parroquias.xls');
+    return csv.pipe(res);
   } catch (e) {
-    console.log(e)
-    return res.redirect('back')
+    console.log(e);
+    return res.redirect('back');
   }
-}
+};
 
 const dumpForAcompanante = async (firestore, req, res) => {
   var headers = [
@@ -336,28 +336,28 @@ const dumpForAcompanante = async (firestore, req, res) => {
     'Decanato',
     'IDZona',
     'Zona',
-  ]
+  ];
   try {
-    const acom = req.params.id
-    var decanatos = []
-    var parroquias = []
-    var decanRef, parroquiasRef
+    const acom = req.params.id;
+    var decanatos = [];
+    var parroquias = [];
+    var decanRef, parroquiasRef;
 
     const zonaRef = await firestore
       .collection('zonas')
       .where('acompanante', '==', acom)
-      .get()
+      .get();
     if (!zonaRef.empty) {
-      const zonaId = zonaRef.docs[0].id
+      const zonaId = zonaRef.docs[0].id;
       decanRef = await firestore
         .collection('decanatos')
         .where('zona', '==', zonaId)
-        .get()
+        .get();
     } else {
       decanRef = await firestore
         .collection('decanatos')
         .where('acompanante', '==', acom)
-        .get()
+        .get();
     }
 
     if (!decanRef.empty) {
@@ -367,16 +367,16 @@ const dumpForAcompanante = async (firestore, req, res) => {
           nombre: d.data().nombre,
           zona: d.data().zona,
           nombreZona: d.data().nombreZona,
-        })
-      })
+        });
+      });
       for (dec of decanatos) {
         parroquiasRef = await firestore
           .collection('parroquias')
           .where('decanato', '==', dec.id)
-          .get()
+          .get();
         if (!parroquiasRef.empty) {
           parroquiasRef.docs.forEach((p) => {
-            d = p.data()
+            d = p.data();
             parroquias.push([
               p.id,
               d.nombre,
@@ -389,23 +389,23 @@ const dumpForAcompanante = async (firestore, req, res) => {
               dec.nombre,
               dec.zona,
               dec.nombreZona,
-            ])
-          })
+            ]);
+          });
         }
       }
     } else {
-      throw Error('Acompañante no asignado a Zona o Decanato')
+      throw Error('Acompañante no asignado a Zona o Decanato');
     }
 
-    var csv = Util.toXLS(headers, parroquias)
-    res.setHeader('Content-Type', 'application/vnd.ms-excel')
-    res.attachment('Parroquias.xls')
-    return csv.pipe(res)
+    var csv = Util.toXLS(headers, parroquias);
+    res.setHeader('Content-Type', 'application/vnd.ms-excel');
+    res.attachment('Parroquias.xls');
+    return csv.pipe(res);
   } catch (e) {
-    console.log(e)
-    return res.redirect('back')
+    console.log(e);
+    return res.redirect('back');
   }
-}
+};
 
 module.exports = {
   getall: getall,
@@ -415,4 +415,4 @@ module.exports = {
   udpate: update,
   dump: dump,
   dumpForAcompanante: dumpForAcompanante,
-}
+};
