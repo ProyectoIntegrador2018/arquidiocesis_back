@@ -34,7 +34,7 @@ APP de Arquidiocesis de Monterrey
 | Roberto Treviño   | A01282035@itesm.mx | Development                        |
 | Diego Martínez    | A01176489@itesm.mx | Development                        |
 | Fernando López    | A01172527@itesm.mx | Development                        |
-| Carlos Tamez      | A00817514@itesm.mx | Development                        | 
+| Carlos Tamez      | A00817514@itesm.mx | Development                        |
 | Andrés Sánchez    | A00819118@itesm.mx | Development                        |
 | Carlos Miranda    | A00817390@itesm.mx | Development                        |
 | Gerardo Suarez    | A00817505@itesm.mx | Development                        |
