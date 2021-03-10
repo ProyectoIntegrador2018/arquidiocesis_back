@@ -1,0 +1,23 @@
+name: Build and Run Tests
+on: [pull_request]
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: node ./index.js
+
+      - name: Test app
+        run: npm test
