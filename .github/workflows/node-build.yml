@@ -16,8 +16,5 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lock
 
-      - name: Build app
-        run: node ./index.js
-
       - name: Test app
         run: yarn test
