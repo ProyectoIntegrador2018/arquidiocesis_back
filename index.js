@@ -4,6 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 const cors = require('cors');
 const bodyParser = require('body-parser');
+<<<<<<< HEAD
 const parroquias = require('./routes/parroquia');
 const decanato = require('./routes/decanato');
 const login = require('./routes/login');
@@ -22,6 +23,27 @@ const all = require('./routes/all');
 
 app.use(cors());
 app.use(express.json());
+=======
+const parroquias = require('./routes/parroquia')
+const decanato = require('./routes/decanato')
+const login = require('./routes/login')
+const admins = require('./routes/admin')
+const capillas  = require('./routes/capillas')
+const eventos = require('./routes/eventos')
+const objetivos = require('./routes/objetivos')
+const grupos = require('./routes/grupo')
+const grupos_conv = require('./routes/grupo-conv')
+const coordinadores = require('./routes/coordinadores')
+const zonas = require('./routes/zonas')
+const capacitacion = require('./routes/capacitacion')
+const acompanante = require('./routes/acompanantes')
+const participante = require('./routes/participante')
+const estadisticas = require('./routes/estadisticas')
+const all = require('./routes/all')
+
+app.use(cors())
+app.use(express.json())
+>>>>>>> Added grupos-conv
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
