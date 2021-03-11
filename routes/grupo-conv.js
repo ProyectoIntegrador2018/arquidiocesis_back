@@ -56,7 +56,6 @@ const Util = require('./util');
         error: false,
         data: docref.id
      })
-
  }
 
  module.exports = {
