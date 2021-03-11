@@ -18,6 +18,14 @@ rules:
   semi:
     - warn
     - always
+  no-var:
+    - error
+  eqeqeq:
+    - warn
+    - smart
+  prefer-const:
+    - warn
+    - destructuring: all
 extends:
   - 'eslint:recommended'
   - 'prettier'
