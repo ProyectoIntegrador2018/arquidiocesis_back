@@ -45,7 +45,7 @@ snapshot.forEach(async doc => {
     const docRef = await usersRef.add({
         "email": doc.id,
         "password": doc.data()['password']
-        // no se utiliza ID, se considera innecesario
+        // ID is not being used, unecessary field.
     })
 
     console.log(docRef);
@@ -57,13 +57,30 @@ async function migrateAcompanantes(){
     const acompanantesRef = firestore.collection('acompanantes')
     const snapshot = await acompanantesRef.get()
     snapshot.forEach(async doc => {
-        //console.log(doc.id, '=>', doc.data());
         const docEmail = doc.data()['email']
         //start migration
         await addInformationToUser(docEmail, doc.data())
       });
     }
 
-//execute
-//migrateLogins()
+//Migrate coordinadores to users
+async function migrateCoordinadores(){
+    const coordinadoresRef = firestore.collection('coordinadores')
+    const snapshot = await coordinadoresRef.get()
+    snapshot.forEach(async doc => {
+        const docEmail = doc.data()['email']
+        //start migration
+        await addInformationToUser(docEmail, doc.data())
+      });
+    }
+
+//execute this in case of any needed migration (backup suggested)
+/*
+    In order to execute this script run: yarn users-migrate or node users-migrate.
+    Keep in mind this is executed in production database. it is highly suggested to have an updated backup for it.
+    This file is intended to be executed when users collection gets compromised and needs to be restarted.
+    This file is intended to be temporary, delete this file when it's not longer necessary.
+*/
+migrateLogins()
 migrateAcompanantes()
+migrateCoordinadores()
