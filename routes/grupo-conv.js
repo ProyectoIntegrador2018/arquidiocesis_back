@@ -75,6 +75,25 @@ const add = async (firestore, req, res) => {
   });
 };
 
+const edit = async (firestore, req, res) => {
+  const {
+    group_id,
+    group_name,
+    group_description,
+  } = req.body;
+
+  await firestore.collection('grupo-conv').doc(group_id).update({
+    group_name,
+    group_description,
+  });
+
+  return res.send({
+    error: false,
+  });
+
+};
+
 module.exports = {
-  add: add
+  add: add,
+  edit: edit,
 };
