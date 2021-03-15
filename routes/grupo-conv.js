@@ -8,6 +8,7 @@ const Util = require('./util');
 Grupo conv ideal architecture:
 
  group-name : string,
+ group-desription: string,
  // roles adds permission hierarchy to groups
  // roles should only 2 values; administrator and member
  // roles is another collection within the database
@@ -25,53 +26,50 @@ Grupo conv ideal architecture:
 
 const add = async (firestore, req, res) => {
   const {
-    nombre,
-    roles,
-    canales,
+    group_name,
+    group_roles, //should be an object as the above description implies.
+    group_channels,
   } = req.body;
 
-  const snapshot_roles = [];
-
-  // Checks if all roles exist within collection 'roles'
-  for(role of roles){
-    const roleref = await firestore.collection('roles').doc(role);
-    //validate role
-    const snapshot = await roleref.get();
-    if (!snapshot.exists){
-      return res.send({
-        error: true,
-        message: 'couldn\'t find role with the given id'
-      });
+  for(const group_role in group_roles){
+    for(role of group_roles[group_role]){
+      const roleref = await firestore.collection('roles').doc(role);
+      //validate role
+      const snapshot = await roleref.get();
+      if (!snapshot.exists){
+        return res.send({
+          error: true,
+          message: 'couldn\'t find role with the given id',
+          error_id: role,
+        });
+      }
     }
-    snapshot_roles.add(snapshot.id);
   }
 
-  const snapshot_canales = [];
-
   // Checks if all canales exist within collection 'canales'
-  for(canal of canales){
-    const canalref = await firestore.collection('canales').doc(canales);
-    //validate canal
-    const snapshot = await canalref.get();
+  for(channel of group_channels){
+    const channelref = await firestore.collection('canales').doc(channel);
+    //validate channel
+    const snapshot = await channelref.get();
     if (!snapshot.exists){
       return res.send({
         error: true,
-        message: 'couldn\'t find canal with the given id'
+        message: 'couldn\'t find canal with the given id',
+        error_id: channel,
       });
     }
-    snapshot_canales.add(snapshot.id);
   }
 
   const collectionref = await firestore.collection('grupo-conv');
   const docref = await collectionref.add({
-    nombre,
-    roles: snapshot_roles,
-    canales: snapshot_canales
+    group_name,
+    group_roles,
+    group_channels,
   }); // add new grupo-conv to grupo-conv collection
    
   // --------- success ----------//
   // ----------VVVVVVV-----------//
-  res.status(200).send({
+  res.send({
     error: false,
     data: docref.id
   });

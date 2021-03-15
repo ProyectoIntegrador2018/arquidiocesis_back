@@ -9,7 +9,6 @@ const mockRequest = (body) => ({
 const mockResponse = () => {
   const res = {};
   res.send = jest.fn().mockReturnValue(res);
-  res.status = jest.fn().mockReturnValue(res);
   res.send.data = jest.fn();
   return res;
 };
@@ -33,22 +32,24 @@ describe('Testing "Grupo conversacion"', () => {
   test('Testing correct "add" functionality', async () => {
     const request = mockRequest(
       {
-        'nombre' : 'testing-input-1',
-        'canales': [],
-        'roles': []
+        'group_name' : 'testing-input-1',
+        'group_channels': [],
+        'group_roles': {}
       }
     );
     const res = mockResponse();
     await grupo.add(db, request, res);
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
   });
 
   test('Testing incorrect (canales not in db) "add" functionality', async () => {
     const request = mockRequest(
       {
-        'nombre' : 'testing-input-1',
-        'canales': ['d1'],
-        'roles': []
+        'group_name' : 'testing-input-1',
+        'group_channels': ['id1'],
+        'group_roles': {}
       }
     );
     const res = mockResponse();
@@ -56,15 +57,16 @@ describe('Testing "Grupo conversacion"', () => {
     expect(res.send).toHaveBeenCalledWith({
       error: true,
       message: 'couldn\'t find canal with the given id',
+      error_id: 'id1',
     });
   });
 
   test('Testing incorrect (roles not in db) "add" functionality', async () => {
     const request = mockRequest(
       {
-        'nombre' : 'testing-input-1',
-        'canales': [],
-        'roles': ['id1']
+        'group_name' : 'testing-input-1',
+        'group_channels': [],
+        'group_roles': {'administrator': ['id1']}
       }
     );
     const res = mockResponse();
@@ -72,6 +74,7 @@ describe('Testing "Grupo conversacion"', () => {
     expect(res.send).toHaveBeenCalledWith({
       error: true,
       message: 'couldn\'t find role with the given id',
+      error_id: 'id1',
     });
   });
 });
