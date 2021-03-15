@@ -55,7 +55,7 @@ describe('Testing "Grupo conversacion"', () => {
     await grupo.add(db, request, res);
     expect(res.send).toHaveBeenCalledWith({
       error: true,
-      message: "couldn't find canal with the given id",
+      message: 'couldn\'t find canal with the given id',
     });
   });
 
@@ -71,7 +71,7 @@ describe('Testing "Grupo conversacion"', () => {
     await grupo.add(db, request, res);
     expect(res.send).toHaveBeenCalledWith({
       error: true,
-      message: "couldn't find role with the given id",
+      message: 'couldn\'t find role with the given id',
     });
   });
 });
