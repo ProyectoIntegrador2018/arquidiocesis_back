@@ -20,10 +20,7 @@ Grupo conv ideal architecture:
  // channels must have at least 1 channels documents; #General channel is a must
  // channels is another collection within the database
  channels: hashtable of channels,
- eg. channels : {
-   'general' : channel-general-id-1,
-   'about' : channel-about-id-2,
- }
+ eg. channels : ['channel-general-id-1', 'channel-about-id-2']
 */
 
 const add = async (firestore, req, res) => {
