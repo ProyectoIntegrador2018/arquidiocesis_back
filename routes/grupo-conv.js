@@ -4,6 +4,20 @@ const Util = require('./util');
  * @module Grupo-conv
  */
 
+/*
+Grupo conv ideal architecture:
+
+ group-name : string,
+ // roles adds permission hierarchy to groups
+ // roles can have 2 or more roles documents; administrator role is a must
+ // roles is another collection within the database
+ roles : array of roles,
+ // canales adds communication control to groups
+ // canales can have at least 1 canals documents; #General canal is a must
+ // canales is another collection within the database
+ canales: array of canales,
+*/
+
 const add = async (firestore, req, res) => {
   const {
     nombre,
