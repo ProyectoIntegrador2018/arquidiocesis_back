@@ -9,13 +9,21 @@ Grupo conv ideal architecture:
 
  group-name : string,
  // roles adds permission hierarchy to groups
- // roles can have 2 or more roles documents; administrator role is a must
+ // roles should only 2 values; administrator and member
  // roles is another collection within the database
- roles : array of roles,
- // canales adds communication control to groups
- // canales can have at least 1 canals documents; #General canal is a must
- // canales is another collection within the database
- canales: array of canales,
+ roles : hashtable of roles,
+ eg. group-roles : {
+   'group-administrators' : ['coordinator-parish-id-1', 'coordinator-zone-id-2'],
+   'members' : ['member-parish-id-3', 'member-zone-id-4'],
+ }
+ // channels adds communication control to groups
+ // channels must have at least 1 channels documents; #General channel is a must
+ // channels is another collection within the database
+ channels: hashtable of channels,
+ eg. channels : {
+   'general' : channel-general-id-1,
+   'about' : channel-about-id-2,
+ }
 */
 
 const add = async (firestore, req, res) => {
