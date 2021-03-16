@@ -24,7 +24,7 @@ const add = async (firestore, req, res) => {
   if (!snapshot.exists) {
     return res.send({
       error: true,
-      message: 'couldn\'t find parroquia with he given id',
+      message: "couldn't find parroquia with he given id",
     });
   }
 
@@ -146,7 +146,9 @@ const edit = async (firestore, req, res) => {
 const dump = async (firestore, req, res) => {
   try {
     var capiSnap = await firestore.collection('capillas').get();
-    var parroquiaId = [...new Set(capiSnap.docs.map((a) => a.data().parroquia))];
+    var parroquiaId = [
+      ...new Set(capiSnap.docs.map((a) => a.data().parroquia)),
+    ];
     var parrSnap = await firestore.getAll(
       ...parroquiaId.map((a) => firestore.doc('parroquias/' + a))
     );

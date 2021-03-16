@@ -298,7 +298,10 @@ const getAsistencia = async (firestore, req, res) => {
         message: 'No such assistance',
       });
     }
-    const groupSnap = await firestore.collection('capacitaciones').doc(id).get();
+    const groupSnap = await firestore
+      .collection('capacitaciones')
+      .doc(id)
+      .get();
     if (!groupSnap.exists)
       return res.send({
         error: true,
@@ -713,7 +716,9 @@ const getAsistenciasReport = async (firestore, req, res) => {
  * @param {JSON} [res.data] - CSV stream data.
  */
 const getAsistenciasAsistanceReport = async (firestore, req, res) => {
-  var groupRef = await firestore.collection('capacitaciones').doc(req.params.id);
+  var groupRef = await firestore
+    .collection('capacitaciones')
+    .doc(req.params.id);
   var assistColl = await groupRef.collection('asistencias');
   var assistList = await assistColl.get();
   var dates = [];

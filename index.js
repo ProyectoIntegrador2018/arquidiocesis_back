@@ -4,25 +4,25 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const parroquias = require('./routes/parroquia')
-const decanato = require('./routes/decanato')
-const login = require('./routes/login')
-const admins = require('./routes/admin')
-const capillas  = require('./routes/capillas')
-const eventos = require('./routes/eventos')
-const objetivos = require('./routes/objetivos')
-const grupos = require('./routes/grupo')
-const grupos_conv = require('./routes/grupo-conv')
-const coordinadores = require('./routes/coordinadores')
-const zonas = require('./routes/zonas')
-const capacitacion = require('./routes/capacitacion')
-const acompanante = require('./routes/acompanantes')
-const participante = require('./routes/participante')
-const estadisticas = require('./routes/estadisticas')
-const all = require('./routes/all')
+const parroquias = require('./routes/parroquia');
+const decanato = require('./routes/decanato');
+const login = require('./routes/login');
+const admins = require('./routes/admin');
+const capillas = require('./routes/capillas');
+const eventos = require('./routes/eventos');
+const objetivos = require('./routes/objetivos');
+const grupos = require('./routes/grupo');
+const grupos_conv = require('./routes/grupo-conv');
+const coordinadores = require('./routes/coordinadores');
+const zonas = require('./routes/zonas');
+const capacitacion = require('./routes/capacitacion');
+const acompanante = require('./routes/acompanantes');
+const participante = require('./routes/participante');
+const estadisticas = require('./routes/estadisticas');
+const all = require('./routes/all');
 
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
@@ -71,7 +71,9 @@ app.post('/api/password/change', (req, res) => {
 });
 
 app.all('/api/admin*', admins.isAdmin); // Check if user is an admin
-app.get('/api/admin/users', (req, res) => admins.getLogins(firestore, req, res));
+app.get('/api/admin/users', (req, res) =>
+  admins.getLogins(firestore, req, res)
+);
 app.post('/api/admin/users/get', (req, res) =>
   admins.getOne(firestore, req, res)
 );
@@ -126,8 +128,12 @@ app.post('/api/capillas', (req, res) => {
 app.delete('/api/capillas/:id', (req, res) =>
   capillas.remove(firestore, req, res)
 );
-app.get('/api/capillas/:id', (req, res) => capillas.getone(firestore, req, res));
-app.post('/api/capillas/edit', (req, res) => capillas.edit(firestore, req, res));
+app.get('/api/capillas/:id', (req, res) =>
+  capillas.getone(firestore, req, res)
+);
+app.post('/api/capillas/edit', (req, res) =>
+  capillas.edit(firestore, req, res)
+);
 app.get('/api/capillas/dump/:random', (req, res) => {
   capillas.dump(firestore, req, res);
 });
@@ -330,7 +336,9 @@ app.post('/api/acompanante/edit', (req, res) =>
 app.get('/api/reporte/acompanantes', (req, res) =>
   all.getAcompanantes(firestore, req, res)
 );
-app.get('/api/reporte/admins', (req, res) => all.getAdmins(firestore, req, res));
+app.get('/api/reporte/admins', (req, res) =>
+  all.getAdmins(firestore, req, res)
+);
 app.get('/api/reporte/capacitaciones', (req, res) =>
   all.getCapacitaciones(firestore, req, res)
 );
@@ -349,8 +357,12 @@ app.get('/api/reporte/decanatos', (req, res) =>
 app.get('/api/reporte/decanatosAcompanante/:id', (req, res) =>
   all.decanatosForAcompanante(firestore, req, res)
 );
-app.get('/api/reporte/grupos', (req, res) => all.getGrupos(firestore, req, res));
-app.get('/api/reporte/logins', (req, res) => all.getLogins(firestore, req, res));
+app.get('/api/reporte/grupos', (req, res) =>
+  all.getGrupos(firestore, req, res)
+);
+app.get('/api/reporte/logins', (req, res) =>
+  all.getLogins(firestore, req, res)
+);
 app.get('/api/reporte/miembros', (req, res) =>
   all.getMiembros(firestore, req, res)
 );

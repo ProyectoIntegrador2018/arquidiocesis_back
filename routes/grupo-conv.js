@@ -31,15 +31,15 @@ const add = async (firestore, req, res) => {
     group_channels,
   } = req.body;
 
-  for(const group_role in group_roles){
-    for(role of group_roles[group_role]){
+  for (const group_role in group_roles) {
+    for (role of group_roles[group_role]) {
       const roleref = await firestore.collection('roles').doc(role);
       //validate role
       const snapshot = await roleref.get();
-      if (!snapshot.exists){
+      if (!snapshot.exists) {
         return res.send({
           error: true,
-          message: 'couldn\'t find role with the given id',
+          message: "couldn't find role with the given id",
           error_id: role,
         });
       }
@@ -47,14 +47,14 @@ const add = async (firestore, req, res) => {
   }
 
   // Checks if all canales exist within collection 'canales'
-  for(channel of group_channels){
+  for (channel of group_channels) {
     const channelref = await firestore.collection('canales').doc(channel);
     //validate channel
     const snapshot = await channelref.get();
-    if (!snapshot.exists){
+    if (!snapshot.exists) {
       return res.send({
         error: true,
-        message: 'couldn\'t find canal with the given id',
+        message: "couldn't find canal with the given id",
         error_id: channel,
       });
     }
@@ -66,22 +66,17 @@ const add = async (firestore, req, res) => {
     group_roles,
     group_channels,
   }); // add new grupo-conv to grupo-conv collection
-   
+
   // --------- success ----------//
   // ----------VVVVVVV-----------//
   res.send({
     error: false,
-    data: docref.id
+    data: docref.id,
   });
 };
 
-
 const edit = async (firestore, req, res) => {
-  const {
-    group_id,
-    group_name,
-    group_description,
-  } = req.body;
+  const { group_id, group_name, group_description } = req.body;
 
   await firestore.collection('grupo-conv').doc(group_id).update({
     group_name,
@@ -91,7 +86,6 @@ const edit = async (firestore, req, res) => {
   return res.send({
     error: false,
   });
-
 };
 
 module.exports = {

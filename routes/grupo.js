@@ -226,7 +226,10 @@ const getForAcompanante = async (firestore, req, res) => {
  */
 const getone = async (firestore, req, res) => {
   try {
-    var snapshot = await firestore.collection('grupos').doc(req.params.id).get();
+    var snapshot = await firestore
+      .collection('grupos')
+      .doc(req.params.id)
+      .get();
     if (!snapshot.exists) {
       return res.send({
         error: true,
@@ -1135,8 +1138,8 @@ const getAsistenciasReport = async (firestore, req, res) => {
       d.estatus == 0
         ? 'Activo'
         : d.estatus == 1
-          ? 'Baja temporal'
-          : 'Baja definitiva',
+        ? 'Baja temporal'
+        : 'Baja definitiva',
       d.domicilio.domicilio,
       d.domicilio.colonia,
       d.domicilio.municipio,
@@ -1144,12 +1147,12 @@ const getAsistenciasReport = async (firestore, req, res) => {
       d.domicilio.telefono_casa,
       ...(d.ficha_medica
         ? [
-          d.ficha_medica.ambulancia ? 'SI' : 'NO',
-          d.ficha_medica.alergico ? 'SI' : 'NO',
-          d.ficha_medica.tipo_sangre,
-          d.ficha_medica.servicio_medico,
-          d.ficha_medica.padecimientos,
-        ]
+            d.ficha_medica.ambulancia ? 'SI' : 'NO',
+            d.ficha_medica.alergico ? 'SI' : 'NO',
+            d.ficha_medica.tipo_sangre,
+            d.ficha_medica.servicio_medico,
+            d.ficha_medica.padecimientos,
+          ]
         : ['', '', '', '', '']),
     ]);
   }

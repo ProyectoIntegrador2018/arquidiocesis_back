@@ -70,20 +70,20 @@ const getOne = async (firestore, req, res) => {
     var memberSnap;
 
     switch (type) {
-    case 'admin':
-    case 'integrante_chm':
-    case 'capacitacion':
-      memberSnap = await firestore.collection('admins').doc(id).get();
-      break;
-    case 'acompañante_zona':
-    case 'acompañante_decanato':
-      memberSnap = await firestore.collection('acompanantes').doc(id).get();
-      break;
-    case 'coordinador':
-      memberSnap = await firestore.collection('coordinadores').doc(id).get();
-      break;
-    default:
-      throw Error('Tipo de usuario no valido');
+      case 'admin':
+      case 'integrante_chm':
+      case 'capacitacion':
+        memberSnap = await firestore.collection('admins').doc(id).get();
+        break;
+      case 'acompañante_zona':
+      case 'acompañante_decanato':
+        memberSnap = await firestore.collection('acompanantes').doc(id).get();
+        break;
+      case 'coordinador':
+        memberSnap = await firestore.collection('coordinadores').doc(id).get();
+        break;
+      default:
+        throw Error('Tipo de usuario no valido');
     }
 
     if (!memberSnap.exists) {
@@ -92,8 +92,8 @@ const getOne = async (firestore, req, res) => {
         tipo: login.tipo,
       };
     } else {
-      member = memberSnap.data()
-      ;(member.email = loginSnap.id), (member.tipo = login.tipo);
+      member = memberSnap.data();
+      (member.email = loginSnap.id), (member.tipo = login.tipo);
     }
   } catch (e) {
     console.log(e.message);
@@ -321,20 +321,20 @@ const editUserDetail = async (firestore, req, res) => {
     var collection;
 
     switch (tipo) {
-    case 'admin':
-    case 'integrante_chm':
-    case 'capacitacion':
-      collection = 'admins';
-      break;
-    case 'acompañante_zona':
-    case 'acompañante_decanato':
-      collection = 'acompanantes';
-      break;
-    case 'coordinador':
-      collection = 'coordinadores';
-      break;
-    default:
-      throw Error('Tipo de usuario no valido');
+      case 'admin':
+      case 'integrante_chm':
+      case 'capacitacion':
+        collection = 'admins';
+        break;
+      case 'acompañante_zona':
+      case 'acompañante_decanato':
+        collection = 'acompanantes';
+        break;
+      case 'coordinador':
+        collection = 'coordinadores';
+        break;
+      default:
+        throw Error('Tipo de usuario no valido');
     }
 
     await firestore
