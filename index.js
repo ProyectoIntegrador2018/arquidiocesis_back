@@ -12,6 +12,7 @@ const capillas = require('./routes/capillas');
 const eventos = require('./routes/eventos');
 const objetivos = require('./routes/objetivos');
 const grupos = require('./routes/grupo');
+const grupos_conv = require('./routes/grupo-conv');
 const coordinadores = require('./routes/coordinadores');
 const zonas = require('./routes/zonas');
 const capacitacion = require('./routes/capacitacion');
@@ -379,11 +380,16 @@ app.get('/api/estadisticas/', (req, res) =>
   estadisticas.getEstadisticas(firestore, req, res)
 );
 
+
+app.post('/api/groups', (req, res) => grupos_conv.add(firestore, req, res));
+app.put('/api/groups/:id', (req, res) => grupos_conv.edit(firestore, req, res));
+
 app.post('/api/roles', (req, res) => roles.add(firestore, req, res));
 app.get('/api/roles/all', (req, res) => roles.getAllRoles(firestore, req, res));
 app.put('/api/roles/:id', (req, res) =>
   roles.addRoleMember(firestore, req, res)
 );
+
 
 // No route found
 app.all('*', (req, res) => {
