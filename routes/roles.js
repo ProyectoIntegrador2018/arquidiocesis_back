@@ -5,13 +5,10 @@
 
 const admin = require('firebase-admin');
 
-
 const add = async (firestore, req, res) => {
-  const {
-    role_title
-  } = req.body;
+  const { role_title } = req.body;
 
-  if(role_title === undefined || role_title === ''){
+  if (role_title === undefined || role_title === '') {
     return res.send({
       error: true,
       message: 'role_title is invalid',
@@ -20,31 +17,34 @@ const add = async (firestore, req, res) => {
 
   const new_role_entry = {
     title: role_title.toLowerCase(),
-    members: []
+    members: [],
   };
 
   // check that current role_title is not already registered
-  const query = await firestore.collection('roles').where('role_title', '==', new_role_entry.title)
-    .get().then( snapshot => {
-      if (!snapshot.empty){
+  const query = await firestore
+    .collection('roles')
+    .where('role_title', '==', new_role_entry.title)
+    .get()
+    .then((snapshot) => {
+      if (!snapshot.empty) {
         return res.send({
           error: true,
           message: 'This title is already in use',
           data: snapshot,
         });
-      };
+      }
     });
 
-  try{
+  try {
     const collectionref = await firestore.collection('roles');
     const docref = await collectionref.add(new_role_entry); // add new role to roles collection
     // --------- success ----------//
     // ----------VVVVVVV-----------//
     res.send({
       error: false,
-      data: docref.id
+      data: docref.id,
     });
-  } catch(e) {
+  } catch (e) {
     return res.send({
       error: true,
       message: e,
@@ -54,10 +54,10 @@ const add = async (firestore, req, res) => {
 
 const getAllRoles = async (firestore, req, res) => {
   let dataRes = {};
-  try{
+  try {
     const rolesRef = await firestore.collection('roles');
     const snapshot = await rolesRef.get();
-    snapshot.forEach(doc => {
+    snapshot.forEach((doc) => {
       dataRes[doc.id] = doc.data();
     });
     res.send({
@@ -92,8 +92,6 @@ const addRoleMember = async (firestore, req, res) => {
     });
   }
 };
-
-
 
 module.exports = {
   add,

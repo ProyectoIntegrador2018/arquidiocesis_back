@@ -71,7 +71,9 @@ app.post('/api/password/change', (req, res) => {
 });
 
 app.all('/api/admin*', admins.isAdmin); // Check if user is an admin
-app.get('/api/admin/users', (req, res) => admins.getLogins(firestore, req, res));
+app.get('/api/admin/users', (req, res) =>
+  admins.getLogins(firestore, req, res)
+);
 app.post('/api/admin/users/get', (req, res) =>
   admins.getOne(firestore, req, res)
 );
@@ -126,8 +128,12 @@ app.post('/api/capillas', (req, res) => {
 app.delete('/api/capillas/:id', (req, res) =>
   capillas.remove(firestore, req, res)
 );
-app.get('/api/capillas/:id', (req, res) => capillas.getone(firestore, req, res));
-app.post('/api/capillas/edit', (req, res) => capillas.edit(firestore, req, res));
+app.get('/api/capillas/:id', (req, res) =>
+  capillas.getone(firestore, req, res)
+);
+app.post('/api/capillas/edit', (req, res) =>
+  capillas.edit(firestore, req, res)
+);
 app.get('/api/capillas/dump/:random', (req, res) => {
   capillas.dump(firestore, req, res);
 });
@@ -330,7 +336,9 @@ app.post('/api/acompanante/edit', (req, res) =>
 app.get('/api/reporte/acompanantes', (req, res) =>
   all.getAcompanantes(firestore, req, res)
 );
-app.get('/api/reporte/admins', (req, res) => all.getAdmins(firestore, req, res));
+app.get('/api/reporte/admins', (req, res) =>
+  all.getAdmins(firestore, req, res)
+);
 app.get('/api/reporte/capacitaciones', (req, res) =>
   all.getCapacitaciones(firestore, req, res)
 );
@@ -349,8 +357,12 @@ app.get('/api/reporte/decanatos', (req, res) =>
 app.get('/api/reporte/decanatosAcompanante/:id', (req, res) =>
   all.decanatosForAcompanante(firestore, req, res)
 );
-app.get('/api/reporte/grupos', (req, res) => all.getGrupos(firestore, req, res));
-app.get('/api/reporte/logins', (req, res) => all.getLogins(firestore, req, res));
+app.get('/api/reporte/grupos', (req, res) =>
+  all.getGrupos(firestore, req, res)
+);
+app.get('/api/reporte/logins', (req, res) =>
+  all.getLogins(firestore, req, res)
+);
 app.get('/api/reporte/miembros', (req, res) =>
   all.getMiembros(firestore, req, res)
 );
@@ -369,7 +381,9 @@ app.get('/api/estadisticas/', (req, res) =>
 
 app.post('/api/roles', (req, res) => roles.add(firestore, req, res));
 app.get('/api/roles/all', (req, res) => roles.getAllRoles(firestore, req, res));
-app.put('/api/roles/:id', (req, res) => roles.addRoleMember(firestore, req, res));
+app.put('/api/roles/:id', (req, res) =>
+  roles.addRoleMember(firestore, req, res)
+);
 
 // No route found
 app.all('*', (req, res) => {

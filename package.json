@@ -43,7 +43,7 @@
     "lint-staged": "^10.5.4",
     "markdown-js": "0.0.4",
     "nodemon": "^2.0.3",
-    "prettier": "2.2.1",
+    "prettier": "^2.2.1",
     "pretty-quick": "^3.1.0"
   },
   "repository": {

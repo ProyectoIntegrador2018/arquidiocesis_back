@@ -10,7 +10,7 @@ const mockRequest = (body, id) => ({
   body,
   id,
 });
-  
+
 const mockResponse = () => {
   const res = {};
   res.send = jest.fn().mockReturnValue(res);
@@ -21,9 +21,7 @@ const mockResponse = () => {
 //Creating fake firebase database with logins collection only
 mockFirebase({
   database: {
-    roles: [
-      {id : '1', role_title : 'dummy_role_title', members: []},
-    ],
+    roles: [{ id: '1', role_title: 'dummy_role_title', members: [] }],
   },
 });
 
@@ -32,11 +30,9 @@ describe('Roles functionalities test suite', () => {
   const db = admin.firestore();
 
   test('Testing add functionality', async () => {
-    const req = mockRequest(
-      {
-        role_title : 'role_test_1',
-      },
-    );
+    const req = mockRequest({
+      role_title: 'role_test_1',
+    });
     const res = mockResponse();
 
     await roles.add(db, req, res);
@@ -48,18 +44,19 @@ describe('Roles functionalities test suite', () => {
   });
 
   test('Testing incorrect add functionality', async () => {
-    const req = mockRequest(
-      {
-        role_title : 'dummy_role_title',
-      },
-    );
+    const req = mockRequest({
+      role_title: 'dummy_role_title',
+    });
     const res = mockResponse();
 
     await roles.add(db, req, res);
 
     expect(mockCollection).toHaveBeenCalledWith('roles');
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: true, message: 'This title is already in use', })
+      expect.objectContaining({
+        error: true,
+        message: 'This title is already in use',
+      })
     );
   });
 
@@ -71,7 +68,10 @@ describe('Roles functionalities test suite', () => {
 
     expect(mockCollection).toHaveBeenCalledWith('roles');
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({"data": {"1": {"members": [], "role_title": "dummy_role_title"}}, "error": false})
+      expect.objectContaining({
+        data: { 1: { members: [], role_title: 'dummy_role_title' } },
+        error: false,
+      })
     );
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
@@ -94,5 +94,4 @@ describe('Roles functionalities test suite', () => {
       expect.objectContaining({ error: false })
     );
   });
-
 });

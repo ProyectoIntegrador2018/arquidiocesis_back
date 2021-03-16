@@ -84,7 +84,10 @@ const remove = async (firestore, req, res) => {
   }
 
   try {
-    const snapshot = await firestore.collection('eventos').doc(id).get('nombre');
+    const snapshot = await firestore
+      .collection('eventos')
+      .doc(id)
+      .get('nombre');
 
     if (!snapshot.exists)
       return res.send({
