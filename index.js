@@ -367,6 +367,9 @@ app.get('/api/estadisticas/', (req, res) =>
   estadisticas.getEstadisticas(firestore, req, res)
 );
 
+app.post('/api/groups', (req, res) => grupos_conv.add(firestore, req, res));
+app.put('/api/groups/:id', (req, res) => grupos_conv.edit(firestore, req, res));
+
 // No route found
 app.all('*', (req, res) => {
   return res.send({
