@@ -20,7 +20,7 @@ Grupo conv ideal architecture:
  // channels adds communication control to groups
  // channels must have at least 1 channels documents; #General channel is a must
  // channels is another collection within the database
- channels: hashtable of channels,
+ channels: array of channels,
  eg. channels : ['channel-general-id-1', 'channel-about-id-2']
 */
 
@@ -75,6 +75,7 @@ const add = async (firestore, req, res) => {
   });
 };
 
+
 const edit = async (firestore, req, res) => {
   const {
     group_id,
@@ -96,4 +97,5 @@ const edit = async (firestore, req, res) => {
 module.exports = {
   add: add,
   edit: edit,
+  addUsers: addUsers,
 };
