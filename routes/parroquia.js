@@ -163,7 +163,10 @@ const remove = async (firestore, req, res) => {
   if (capillas) {
     for (let capilla of capillas) {
       //validate capilla
-      const snapshot = await firestore.collection('capillas').doc(capilla).get();
+      const snapshot = await firestore
+        .collection('capillas')
+        .doc(capilla)
+        .get();
       if (snapshot.exists) {
         capillas_borradas.push({ id: snapshot.id, ...snapshot.data() });
         await firestore.collection('capillas').doc(capilla).delete();

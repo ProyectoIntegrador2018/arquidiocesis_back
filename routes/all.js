@@ -90,7 +90,9 @@ const getAdmins = async (firestore, req, res) => {
  * Gets all data in the capacitations collection
  */
 const getCapacitaciones = async (firestore, req, res) => {
-  const capacitaciones_snap = await firestore.collection('capacitaciones').get();
+  const capacitaciones_snap = await firestore
+    .collection('capacitaciones')
+    .get();
   var capacitaciones = capacitaciones_snap.docs.map((doc) => {
     return { id: doc.id, ...doc.data() };
   });
@@ -689,7 +691,9 @@ const getall = async (firestore, req, res) => {
     return { id: doc.id, ...doc.data() };
   });
 
-  const capacitaciones_snap = await firestore.collection('capacitaciones').get();
+  const capacitaciones_snap = await firestore
+    .collection('capacitaciones')
+    .get();
   monolito.capacitaciones = capacitaciones_snap.docs.map((doc) => {
     return { id: doc.id, ...doc.data() };
   });
