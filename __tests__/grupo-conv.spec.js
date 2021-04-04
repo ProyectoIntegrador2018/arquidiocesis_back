@@ -104,6 +104,17 @@ describe('Testing "Grupo conversacion"', () => {
       expect.objectContaining({ error: false })
     );
   });
+
+  test('Testing correct "getall" functionality', async () => {
+    const request = mockRequest();
+    const res = mockResponse();
+
+    await grupo.getall(db, request, res);
+
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+  });
 });
 
 jest.clearAllMocks();

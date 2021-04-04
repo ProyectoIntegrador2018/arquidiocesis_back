@@ -60,7 +60,7 @@ const add = async (firestore, req, res) => {
     }
   }
 
-  const collectionref = await firestore.collection('grupo-conv');
+  const collectionref = await firestore.collection('grupo_conv');
   const docref = await collectionref.add({
     group_name,
     group_roles,
@@ -78,7 +78,7 @@ const add = async (firestore, req, res) => {
 const edit = async (firestore, req, res) => {
   const { group_id, group_name, group_description } = req.body;
 
-  await firestore.collection('grupo-conv').doc(group_id).update({
+  await firestore.collection('grupo_conv').doc(group_id).update({
     group_name,
     group_description,
   });
@@ -88,7 +88,32 @@ const edit = async (firestore, req, res) => {
   });
 };
 
+const getall = async (firestore, req, res) => {
+  const snapshot = await firestore.collection('grupo_conv').get();
+  try {
+    const docs = snapshot.docs.map((doc) => {
+      console.log(doc.id);
+      return {
+        id: doc.id,
+        content: doc.data(),
+      };
+    });
+    res.send({
+      error: false,
+      data: docs,
+    });
+  } catch (err) {
+    res.send({
+      error: true,
+      message: 'Error inesperado.',
+    });
+  }
+};
+
 module.exports = {
   add: add,
   edit: edit,
+  getall: getall,
 };
+
+
