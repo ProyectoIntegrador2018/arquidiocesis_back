@@ -19,7 +19,8 @@ const capacitacion = require('./routes/capacitacion');
 const acompanante = require('./routes/acompanantes');
 const participante = require('./routes/participante');
 const estadisticas = require('./routes/estadisticas');
-const roles = require('./routes/estadisticas');
+const roles = require('./routes/roles');
+const channels = require('./routes/canal');
 const all = require('./routes/all');
 
 app.use(cors());
@@ -391,6 +392,8 @@ app.put('/api/roles/:id', (req, res) =>
   roles.addRoleMember(firestore, req, res)
 );
 
+app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
+app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
 
 // No route found
 app.all('*', (req, res) => {
