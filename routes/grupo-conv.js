@@ -1,4 +1,5 @@
 const Util = require('./util');
+const canal = require('./canal');
 /**
  * Module for managing Groups
  * @module Grupo-conv
@@ -58,6 +59,21 @@ const add = async (firestore, req, res) => {
         error_id: channel,
       });
     }
+  }
+
+  //checks if canales is empty
+  if(!group_channels.length){
+    // creates 'default' channel
+    const req = {
+      body: {
+        canal_name : 'default',
+        canal_description : 'default channel of this group',
+        canal_publications : [],
+      }
+    };
+
+    let res = {};
+    canal.add(firestore, req, res);
   }
 
   const collectionref = await firestore.collection('grupo_conv');
