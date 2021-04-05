@@ -73,7 +73,7 @@ const add = async (firestore, req, res) => {
     };
 
     let res = {};
-    canal.add(firestore, req, res);
+    await canal.add(firestore, req, res);
   }
 
   const collectionref = await firestore.collection('grupo_conv');
