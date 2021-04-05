@@ -61,21 +61,6 @@ const add = async (firestore, req, res) => {
     }
   }
 
-  //checks if canales is empty
-  if(!group_channels.length){
-    // creates 'default' channel
-    const req = {
-      body: {
-        canal_name : 'default',
-        canal_description : 'default channel of this group',
-        canal_publications : [],
-      }
-    };
-
-    await canal.add(firestore, req, res);
-    group_channels.push(res.data);
-  }
-
   const collectionref = await firestore.collection('grupo_conv');
   const docref = await collectionref.add({
     group_name,
