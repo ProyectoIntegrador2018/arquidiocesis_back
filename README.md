@@ -199,4 +199,4 @@ To disable a given workflow simply remove the file.
 
 ### Unit Testing Validations
 
-To ensure that the changes made didn't affect the current funcionalities of the models run `yarn jest`. This command will run all the tests and give the output of each individual test.
+To ensure that the changes made didn't affect the current funcionalities of the models run `yarn test`. This command will run all the tests and give the output of each individual test. In case of adding a new features, please add a test suite for each new module.
