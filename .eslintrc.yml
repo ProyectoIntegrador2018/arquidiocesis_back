@@ -1,5 +1,6 @@
 env:
   browser: false
+  node: true
   commonjs: true
   es2021: true
 parserOptions:
@@ -9,7 +10,7 @@ rules:
     - warn
     - 2
   linebreak-style:
-    - warn
+    - off
     - unix
   quotes:
     - warn
@@ -17,6 +18,14 @@ rules:
   semi:
     - warn
     - always
+  no-var:
+    - error
+  eqeqeq:
+    - warn
+    - smart
+  prefer-const:
+    - warn
+    - destructuring: all
 extends:
   - 'eslint:recommended'
   - 'prettier'
