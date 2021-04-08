@@ -196,3 +196,7 @@ To automate the release of new versions we're using GitHub Actions to run the fo
 - **Set release version:** Run when changes are pushed to `master`. It will run `semantic-release` and sync the `master` branch with `dev`. To enable this workflow in your repository add the `GH_TOKEN` secret based on a personal access token with repo scope.
 
 To disable a given workflow simply remove the file.
+
+### Unit Testing Validations
+
+To ensure that the changes made didn't affect the current funcionalities of the models run `yarn jest`. This command will run all the tests and give the output of each individual test.
