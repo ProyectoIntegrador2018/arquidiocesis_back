@@ -93,8 +93,39 @@ const addRoleMember = async (firestore, req, res) => {
   }
 };
 
+const remove = async (firestore, req, res) => {
+  if (Object.keys(req.id).length === 0) {
+    res.send({
+      error: true,
+      message: 'ID field required',
+    });
+  }
+  const { id } = req.id; //role ID
+
+  if (id === '' || id === undefined) {
+    res.send({
+      error: true,
+      message: 'ID field required',
+    });
+  }
+
+  try {
+    const docRef = await firestore.collection('roles').doc(id).delete();
+    res.send({
+      error: false,
+      message: 'Role deleted succesfuly',
+    });
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
 module.exports = {
   add,
   getAllRoles,
   addRoleMember,
+  remove,
 };

@@ -1,8 +1,4 @@
-const {
-  mockCollection,
-  mockDoc,
-  mockGetAll,
-} = require('firestore-jest-mock/mocks/firestore');
+const { mockCollection } = require('firestore-jest-mock/mocks/firestore');
 const { mockFirebase } = require('firestore-jest-mock');
 const roles = require('../routes/roles.js');
 
@@ -92,6 +88,29 @@ describe('Roles functionalities test suite', () => {
     expect(mockCollection).toHaveBeenCalledWith('roles');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing correct delete functionality', async () => {
+    const req = mockRequest({}, 1);
+    const res = mockResponse();
+    await roles.remove(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing incorrect delete functionality: no id in id', async () => {
+    const req = mockRequest({}, { id: undefined });
+    const res = mockResponse();
+
+    await roles.remove(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: true })
     );
   });
 });
