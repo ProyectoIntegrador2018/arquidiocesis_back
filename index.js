@@ -21,6 +21,7 @@ const participante = require('./routes/participante');
 const estadisticas = require('./routes/estadisticas');
 const roles = require('./routes/roles');
 const channels = require('./routes/canal');
+const publicacion = require('./routes/publicacion');
 const all = require('./routes/all');
 
 app.use(cors());
@@ -381,10 +382,18 @@ app.get('/api/estadisticas/', (req, res) =>
   estadisticas.getEstadisticas(firestore, req, res)
 );
 
-
 app.post('/api/groups', (req, res) => grupos_conv.add(firestore, req, res));
 app.put('/api/groups/:id', (req, res) => grupos_conv.edit(firestore, req, res));
 app.get('/api/groups/get', (req, res) => grupos_conv.getall(firestore, req, res));
+
+app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
+app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
+
+app.post('/api/posts', (req, res) => publicacion.add(firestore, req, res));
+app.get('/api/posts/:id', (req, res) => publicacion.get(firestore, req, res));
+app.put('/api/posts/edit/:id', (req, res) => publicacion.edit(firestore, req, res));
+app.delete('/api/posts/delete/:id', (req, res) => publicacion.remove(firestore, req, res));
+app.get('/api/posts/files/get/:id', (req, res) => publicacion.get_post_files(firestore, req, res));
 
 app.post('/api/roles', (req, res) => roles.add(firestore, req, res));
 app.get('/api/roles/all', (req, res) => roles.getAllRoles(firestore, req, res));
@@ -392,8 +401,7 @@ app.put('/api/roles/:id', (req, res) =>
   roles.addRoleMember(firestore, req, res)
 );
 
-app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
-app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
+
 
 // No route found
 app.all('*', (req, res) => {
