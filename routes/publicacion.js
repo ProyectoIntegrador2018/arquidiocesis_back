@@ -105,6 +105,37 @@ const get = async (firestore, req, res) => {
   }
 };
 
+const remove = async(firestore, req, res) => {
+
+  if(Object.keys(req.params).length === 0){
+    res.send({
+      error: true,
+      message: 'ID field required',
+    });
+  }
+  const { id } = req.params; //post ID
+
+  if(id === '' || id === undefined){
+    res.send({
+      error: true,
+      message: 'ID field required',
+    });
+  }
+  
+  try{
+    const docRef = await firestore.collection('publicacion').doc(id).delete();
+    res.send({
+      error: false,
+      message: 'Post deleted succesfuly',
+    });
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
 const get_post_files = async (firestore, req, res) => {
   const { post_id } = req.body;
 
@@ -127,4 +158,5 @@ module.exports = {
   edit: edit,
   get: get,
   get_post_files: get_post_files,
+  remove: remove,
 };

@@ -137,4 +137,28 @@ describe('Publicacion functionalities test suite', () => {
       })
     );
   });
+
+  test('Testing correct delete functionality', async () => {
+    const req = mockRequest({}, { id: '1' });
+    const res = mockResponse();
+
+    await publicacion.remove(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('publicacion');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing incorrect delete functionality: no id in params', async () => {
+    const req = mockRequest({}, {id: undefined});
+    const res = mockResponse();
+
+    await publicacion.remove(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('publicacion');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: true })
+    );
+  });
 });
