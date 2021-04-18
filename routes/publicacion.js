@@ -36,12 +36,16 @@ const add = async (firestore, req, res) => {
     });
   }
 
+  const today_date = new Date();
+  const creation_timestamp = today_date.getFullYear()+'-'+(today_date.getMonth()+1)+'-'+today_date.getDate();
+
   try {
     const collectionref = await firestore.collection('publicacion');
     const docref = await collectionref.add({
       post_author,
       post_text,
       post_files,
+      creation_timestamp
     }); // add new publicacion to publicacion collection
 
     res.send({
