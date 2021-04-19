@@ -2,9 +2,9 @@ const { mockCollection } = require('firestore-jest-mock/mocks/firestore');
 const { mockFirebase } = require('firestore-jest-mock');
 const roles = require('../routes/roles.js');
 
-const mockRequest = (body, id) => ({
+const mockRequest = (body, params) => ({
   body,
-  id,
+  params,
 });
 
 const mockResponse = () => {
@@ -79,7 +79,7 @@ describe('Roles functionalities test suite', () => {
       {
         new_role_members: ['dummy_memb_1', 'dummy_memb_2'],
       },
-      1 // role doc id
+      { id: 1 } // role doc id
     );
     const res = mockResponse();
 
@@ -92,7 +92,7 @@ describe('Roles functionalities test suite', () => {
   });
 
   test('Testing correct delete functionality', async () => {
-    const req = mockRequest({}, 1);
+    const req = mockRequest({}, { id: 1 });
     const res = mockResponse();
     await roles.remove(db, req, res);
 
@@ -119,7 +119,7 @@ describe('Roles functionalities test suite', () => {
       {
         users: ['dummy_memb_1', 'dummy_memb_2'],
       },
-      1 // role doc id
+      { id: 1 } // role doc id
     );
     const res = mockResponse();
 
@@ -136,7 +136,7 @@ describe('Roles functionalities test suite', () => {
       {
         users: ['dummy_memb_1', 'dummy_memb_2'],
       },
-      {}// role doc id
+      {} // role doc id
     );
     const res = mockResponse();
 
@@ -150,8 +150,8 @@ describe('Roles functionalities test suite', () => {
 
   test('Testing incorrect revoke functionality: no users', async () => {
     const req = mockRequest(
-      { },
-      1 // role doc id
+      {},
+      { id: 1 } // role doc id
     );
     const res = mockResponse();
 
@@ -162,5 +162,4 @@ describe('Roles functionalities test suite', () => {
       expect.objectContaining({ error: true })
     );
   });
-
 });

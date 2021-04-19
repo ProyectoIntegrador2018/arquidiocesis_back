@@ -73,7 +73,7 @@ const getAllRoles = async (firestore, req, res) => {
 };
 
 const addRoleMember = async (firestore, req, res) => {
-  const roleDocId = req.id;
+  const roleDocId = req.params.id;
   const { new_role_members } = req.body;
 
   const docRef = await firestore.collection('roles').doc(roleDocId);
@@ -94,15 +94,9 @@ const addRoleMember = async (firestore, req, res) => {
 };
 
 const remove = async (firestore, req, res) => {
-  if (Object.keys(req.id).length === 0) {
-    res.send({
-      error: true,
-      message: 'ID field required',
-    });
-  }
-  const { id } = req.id; //role ID
+  const { id } = req.params; //role ID
 
-  if (id === '' || id === undefined) {
+  if (id == null || id === '') {
     res.send({
       error: true,
       message: 'ID field required',
@@ -124,23 +118,17 @@ const remove = async (firestore, req, res) => {
 };
 
 const revoke = async (firestore, req, res) => {
-  if (Object.keys(req.id).length === 0) {
-    res.send({
-      error: true,
-      message: 'ID and USER_ID field required',
-    });
-  }
-  const { id } = req.id; //role ID
-  const {users} = req.body; // user ID's
+  const { id } = req.params; //role ID
+  const { users } = req.body; // user ID's
 
-  if (id === '' || id === undefined) {
+  if (id === '' || id == null) {
     res.send({
       error: true,
       message: 'ID field required',
     });
   }
 
-  if (users === '' || users === undefined) {
+  if (users === '' || users == null || users.length < 1) {
     res.send({
       error: true,
       message: 'USER_ID field required',
@@ -148,17 +136,20 @@ const revoke = async (firestore, req, res) => {
   }
 
   const docRef = await firestore.collection('roles').doc(id);
-  
+
   try {
     docRef.update({
       members: admin.firestore.FieldValue.arrayRemove(...users),
     });
 
     //Removes role from user document role array
-    for(const user of users){
-      await firestore.collection('users').doc(user).update({
-        roles:  admin.firestore.FieldValue.arrayRemove(id)
-      });
+    for (const user of users) {
+      await firestore
+        .collection('users')
+        .doc(user)
+        .update({
+          roles: admin.firestore.FieldValue.arrayRemove(id),
+        });
     }
 
     res.send({
@@ -172,8 +163,6 @@ const revoke = async (firestore, req, res) => {
     });
   }
 };
-
-
 
 module.exports = {
   add,
