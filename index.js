@@ -397,7 +397,7 @@ app.get('/api/posts/:id', (req, res) => publicacion.get(firestore, req, res));
 app.put('/api/posts/edit/:id', (req, res) => publicacion.edit(firestore, req, res));
 app.delete('/api/posts/delete/:id', (req, res) => publicacion.remove(firestore, req, res));
 app.get('/api/posts/files/get/:id', (req, res) => publicacion.get_post_files(firestore, req, res));
-app.get('/api/posts/files/getChannelPosts', (req, res) => publicacion.getChannelPosts(firestore, req, res));
+app.get('/api/posts/getChannelPosts', (req, res) => publicacion.getChannelPosts(firestore, req, res));
 
 app.post('/api/comment', (req, res) => comentario.add(firestore, req, res));
 app.get('/api/comment/getPostComments', (req, res) => comentario.getPostComments(firestore, req, res));
