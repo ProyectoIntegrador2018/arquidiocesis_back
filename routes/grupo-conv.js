@@ -1,5 +1,6 @@
 const Util = require('./util');
 const canal = require('./canal');
+const admin = require('firebase-admin');
 /**
  * Module for managing Groups
  * @module Grupo-conv
@@ -89,6 +90,25 @@ const edit = async (firestore, req, res) => {
   });
 };
 
+const addUser = async (firestore, req, res) => {
+  const { group_id, group_users } = req.body;
+  try{
+    await firestore.collection('grupo_conv').doc(group_id).update({
+      members: admin.firestore.FieldValue.arrayUnion(...group_users),
+    });
+
+    return res.send({
+      error: false,
+    });
+
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: e,
+    });
+  }
+};
+
 const getall = async (firestore, req, res) => {
   const snapshot = await firestore.collection('grupo_conv').get();
   try {
@@ -113,6 +133,7 @@ const getall = async (firestore, req, res) => {
 
 module.exports = {
   add: add,
+  addUser: addUser,
   edit: edit,
   getall: getall,
 };
