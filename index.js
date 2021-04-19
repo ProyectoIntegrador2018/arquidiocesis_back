@@ -385,6 +385,8 @@ app.get('/api/estadisticas/', (req, res) =>
 app.post('/api/groups', (req, res) => grupos_conv.add(firestore, req, res));
 app.put('/api/groups/:id', (req, res) => grupos_conv.edit(firestore, req, res));
 app.get('/api/groups/get', (req, res) => grupos_conv.getall(firestore, req, res));
+app.put('/api/groups/removeUser/:id', (req, res) => grupos_conv.removeUser(firestore, req, res));
+app.put('/api/groups/addUser/:id', (req, res) => grupos_conv.addUser(firestore, req, res));
 
 app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
 app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
@@ -397,9 +399,9 @@ app.get('/api/posts/files/get/:id', (req, res) => publicacion.get_post_files(fir
 
 app.post('/api/roles', (req, res) => roles.add(firestore, req, res));
 app.get('/api/roles/all', (req, res) => roles.getAllRoles(firestore, req, res));
-app.put('/api/roles/:id', (req, res) =>
-  roles.addRoleMember(firestore, req, res)
-);
+app.put('/api/roles/:id', (req, res) => roles.addRoleMember(firestore, req, res));
+app.put('/api/roles/revoke:id', (req, res) => roles.revoke(firestore, req, res));
+app.delete('/api/roles/:id', (req, res) => roles.remove(firestore, req, res));
 
 
 
