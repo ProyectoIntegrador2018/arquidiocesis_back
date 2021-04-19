@@ -1,4 +1,3 @@
-const Util = require('./util');
 /**
  * Module for managing Groups
  * @module Publicacion
@@ -37,7 +36,12 @@ const add = async (firestore, req, res) => {
   }
 
   const today_date = new Date();
-  const creation_timestamp = today_date.getFullYear()+'-'+(today_date.getMonth()+1)+'-'+today_date.getDate();
+  const creation_timestamp =
+    today_date.getFullYear() +
+    '-' +
+    (today_date.getMonth() + 1) +
+    '-' +
+    today_date.getDate();
 
   try {
     const collectionref = await firestore.collection('publicacion');
@@ -45,7 +49,7 @@ const add = async (firestore, req, res) => {
       post_author,
       post_text,
       post_files,
-      creation_timestamp
+      creation_timestamp,
     }); // add new publicacion to publicacion collection
 
     res.send({
@@ -86,7 +90,7 @@ const get = async (firestore, req, res) => {
   try {
     const postRef = await firestore.collection('publicacion').doc(id);
     const post = await postRef.get();
-    if (!post.empty) {
+    if (post.exists) {
       return res.send({
         error: false,
         data: {
@@ -109,9 +113,8 @@ const get = async (firestore, req, res) => {
   }
 };
 
-const remove = async(firestore, req, res) => {
-
-  if(Object.keys(req.params).length === 0){
+const remove = async (firestore, req, res) => {
+  if (Object.keys(req.params).length === 0) {
     res.send({
       error: true,
       message: 'ID field required',
@@ -119,15 +122,15 @@ const remove = async(firestore, req, res) => {
   }
   const { id } = req.params; //post ID
 
-  if(id === '' || id === undefined){
+  if (id === '' || id === undefined) {
     res.send({
       error: true,
       message: 'ID field required',
     });
   }
-  
-  try{
-    const docRef = await firestore.collection('publicacion').doc(id).delete();
+
+  try {
+    await firestore.collection('publicacion').doc(id).delete();
     res.send({
       error: false,
       message: 'Post deleted succesfuly',
