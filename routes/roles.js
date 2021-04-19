@@ -123,9 +123,62 @@ const remove = async (firestore, req, res) => {
   }
 };
 
+const revoke = async (firestore, req, res) => {
+  if (Object.keys(req.id).length === 0) {
+    res.send({
+      error: true,
+      message: 'ID and USER_ID field required',
+    });
+  }
+  const { id } = req.id; //role ID
+  const {users} = req.body; // user ID's
+
+  if (id === '' || id === undefined) {
+    res.send({
+      error: true,
+      message: 'ID field required',
+    });
+  }
+
+  if (users === '' || users === undefined) {
+    res.send({
+      error: true,
+      message: 'USER_ID field required',
+    });
+  }
+
+  const docRef = await firestore.collection('roles').doc(id);
+  
+  try {
+    docRef.update({
+      members: admin.firestore.FieldValue.arrayRemove(...users),
+    });
+
+    //Removes role from user document role array
+    for(const user of users){
+      await firestore.collection('users').doc(user).update({
+        roles:  admin.firestore.FieldValue.arrayRemove(id)
+      });
+    }
+
+    res.send({
+      error: false,
+      message: 'Role deleted succesfuly from users',
+    });
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
+
+
 module.exports = {
   add,
   getAllRoles,
   addRoleMember,
   remove,
+  revoke,
 };
