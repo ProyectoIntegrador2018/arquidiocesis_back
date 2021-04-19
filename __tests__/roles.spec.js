@@ -1,14 +1,10 @@
-const {
-  mockCollection,
-  mockDoc,
-  mockGetAll,
-} = require('firestore-jest-mock/mocks/firestore');
+const { mockCollection } = require('firestore-jest-mock/mocks/firestore');
 const { mockFirebase } = require('firestore-jest-mock');
 const roles = require('../routes/roles.js');
 
-const mockRequest = (body, id) => ({
+const mockRequest = (body, params) => ({
   body,
-  id,
+  params,
 });
 
 const mockResponse = () => {
@@ -83,7 +79,7 @@ describe('Roles functionalities test suite', () => {
       {
         new_role_members: ['dummy_memb_1', 'dummy_memb_2'],
       },
-      1 // role doc id
+      { id: 1 } // role doc id
     );
     const res = mockResponse();
 
@@ -92,6 +88,78 @@ describe('Roles functionalities test suite', () => {
     expect(mockCollection).toHaveBeenCalledWith('roles');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing correct delete functionality', async () => {
+    const req = mockRequest({}, { id: 1 });
+    const res = mockResponse();
+    await roles.remove(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing incorrect delete functionality: no id in id', async () => {
+    const req = mockRequest({}, { id: undefined });
+    const res = mockResponse();
+
+    await roles.remove(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: true })
+    );
+  });
+
+  test('Testing correct revoke functionality', async () => {
+    const req = mockRequest(
+      {
+        users: ['dummy_memb_1', 'dummy_memb_2'],
+      },
+      { id: 1 } // role doc id
+    );
+    const res = mockResponse();
+
+    await roles.revoke(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing incorrect revoke functionality: no role id', async () => {
+    const req = mockRequest(
+      {
+        users: ['dummy_memb_1', 'dummy_memb_2'],
+      },
+      {} // role doc id
+    );
+    const res = mockResponse();
+
+    await roles.addRoleMember(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: true })
+    );
+  });
+
+  test('Testing incorrect revoke functionality: no users', async () => {
+    const req = mockRequest(
+      {},
+      { id: 1 } // role doc id
+    );
+    const res = mockResponse();
+
+    await roles.addRoleMember(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: true })
     );
   });
 });
