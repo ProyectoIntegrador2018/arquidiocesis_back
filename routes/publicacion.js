@@ -50,6 +50,7 @@ const add = async (firestore, req, res) => {
       post_text,
       post_files,
       creation_timestamp,
+      channel_owner_id,
     }); // add new publicacion to publicacion collection
 
     res.send({
@@ -113,6 +114,37 @@ const get = async (firestore, req, res) => {
   }
 };
 
+const getChannelPosts = async (firestore, req, res) => {
+  const {channel_owner_id} = req.body;
+  if (
+    channel_owner_id === '' ||
+    channel_owner_id === undefined
+  ) {
+    return res.send({
+      error: true,
+      message: 'Field cannot be left blank',
+    });
+  }
+  const snapshot = await firestore.collection('publicacion').where('channel_owner_id', '==', req.body.channel_owner_id).get();
+  try {
+    const docs = snapshot.docs.map((doc) => {
+      return {
+        channel_owner_id: channel_owner_id,
+        posts: doc.data(),
+      };
+    });
+    return res.send({
+      error: false,
+      data: docs,
+    });
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
 const remove = async (firestore, req, res) => {
   if (Object.keys(req.params).length === 0) {
     res.send({
@@ -164,6 +196,7 @@ module.exports = {
   add: add,
   edit: edit,
   get: get,
+  getChannelPosts: getChannelPosts,
   get_post_files: get_post_files,
   remove: remove,
 };

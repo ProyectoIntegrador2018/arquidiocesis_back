@@ -25,6 +25,7 @@ mockFirebase({
         post_author: '1',
         post_text: 'dummy post text',
         post_files: ['1', '2', '3'],
+        channel_owner_id: '1',
       },
     ],
   },
@@ -159,6 +160,18 @@ describe('Publicacion functionalities test suite', () => {
     expect(mockCollection).toHaveBeenCalledWith('publicacion');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: true })
+    );
+  });
+
+  test('Testing correct getChannelPosts functionality', async () => {
+    const req = mockRequest({channel_owner_id:'1'}, {});
+    const res = mockResponse();
+
+    await publicacion.getChannelPosts(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('publicacion');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
     );
   });
 });
