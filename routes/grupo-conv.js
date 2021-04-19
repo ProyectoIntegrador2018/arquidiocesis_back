@@ -109,6 +109,25 @@ const addUser = async (firestore, req, res) => {
   }
 };
 
+const removeUser = async (firestore, req, res) => {
+  const { group_id, group_users } = req.body;
+  try{
+    await firestore.collection('grupo_conv').doc(group_id).update({
+      members: admin.firestore.FieldValue.arrayRemove(...group_users),
+    });
+
+    return res.send({
+      error: false,
+    });
+
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: e,
+    });
+  }
+};
+
 const getall = async (firestore, req, res) => {
   const snapshot = await firestore.collection('grupo_conv').get();
   try {
@@ -135,6 +154,7 @@ module.exports = {
   add: add,
   addUser: addUser,
   edit: edit,
+  removeUser: removeUser,
   getall: getall,
 };
 
