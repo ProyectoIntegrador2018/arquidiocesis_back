@@ -132,6 +132,23 @@ describe('Testing "Grupo conversacion"', () => {
       expect.objectContaining({ error: false })
     );
   });
+  
+  test('Testing removeUser functionality', async () => {
+  const req = mockRequest(
+    {
+      group_users: ['dummy_memb_1', 'dummy_memb_2'],
+      id: 1
+    }, // role doc id
+  );
+  const res = mockResponse();
+
+  await grupo.removeUser(db, req, res);
+
+  expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
+  expect(res.send).toHaveBeenCalledWith(
+    expect.objectContaining({ error: false })
+  );
+  });
 });
 
 jest.clearAllMocks();
