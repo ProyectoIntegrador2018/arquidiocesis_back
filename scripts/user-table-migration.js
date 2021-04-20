@@ -13,7 +13,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       credential: admin.credential.cert(serviceAccount),
     });
   } catch (e) {
-    throw e;
+    console.error(e);
   }
 } else {
   // Check if firebase auth file is present
@@ -32,8 +32,19 @@ async function addInformationToUser(userEmail, data) {
 
   snapshot.forEach(async (doc) => {
     console.log(doc.data());
-    const additionResult = await usersRef.doc(doc.id).update(data);
-    //console.log(additionResult)
+    await usersRef.doc(doc.id).update(data);
+  });
+}
+
+async function addInformationToUserWithId(userId, data) {
+  const usersRef = firestore.collection('users');
+  const logins = firestore.collection('logins');
+  const snapshotMiddle = await logins.where('id', '==', userId).get();
+  snapshotMiddle.docs.forEach(async (doc) => {
+    const snapshot = await usersRef.where('email', '==', doc.id).get();
+    snapshot.forEach(async (doc) => {
+      await usersRef.doc(doc.id).update(data);
+    });
   });
 }
 
@@ -45,13 +56,11 @@ async function migrateLogins() {
     console.log(doc.id, '=>', doc.data());
     //start migration
     const usersRef = firestore.collection('users');
-    const docRef = await usersRef.add({
+    await usersRef.add({
       email: doc.id,
       password: doc.data()['password'],
       // ID is not being used, unecessary field.
     });
-
-    console.log(docRef);
   });
 }
 
@@ -77,6 +86,15 @@ async function migrateCoordinadores() {
   });
 }
 
+async function migrateAdmins() {
+  const adminsRef = firestore.collection('admins');
+  const snapshot = await adminsRef.get();
+  snapshot.docs.forEach((doc) => {
+    //start migration
+    addInformationToUserWithId(doc.id, doc.data());
+  });
+}
+
 //execute this in case of any needed migration (backup suggested)
 /*
     In order to execute this script run: yarn users-migrate or node users-migrate.
@@ -84,6 +102,7 @@ async function migrateCoordinadores() {
     This file is intended to be executed when users collection gets compromised and needs to be restarted.
     This file is intended to be temporary, delete this file when it's not longer necessary.
 */
-migrateLogins();
-migrateAcompanantes();
-migrateCoordinadores();
+//migrateLogins();
+//migrateAcompanantes();
+//migrateCoordinadores();
+//migrateAdmins();
