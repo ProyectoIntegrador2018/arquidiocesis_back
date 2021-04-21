@@ -3,33 +3,46 @@
  * @module Roles
  */
 
+/* roles ideal architecture
+
+role-title: string
+role-description: string
+members: ['user-id-1', 'user-id-2', ... ]
+
+*/
 const admin = require('firebase-admin');
 
 const add = async (firestore, req, res) => {
-  const { role_title } = req.body;
+  const { role_title, role_description } = req.body;
 
-  if (role_title === undefined || role_title === '') {
+  if (
+    role_title === '' ||
+    role_title === undefined ||
+    role_description === '' ||
+    role_description === undefined
+  ) {
     return res.send({
       error: true,
-      message: 'role_title is invalid',
+      message: 'role_title should not be left blank',
     });
   }
 
   const new_role_entry = {
     title: role_title.toLowerCase(),
+    role_description: role_description,
     members: [],
   };
 
-  // check that current role_title is not already registered
-  const query = await firestore
+  // check that current role_title is not already registered in roles
+  await firestore
     .collection('roles')
     .where('role_title', '==', new_role_entry.title)
     .get()
     .then((snapshot) => {
-      if (!snapshot.empty) {
+      if (snapshot.exists) {
         return res.send({
           error: true,
-          message: 'This title is already in use',
+          message: `Role title: ${new_role_entry.title} is already in use`,
           data: snapshot,
         });
       }
@@ -38,9 +51,7 @@ const add = async (firestore, req, res) => {
   try {
     const collectionref = await firestore.collection('roles');
     const docref = await collectionref.add(new_role_entry); // add new role to roles collection
-    // --------- success ----------//
-    // ----------VVVVVVV-----------//
-    res.send({
+    return res.send({
       error: false,
       data: docref.id,
     });
@@ -53,21 +64,21 @@ const add = async (firestore, req, res) => {
 };
 
 const getAllRoles = async (firestore, req, res) => {
-  let dataRes = {};
+  const dataRes = {};
   try {
     const rolesRef = await firestore.collection('roles');
     const snapshot = await rolesRef.get();
     snapshot.forEach((doc) => {
       dataRes[doc.id] = doc.data();
     });
-    res.send({
+    return res.send({
       error: false,
-      data: dataRes,
+      roles: dataRes,
     });
   } catch (e) {
     return res.send({
       error: true,
-      message: e,
+      message: `Unexpected error: ${e}`,
     });
   }
 };
@@ -104,7 +115,7 @@ const remove = async (firestore, req, res) => {
   }
 
   try {
-    const docRef = await firestore.collection('roles').doc(id).delete();
+    await firestore.collection('roles').doc(id).delete();
     res.send({
       error: false,
       message: 'Role deleted succesfuly',
