@@ -1,5 +1,3 @@
-const Util = require('./util');
-const canal = require('./canal');
 const admin = require('firebase-admin');
 /**
  * Module for managing Groups
@@ -34,14 +32,14 @@ const add = async (firestore, req, res) => {
   } = req.body;
 
   for (const group_role in group_roles) {
-    for (role of group_roles[group_role]) {
+    for (const role of group_roles[group_role]) {
       const roleref = await firestore.collection('roles').doc(role);
       //validate role
       const snapshot = await roleref.get();
       if (!snapshot.exists) {
         return res.send({
           error: true,
-          message: "couldn't find role with the given id",
+          message: 'couldn\'t find role with the given id',
           error_id: role,
         });
       }
@@ -49,14 +47,14 @@ const add = async (firestore, req, res) => {
   }
 
   // Checks if all canales exist within collection 'canales'
-  for (channel of group_channels) {
+  for (const channel of group_channels) {
     const channelref = await firestore.collection('canales').doc(channel);
     //validate channel
     const snapshot = await channelref.get();
     if (!snapshot.exists) {
       return res.send({
         error: true,
-        message: "couldn't find canal with the given id",
+        message: 'couldn\'t find canal with the given id',
         error_id: channel,
       });
     }
@@ -71,7 +69,7 @@ const add = async (firestore, req, res) => {
 
   // --------- success ----------//
   // ----------VVVVVVV-----------//
-  res.send({
+  return res.send({
     error: false,
     data: docref.id,
   });
@@ -92,15 +90,17 @@ const edit = async (firestore, req, res) => {
 
 const addUser = async (firestore, req, res) => {
   const { group_id, group_users } = req.body;
-  try{
-    await firestore.collection('grupo_conv').doc(group_id).update({
-      members: admin.firestore.FieldValue.arrayUnion(...group_users),
-    });
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .doc(group_id)
+      .update({
+        members: admin.firestore.FieldValue.arrayUnion(...group_users),
+      });
 
     return res.send({
       error: false,
     });
-
   } catch (e) {
     return res.send({
       error: true,
@@ -111,15 +111,17 @@ const addUser = async (firestore, req, res) => {
 
 const removeUser = async (firestore, req, res) => {
   const { group_id, group_users } = req.body;
-  try{
-    await firestore.collection('grupo_conv').doc(group_id).update({
-      members: admin.firestore.FieldValue.arrayRemove(...group_users),
-    });
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .doc(group_id)
+      .update({
+        members: admin.firestore.FieldValue.arrayRemove(...group_users),
+      });
 
     return res.send({
       error: false,
     });
-
   } catch (e) {
     return res.send({
       error: true,
@@ -138,12 +140,12 @@ const getall = async (firestore, req, res) => {
         content: doc.data(),
       };
     });
-    res.send({
+    return res.send({
       error: false,
       data: docs,
     });
   } catch (err) {
-    res.send({
+    return res.send({
       error: true,
       message: 'Error inesperado.',
     });
@@ -157,5 +159,3 @@ module.exports = {
   removeUser: removeUser,
   getall: getall,
 };
-
-
