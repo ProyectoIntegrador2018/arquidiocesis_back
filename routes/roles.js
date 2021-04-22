@@ -4,6 +4,7 @@
  */
 
 const admin = require('firebase-admin');
+const { reset } = require('nodemon');
 
 const add = async (firestore, req, res) => {
   const { role_title } = req.body;
@@ -68,6 +69,40 @@ const getAllRoles = async (firestore, req, res) => {
     return res.send({
       error: true,
       message: e,
+    });
+  }
+};
+
+const getAllRoleUsers = async (firestore, req, res) => {
+  const { id } = req.body; //gets role id from body
+  let dataRes = [];
+  try {
+    const rolesRef = await firestore.collection('roles').doc(id);
+    const role = await rolesRef.get();
+    if (role.exists) {
+      //checks for user id in users collection
+      const userIds = role.data().members;
+      const usersRef = firestore.collection('users');
+      const snapshot = await usersRef.where('uid', 'in', userIds).get();
+      if (!snapshot.empty) {
+        snapshot.forEach((doc) => {
+          dataRes.push(doc.data());
+        });
+      }
+      return res.send({
+        error: false,
+        users: dataRes,
+      });
+    } else {
+      return res.send({
+        error: true,
+        message: `No role with ID: ${id}`,
+      });
+    }
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
     });
   }
 };
@@ -167,6 +202,7 @@ const revoke = async (firestore, req, res) => {
 module.exports = {
   add,
   getAllRoles,
+  getAllRoleUsers,
   addRoleMember,
   remove,
   revoke,

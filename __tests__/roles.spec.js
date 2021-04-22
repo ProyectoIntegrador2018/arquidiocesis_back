@@ -17,7 +17,14 @@ const mockResponse = () => {
 //Creating fake firebase database with logins collection only
 mockFirebase({
   database: {
-    roles: [{ id: '1', role_title: 'dummy_role_title', members: [] }],
+    roles: [
+      { id: '1', role_title: 'dummy_role_title', members: ['1', '2', '3'] },
+    ],
+    users: [
+      { id: '1', name: 'user-1' },
+      { id: '2', name: 'user-2' },
+      { id: '3', name: 'user-3' },
+    ],
   },
 });
 
@@ -65,7 +72,29 @@ describe('Roles functionalities test suite', () => {
     expect(mockCollection).toHaveBeenCalledWith('roles');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { 1: { members: [], role_title: 'dummy_role_title' } },
+        data: {
+          1: { members: ['1', '2', '3'], role_title: 'dummy_role_title' },
+        },
+        error: false,
+      })
+    );
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing getAllRoleUsers functionality', async () => {
+    const req = mockRequest({
+      id: '1',
+    });
+    const res = mockResponse();
+
+    await roles.getAllRoleUsers(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('roles');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        users: [{ name: 'user-1' }, { name: 'user-2' }, { name: 'user-3' }],
         error: false,
       })
     );
