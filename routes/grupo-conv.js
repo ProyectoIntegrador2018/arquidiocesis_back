@@ -29,49 +29,34 @@ Grupo conv ideal architecture:
 const add = async (firestore, req, res) => {
   const {
     group_name,
-    group_roles, //should be an object as the above description implies.
+    group_admin, //should be an object as the above description implies.
+    group_members,
     group_channels,
   } = req.body;
 
-  for (const group_role in group_roles) {
-    for (role of group_roles[group_role]) {
-      const roleref = await firestore.collection('roles').doc(role);
-      //validate role
-      const snapshot = await roleref.get();
-      if (!snapshot.exists) {
+  // check that current grupo-conv name is not already registered
+  await firestore
+    .collection('grupo_conv')
+    .where('group_name', '==', group_name)
+    .get()
+    .then((snapshot) => {
+      if (!snapshot.empty) {
         return res.send({
           error: true,
-          message: "couldn't find role with the given id",
-          error_id: role,
+          message: 'This title is already in use',
         });
       }
-    }
-  }
-
-  // Checks if all canales exist within collection 'canales'
-  for (channel of group_channels) {
-    const channelref = await firestore.collection('canales').doc(channel);
-    //validate channel
-    const snapshot = await channelref.get();
-    if (!snapshot.exists) {
-      return res.send({
-        error: true,
-        message: "couldn't find canal with the given id",
-        error_id: channel,
-      });
-    }
-  }
+    });
 
   const collectionref = await firestore.collection('grupo_conv');
   const docref = await collectionref.add({
     group_name,
-    group_roles,
+    group_admin,
+    group_members,
     group_channels,
   }); // add new grupo-conv to grupo-conv collection
 
-  // --------- success ----------//
-  // ----------VVVVVVV-----------//
-  res.send({
+  return res.send({
     error: false,
     data: docref.id,
   });
@@ -90,11 +75,30 @@ const edit = async (firestore, req, res) => {
   });
 };
 
-const addUser = async (firestore, req, res) => {
-  const { group_id, group_users } = req.body;
+const addAdmin = async (firestore, req, res) => {
+  const { group_id, administrators} = req.body;
   try{
     await firestore.collection('grupo_conv').doc(group_id).update({
-      members: admin.firestore.FieldValue.arrayUnion(...group_users),
+      administrators: admin.firestore.FieldValue.arrayUnion(...administrators),
+    });
+
+    return res.send({
+      error: false,
+    });
+
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: e,
+    });
+  }
+}
+
+const addMember = async (firestore, req, res) => {
+  const { group_id, members } = req.body;
+  try{
+    await firestore.collection('grupo_conv').doc(group_id).update({
+      members: admin.firestore.FieldValue.arrayUnion(...members),
     });
 
     return res.send({
@@ -109,11 +113,11 @@ const addUser = async (firestore, req, res) => {
   }
 };
 
-const removeUser = async (firestore, req, res) => {
-  const { group_id, group_users } = req.body;
+const removeAdmin = async (firestore, req, res) => {
+  const { group_id, administrators } = req.body;
   try{
     await firestore.collection('grupo_conv').doc(group_id).update({
-      members: admin.firestore.FieldValue.arrayRemove(...group_users),
+      administrators: admin.firestore.FieldValue.arrayRemove(...administrators),
     });
 
     return res.send({
@@ -128,20 +132,46 @@ const removeUser = async (firestore, req, res) => {
   }
 };
 
-const getall = async (firestore, req, res) => {
-  const snapshot = await firestore.collection('grupo_conv').get();
+const removeMember = async (firestore, req, res) => {
+  const { group_id, members } = req.body;
+  try{
+    await firestore.collection('grupo_conv').doc(group_id).update({
+      members: admin.firestore.FieldValue.arrayRemove(...members),
+    });
+
+    return res.send({
+      error: false,
+    });
+
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: e,
+    });
+  }
+};
+
+const getAllGroupsByUser = async (firestore, req, res) => {
+  const { id } = req.body; //get users' id
+  let dataRes = [];
   try {
-    const docs = snapshot.docs.map((doc) => {
-      console.log(doc.id);
-      return {
-        id: doc.id,
-        content: doc.data(),
-      };
-    });
-    res.send({
-      error: false,
-      data: docs,
-    });
+    const userRef = await firestore.collection('users').doc(id);
+    const user = await userRef.get();
+
+    if(user.exists){
+      const groupIds = user.data().groups;
+      const groupsRef = firestore.collection('grupo-conv');
+      const snapshot = await groupsRef.where('uid', 'in', groupIds).get();
+      if (!snapshot.empty) {
+        snapshot.forEach((doc) => {
+          dataRes.push(doc.data());
+        });
+      }
+      return res.send({
+        error: false,
+        users: dataRes,
+      });
+    }
   } catch (err) {
     res.send({
       error: true,
@@ -152,10 +182,12 @@ const getall = async (firestore, req, res) => {
 
 module.exports = {
   add: add,
-  addUser: addUser,
+  addAdmin: addAdmin,
+  addMember: addMember,
   edit: edit,
-  removeUser: removeUser,
-  getall: getall,
+  removeAdmin: removeAdmin,
+  removeMember: removeMember,
+  getAllGroupsByUser: getAllGroupsByUser,
 };
 
 
