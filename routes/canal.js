@@ -78,7 +78,7 @@ const getAllChannelsByGroup = async (firestore, req, res) => {
   const snapshot = await canalesRef.where('__name__', 'in', channel_ids).get();
   return res.send({
     error: false,
-    channels: snapshot.docs.map(doc => doc.data()),
+    channels: snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})),
   });
 }
 

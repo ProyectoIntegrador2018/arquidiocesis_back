@@ -176,7 +176,7 @@ const getAllGroupsByUser = async (firestore, req, res) => {
       const snapshot = await groupsRef.where('__name__', 'in', groupIds).get();
       return res.send({
         error: false,
-        groups: snapshot.docs.map(doc => doc.data()),
+        groups: snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})),
       });
     }
   } catch (e) {
