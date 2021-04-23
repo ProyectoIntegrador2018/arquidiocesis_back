@@ -403,6 +403,7 @@ app.put('/api/groups/removeAdmin', (req, res) =>
 
 app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
 app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
+app.post('/api/channels/getAll', (req, res) => channels.getAllChannelsByGroup(firestore, req, res));
 
 app.post('/api/posts', (req, res) => publicacion.add(firestore, req, res));
 app.get('/api/posts/:id', (req, res) => publicacion.get(firestore, req, res));

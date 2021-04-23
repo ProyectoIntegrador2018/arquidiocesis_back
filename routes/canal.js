@@ -71,7 +71,19 @@ const edit = async (firestore, req, res) => {
   });
 };
 
+const getAllChannelsByGroup = async (firestore, req, res) => {
+  const {channel_ids} = req.body;
+
+  const canalesRef = firestore.collection('canales');
+  const snapshot = await canalesRef.where('__name__', 'in', channel_ids).get();
+  return res.send({
+    error: false,
+    channels: snapshot.docs.map(doc => doc.data()),
+  });
+}
+
 module.exports = {
   add: add,
   edit: edit,
+  getAllChannelsByGroup: getAllChannelsByGroup,
 };
