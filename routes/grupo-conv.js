@@ -35,7 +35,7 @@ const add = async (firestore, req, res) => {
   } = req.body;
 
   // check that current grupo-conv name is not already registered
-  await firestore
+  firestore
     .collection('grupo_conv')
     .where('group_name', '==', group_name)
     .get()
