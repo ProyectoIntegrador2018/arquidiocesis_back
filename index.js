@@ -385,30 +385,57 @@ app.get('/api/estadisticas/', (req, res) =>
 
 app.post('/api/groups', (req, res) => grupos_conv.add(firestore, req, res));
 app.put('/api/groups/:id', (req, res) => grupos_conv.edit(firestore, req, res));
-app.get('/api/groups/get', (req, res) => grupos_conv.getall(firestore, req, res));
-app.put('/api/groups/removeUser/:id', (req, res) => grupos_conv.removeUser(firestore, req, res));
-app.put('/api/groups/addUser/:id', (req, res) => grupos_conv.addUser(firestore, req, res));
+app.get('/api/groups/get', (req, res) =>
+  grupos_conv.getAllGroupsByUser(firestore, req, res)
+);
+app.put('/api/groups/addMember', (req, res) =>
+  grupos_conv.addMember(firestore, req, res)
+);
+app.put('/api/groups/removeUser', (req, res) =>
+  grupos_conv.removeMember(firestore, req, res)
+);
+app.put('/api/groups/addAdmin', (req, res) =>
+  grupos_conv.addAdmin(firestore, req, res)
+);
+app.put('/api/groups/removeAdmin', (req, res) =>
+  grupos_conv.removeAdmin(firestore, req, res)
+);
 
 app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
 app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
 
 app.post('/api/posts', (req, res) => publicacion.add(firestore, req, res));
 app.get('/api/posts/:id', (req, res) => publicacion.get(firestore, req, res));
-app.put('/api/posts/edit/:id', (req, res) => publicacion.edit(firestore, req, res));
-app.delete('/api/posts/delete/:id', (req, res) => publicacion.remove(firestore, req, res));
-app.get('/api/posts/files/get/:id', (req, res) => publicacion.get_post_files(firestore, req, res));
-app.get('/api/posts/getChannelPosts', (req, res) => publicacion.getChannelPosts(firestore, req, res));
+app.put('/api/posts/edit/:id', (req, res) =>
+  publicacion.edit(firestore, req, res)
+);
+app.delete('/api/posts/delete/:id', (req, res) =>
+  publicacion.remove(firestore, req, res)
+);
+app.get('/api/posts/files/get/:id', (req, res) =>
+  publicacion.get_post_files(firestore, req, res)
+);
+app.get('/api/posts/getChannelPosts', (req, res) =>
+  publicacion.getChannelPosts(firestore, req, res)
+);
 
 app.post('/api/comment', (req, res) => comentario.add(firestore, req, res));
-app.get('/api/comment/getPostComments', (req, res) => comentario.getPostComments(firestore, req, res));
+app.get('/api/comment/getPostComments', (req, res) =>
+  comentario.getPostComments(firestore, req, res)
+);
 
 app.post('/api/roles', (req, res) => roles.add(firestore, req, res));
 app.get('/api/roles/all', (req, res) => roles.getAllRoles(firestore, req, res));
-app.put('/api/roles/:id', (req, res) => roles.addRoleMember(firestore, req, res));
-app.put('/api/roles/revoke:id', (req, res) => roles.revoke(firestore, req, res));
+app.get('/api/roles/users', (req, res) =>
+  roles.getAllRoleUsers(firestore, req, res)
+);
+app.put('/api/roles/:id', (req, res) =>
+  roles.addRoleMember(firestore, req, res)
+);
+app.put('/api/roles/revoke:id', (req, res) =>
+  roles.revoke(firestore, req, res)
+);
 app.delete('/api/roles/:id', (req, res) => roles.remove(firestore, req, res));
-
-
 
 // No route found
 app.all('*', (req, res) => {
