@@ -2,8 +2,9 @@ const { mockCollection } = require('firestore-jest-mock/mocks/firestore');
 const { mockFirebase } = require('firestore-jest-mock');
 const grupo = require('../routes/grupo-conv');
 
-const mockRequest = (body) => ({
+const mockRequest = (body, params) => ({
   body,
+  params,
 });
 
 const mockResponse = () => {
@@ -43,15 +44,16 @@ mockFirebase({
         group_name: 'testing4',
         group_channels: [],
         group_admins: ['1'],
-        group_members: ['2', '3'],},
+        group_members: ['2', '3'],
+      },
     ],
     users: [
       {
         id: '1',
         name: 'user-1',
         groups: ['1', '2', '3'],
-      }
-    ]
+      },
+    ],
   },
 });
 
@@ -106,9 +108,7 @@ describe('Testing "Grupo conversacion"', () => {
   });
 
   test('Testing correct "getAllGroupsByUser" functionality', async () => {
-    const request = mockRequest({
-      id: '1',
-    });
+    const request = mockRequest({}, { id: '1' });
     const res = mockResponse();
 
     await grupo.getAllGroupsByUser(db, request, res);
@@ -122,8 +122,8 @@ describe('Testing "Grupo conversacion"', () => {
     const req = mockRequest(
       {
         administrators: ['1', '2'],
-        group_id: 1
-      }, // role doc id
+        group_id: 1,
+      } // role doc id
     );
     const res = mockResponse();
 
@@ -139,8 +139,8 @@ describe('Testing "Grupo conversacion"', () => {
     const req = mockRequest(
       {
         members: ['1', '2'],
-        group_id: 1
-      }, // role doc id
+        group_id: 1,
+      } // role doc id
     );
     const res = mockResponse();
 
@@ -152,23 +152,21 @@ describe('Testing "Grupo conversacion"', () => {
     );
   });
 
-  
-
   test('Testing removeAdmin functionality', async () => {
-  const req = mockRequest(
-    {
-      administrators: ['1'],
-      group_id: '1'
-    }, // role doc id
-  );
-  const res = mockResponse();
+    const req = mockRequest(
+      {
+        administrators: ['1'],
+        group_id: '1',
+      } // role doc id
+    );
+    const res = mockResponse();
 
-  await grupo.removeAdmin(db, req, res);
+    await grupo.removeAdmin(db, req, res);
 
-  expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
-  expect(res.send).toHaveBeenCalledWith(
-    expect.objectContaining({ error: false })
-  );
+    expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
   });
 
   test('Testing removeMember functionality', async () => {
@@ -176,17 +174,17 @@ describe('Testing "Grupo conversacion"', () => {
       {
         members: ['1'],
         group_id: '1',
-      }, // role doc id
+      } // role doc id
     );
     const res = mockResponse();
-  
+
     await grupo.removeMember(db, req, res);
-  
+
     expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
     );
-    });
+  });
 });
 
 jest.clearAllMocks();
