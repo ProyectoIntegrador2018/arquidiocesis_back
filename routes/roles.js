@@ -4,7 +4,7 @@
  */
 
 const admin = require('firebase-admin');
-const { reset } = require('nodemon');
+const userUtil = require('./user');
 
 const add = async (firestore, req, res) => {
   const { role_title } = req.body;
@@ -22,7 +22,7 @@ const add = async (firestore, req, res) => {
   };
 
   // check that current role_title is not already registered
-  const query = await firestore
+  await firestore
     .collection('roles')
     .where('role_title', '==', new_role_entry.title)
     .get()
@@ -54,7 +54,7 @@ const add = async (firestore, req, res) => {
 };
 
 const getAllRoles = async (firestore, req, res) => {
-  let dataRes = {};
+  const dataRes = {};
   try {
     const rolesRef = await firestore.collection('roles');
     const snapshot = await rolesRef.get();
@@ -75,7 +75,7 @@ const getAllRoles = async (firestore, req, res) => {
 
 const getAllRoleUsers = async (firestore, req, res) => {
   const { id } = req.body; //gets role id from body
-  let dataRes = [];
+  const dataRes = [];
   try {
     const rolesRef = await firestore.collection('roles').doc(id);
     const role = await rolesRef.get();
@@ -83,7 +83,7 @@ const getAllRoleUsers = async (firestore, req, res) => {
       //checks for user id in users collection
       const userIds = role.data().members;
       const usersRef = firestore.collection('users');
-      const snapshot = await usersRef.where('uid', 'in', userIds).get();
+      const snapshot = await usersRef.where('__name__', 'in', userIds).get();
       if (!snapshot.empty) {
         snapshot.forEach((doc) => {
           dataRes.push(doc.data());
@@ -139,7 +139,8 @@ const remove = async (firestore, req, res) => {
   }
 
   try {
-    const docRef = await firestore.collection('roles').doc(id).delete();
+    await userUtil.removeRoleMembers(firestore, id);
+    await firestore.collection('roles').doc(id).delete();
     res.send({
       error: false,
       message: 'Role deleted succesfuly',
@@ -177,15 +178,7 @@ const revoke = async (firestore, req, res) => {
       members: admin.firestore.FieldValue.arrayRemove(...users),
     });
 
-    //Removes role from user document role array
-    for (const user of users) {
-      await firestore
-        .collection('users')
-        .doc(user)
-        .update({
-          roles: admin.firestore.FieldValue.arrayRemove(id),
-        });
-    }
+    await userUtil.removeRole(firestore, id, users);
 
     res.send({
       error: false,
