@@ -1,12 +1,10 @@
 const {
   mockCollection,
   mockDoc,
-  mockGetAll,
 } = require('firestore-jest-mock/mocks/firestore');
 const { mockFirebase } = require('firestore-jest-mock');
 const coordinadores = require('../routes/coordinadores.js');
 const login = require('../routes/login.js');
-const bcrypt = require('bcrypt-nodejs');
 
 const mockRequest = (body, user) => ({
   body,
@@ -34,6 +32,12 @@ mockFirebase({
         password:
           '$2a$10$Hgn.AHldy4bgIB0db7Q9BeHx7S1iynxBhQ1NuyJkiGJH2jTFqtb46',
         id: emailTest2,
+      },
+    ],
+    users: [
+      {
+        email: emailTest2,
+        password: passwordTest,
       },
     ],
   },
