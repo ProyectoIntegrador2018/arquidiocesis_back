@@ -1,7 +1,4 @@
-const {
-  mockCollection,
-  mockDoc,
-} = require('firestore-jest-mock/mocks/firestore');
+const { mockCollection } = require('firestore-jest-mock/mocks/firestore');
 const { mockFirebase } = require('firestore-jest-mock');
 const publicacion = require('../routes/publicacion.js');
 
@@ -152,7 +149,7 @@ describe('Publicacion functionalities test suite', () => {
   });
 
   test('Testing incorrect delete functionality: no id in params', async () => {
-    const req = mockRequest({}, {id: undefined});
+    const req = mockRequest({}, { id: undefined });
     const res = mockResponse();
 
     await publicacion.remove(db, req, res);
@@ -164,7 +161,7 @@ describe('Publicacion functionalities test suite', () => {
   });
 
   test('Testing correct getChannelPosts functionality', async () => {
-    const req = mockRequest({channel_owner_id:'1'}, {});
+    const req = mockRequest({}, { channelID: '1' });
     const res = mockResponse();
 
     await publicacion.getChannelPosts(db, req, res);
