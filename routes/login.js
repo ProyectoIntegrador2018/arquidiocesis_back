@@ -22,6 +22,13 @@ const authenticate = async (firestore, req, res) => {
     if (snapshot.exists) {
       // since id is email, this validates email
       const data = snapshot.data(); //read the doc data
+      const userData = await firestore
+        .collection('users')
+        .where('email', '==', `${email.toLowerCase()}`);
+      let data2 = null;
+      if (userData.size > 0) {
+        data2 = userData.docs[0].data();
+      }
 
       if (bcrypt.compareSync(password, data.password)) {
         //validate password
@@ -34,6 +41,7 @@ const authenticate = async (firestore, req, res) => {
             type: data.tipo,
             id: data.id,
           },
+          userInfo: data2,
         });
       } else {
         return res.send({
@@ -61,7 +69,7 @@ const authenticate = async (firestore, req, res) => {
 const verifyToken = (firestore) => {
   return (req, res, next) => {
     var token;
-    if (req.method == 'POST') {
+    if (req.method === 'POST') {
       token = req.body.token;
     } else {
       token = req.query.token;
@@ -81,15 +89,15 @@ const verifyToken = (firestore) => {
         req.user = user;
         // *** Falta ver donde van cada uno de los tipos nuevos ***
         req.user.admin =
-          user.tipo == 'admin' ||
-          user.tipo == 'superadmin' ||
-          user.tipo == 'coordinador' ||
-          user.tipo == 'acompañante_zona' ||
-          user.tipo == 'acompañanate_decanato';
+          user.tipo === 'admin' ||
+          user.tipo === 'superadmin' ||
+          user.tipo === 'coordinador' ||
+          user.tipo === 'acompañante_zona' ||
+          user.tipo === 'acompañanate_decanato';
         req.user.readonly =
-          user.tipo == 'coordinador' ||
-          user.tipo == 'acompañante_zona' ||
-          user.tipo == 'acompañanate_decanato';
+          user.tipo === 'coordinador' ||
+          user.tipo === 'acompañante_zona' ||
+          user.tipo === 'acompañanate_decanato';
         return next();
       } else
         return res.send({
@@ -132,7 +140,7 @@ const changePassword = async (firestore, req, res) => {
       .collection('logins')
       .where('id', '==', req.user.id)
       .get();
-    if (userSnap.size == 0)
+    if (userSnap.size === 0)
       return res.send({
         error: true,
         message: 'No existe un usuario con ese id.',
