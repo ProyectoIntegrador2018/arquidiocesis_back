@@ -14,7 +14,7 @@ timestamp: Date,
 */
 
 const add = async (firestore, req, res) => {
-  const { comment_text, comment_author, post_owner_id} = req.body;
+  const { comment_text, comment_author, post_owner_id } = req.body;
 
   if (post_owner_id === '' || post_owner_id === undefined) {
     return res.send({
@@ -36,7 +36,12 @@ const add = async (firestore, req, res) => {
   }
 
   const today_date = new Date();
-  const creation_timestamp = today_date.getFullYear()+'-'+(today_date.getMonth()+1)+'-'+today_date.getDate();
+  const creation_timestamp =
+    today_date.getFullYear() +
+    '-' +
+    (today_date.getMonth() + 1) +
+    '-' +
+    today_date.getDate();
 
   try {
     const collectionref = await firestore.collection('comentario');
@@ -60,21 +65,22 @@ const add = async (firestore, req, res) => {
 };
 
 const getPostComments = async (firestore, req, res) => {
-  const {post_owner_id} = req.body;
-  if (
-    post_owner_id === '' ||
-    post_owner_id === undefined
-  ) {
+  const { post_owner_id } = req.body;
+  if (post_owner_id === '' || post_owner_id === undefined) {
     return res.send({
       error: true,
       message: 'Field cannot be left blank',
     });
   }
-  const snapshot = await firestore.collection('comentario').where('post_owner_id', '==', req.body.post_owner_id).get();
+  const snapshot = await firestore
+    .collection('comentario')
+    .where('post_owner_id', '==', req.body.post_owner_id)
+    .get();
   try {
     const docs = snapshot.docs.map((doc) => {
       return {
         post_owner_id: post_owner_id,
+        comment_id: doc.id,
         comments: doc.data(),
       };
     });

@@ -115,21 +115,22 @@ const get = async (firestore, req, res) => {
 };
 
 const getChannelPosts = async (firestore, req, res) => {
-  const {channel_owner_id} = req.body;
-  if (
-    channel_owner_id === '' ||
-    channel_owner_id === undefined
-  ) {
+  const { channel_owner_id } = req.body;
+  if (channel_owner_id === '' || channel_owner_id === undefined) {
     return res.send({
       error: true,
       message: 'Field cannot be left blank',
     });
   }
-  const snapshot = await firestore.collection('publicacion').where('channel_owner_id', '==', req.body.channel_owner_id).get();
+  const snapshot = await firestore
+    .collection('publicacion')
+    .where('channel_owner_id', '==', req.body.channel_owner_id)
+    .get();
   try {
     const docs = snapshot.docs.map((doc) => {
       return {
         channel_owner_id: channel_owner_id,
+        post_id: doc.id,
         posts: doc.data(),
       };
     });
