@@ -21,22 +21,37 @@ mockFirebase({
         id: '1',
         group_name: 'testing1',
         group_channels: ['id1', 'id2', 'id3'],
-        group_roles: ['rol1', 'rol2', 'rol3'],
+        group_admins: ['1'],
+        group_members: ['2', '3'],
       },
       {
         id: '2',
         group_name: 'testing2',
         group_channels: [],
-        group_roles: ['rol1', 'rol2', 'rol3'],
+        group_admins: ['1'],
+        group_members: ['2', '3'],
       },
       {
         id: '3',
         group_name: 'testing3',
         group_channels: ['id1', 'id2', 'id3'],
-        group_roles: [],
+        group_admins: ['1'],
+        group_members: ['2', '3'],
       },
-      { id: '4', group_name: 'testing4', group_channels: [], group_roles: [] },
+      {
+        id: '4',
+        group_name: 'testing4',
+        group_channels: [],
+        group_admins: ['1'],
+        group_members: ['2', '3'],},
     ],
+    users: [
+      {
+        id: '1',
+        name: 'user-1',
+        groups: ['1', '2', '3'],
+      }
+    ]
   },
 });
 
@@ -48,7 +63,8 @@ describe('Testing "Grupo conversacion"', () => {
     const request = mockRequest({
       group_name: 'testing-input-1',
       group_channels: [],
-      group_roles: {},
+      group_admins: [],
+      group_members: [],
       group_description: '',
     });
     const res = mockResponse();
@@ -58,35 +74,19 @@ describe('Testing "Grupo conversacion"', () => {
     );
   });
 
-  test('Testing incorrect (group_channels not in db) "add" functionality', async () => {
+  test('Testing incorrect "add" functionality', async () => {
     const request = mockRequest({
-      group_name: 'testing-input-1',
-      group_channels: ['id1'],
-      group_roles: {},
-      group_description: '',
-    });
-    const res = mockResponse();
-    await grupo.add(db, request, res);
-    expect(res.send).toHaveBeenCalledWith({
-      error: true,
-      message: "couldn't find canal with the given id",
-      error_id: 'id1',
-    });
-  });
-
-  test('Testing incorrect (group_roles not in db) "add" functionality', async () => {
-    const request = mockRequest({
-      group_name: 'testing-input-1',
+      group_name: 'testing1',
       group_channels: [],
-      group_roles: { administrator: ['id1'] },
+      group_admins: [],
+      group_members: [],
       group_description: '',
     });
     const res = mockResponse();
     await grupo.add(db, request, res);
     expect(res.send).toHaveBeenCalledWith({
       error: true,
-      message: "couldn't find role with the given id",
-      error_id: 'id1',
+      message: 'This title is already in use',
     });
   });
 
@@ -105,50 +105,88 @@ describe('Testing "Grupo conversacion"', () => {
     );
   });
 
-  test('Testing correct "getall" functionality', async () => {
-    const request = mockRequest();
+  test('Testing correct "getAllGroupsByUser" functionality', async () => {
+    const request = mockRequest({
+      id: '1',
+    });
     const res = mockResponse();
 
-    await grupo.getall(db, request, res);
+    await grupo.getAllGroupsByUser(db, request, res);
 
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
     );
   });
 
-  test('Testing addUser functionality', async () => {
+  test('Testing addAdmin functionality', async () => {
     const req = mockRequest(
       {
-        group_users: ['dummy_memb_1', 'dummy_memb_2'],
-        id: 1
+        administrators: ['1', '2'],
+        group_id: 1
       }, // role doc id
     );
     const res = mockResponse();
 
-    await grupo.addUser(db, req, res);
+    await grupo.addAdmin(db, req, res);
 
     expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
     );
   });
+
+  test('Testing addMember functionality', async () => {
+    const req = mockRequest(
+      {
+        members: ['1', '2'],
+        group_id: 1
+      }, // role doc id
+    );
+    const res = mockResponse();
+
+    await grupo.addMember(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+  });
+
   
-  test('Testing removeUser functionality', async () => {
+
+  test('Testing removeAdmin functionality', async () => {
   const req = mockRequest(
     {
-      group_users: ['dummy_memb_1', 'dummy_memb_2'],
-      id: 1
+      administrators: ['1'],
+      group_id: '1'
     }, // role doc id
   );
   const res = mockResponse();
 
-  await grupo.removeUser(db, req, res);
+  await grupo.removeAdmin(db, req, res);
 
   expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
   expect(res.send).toHaveBeenCalledWith(
     expect.objectContaining({ error: false })
   );
   });
+
+  test('Testing removeMember functionality', async () => {
+    const req = mockRequest(
+      {
+        members: ['1'],
+        group_id: '1',
+      }, // role doc id
+    );
+    const res = mockResponse();
+  
+    await grupo.removeMember(db, req, res);
+  
+    expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: false })
+    );
+    });
 });
 
 jest.clearAllMocks();
