@@ -39,18 +39,14 @@ const admin = require('firebase-admin');
 // Check if environment variable for firebase
 // auth is available
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  var serviceJson = Buffer.from(
+  const serviceJson = Buffer.from(
     process.env.FIREBASE_SERVICE_ACCOUNT,
     'base64'
   ).toString();
-  try {
-    const serviceAccount = JSON.parse(serviceJson);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-  } catch (e) {
-    throw e;
-  }
+  const serviceAccount = JSON.parse(serviceJson);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
 } else {
   // Check if firebase auth file is present
   const serviceAccount = require('./ServiceAccountKey');
@@ -403,7 +399,9 @@ app.put('/api/groups/removeAdmin', (req, res) =>
 
 app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
 app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
-app.post('/api/channels/getAll', (req, res) => channels.getAllChannelsByGroup(firestore, req, res));
+app.post('/api/channels/getAll', (req, res) =>
+  channels.getAllChannelsByGroup(firestore, req, res)
+);
 
 app.post('/api/posts', (req, res) => publicacion.add(firestore, req, res));
 app.get('/api/posts/:id', (req, res) => publicacion.get(firestore, req, res));
@@ -416,7 +414,7 @@ app.delete('/api/posts/delete/:id', (req, res) =>
 app.get('/api/posts/files/get/:id', (req, res) =>
   publicacion.get_post_files(firestore, req, res)
 );
-app.get('/api/posts/getChannelPosts', (req, res) =>
+app.get('/api/posts/getChannelPosts/:channelID', (req, res) =>
   publicacion.getChannelPosts(firestore, req, res)
 );
 
