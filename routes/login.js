@@ -28,7 +28,11 @@ const authenticate = async (firestore, req, res) => {
         .get();
       let data2 = null;
       if (userData.size > 0) {
-        data2 = userData.docs[0].data();
+        const doc = userData.docs[0];
+        data2 = {
+          id: doc.id,
+          ...doc.data(),
+        };
       }
       delete data2.password;
 
