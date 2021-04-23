@@ -1,6 +1,5 @@
-const Util = require('./util');
-const canal = require('./canal');
 const admin = require('firebase-admin');
+const userUtil = require('./user');
 /**
  * Module for managing Groups
  * @module Grupo-conv
@@ -151,7 +150,7 @@ const removeMember = async (firestore, req, res) => {
       .update({
         members: admin.firestore.FieldValue.arrayRemove(...members),
       });
-
+    userUtil.removeGroupMembers(firestore, group_id, members);
     return res.send({
       error: false,
     });
@@ -165,7 +164,6 @@ const removeMember = async (firestore, req, res) => {
 
 const getAllGroupsByUser = async (firestore, req, res) => {
   const { id } = req.params; //get users' id
-  let dataRes = [];
   try {
     const userRef = await firestore.collection('users').doc(id);
     const user = await userRef.get();
@@ -176,7 +174,7 @@ const getAllGroupsByUser = async (firestore, req, res) => {
       const snapshot = await groupsRef.where('__name__', 'in', groupIds).get();
       return res.send({
         error: false,
-        groups: snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})),
+        groups: snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
       });
     }
   } catch (e) {
