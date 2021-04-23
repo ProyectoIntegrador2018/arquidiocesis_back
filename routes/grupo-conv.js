@@ -172,22 +172,17 @@ const getAllGroupsByUser = async (firestore, req, res) => {
 
     if (user.exists) {
       const groupIds = user.data().groups;
-      const groupsRef = firestore.collection('grupo-conv');
-      const snapshot = await groupsRef.where('uid', 'in', groupIds).get();
-      if (!snapshot.empty) {
-        snapshot.forEach((doc) => {
-          dataRes.push(doc.data());
-        });
-      }
+      const groupsRef = firestore.collection('grupo_conv');
+      const snapshot = await groupsRef.where('__name__', 'in', groupIds).get();
       return res.send({
         error: false,
-        users: dataRes,
+        groups: snapshot.docs.map(doc => doc.data()),
       });
     }
-  } catch (err) {
+  } catch (e) {
     res.send({
       error: true,
-      message: 'Error inesperado.',
+      message: `Unexpected error: ${e}`,
     });
   }
 };
