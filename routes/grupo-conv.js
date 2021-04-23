@@ -76,35 +76,41 @@ const edit = async (firestore, req, res) => {
 };
 
 const addAdmin = async (firestore, req, res) => {
-  const { group_id, administrators} = req.body;
-  try{
-    await firestore.collection('grupo_conv').doc(group_id).update({
-      administrators: admin.firestore.FieldValue.arrayUnion(...administrators),
-    });
+  const { group_id, administrators } = req.body;
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .doc(group_id)
+      .update({
+        administrators: admin.firestore.FieldValue.arrayUnion(
+          ...administrators
+        ),
+      });
 
     return res.send({
       error: false,
     });
-
   } catch (e) {
     return res.send({
       error: true,
       message: e,
     });
   }
-}
+};
 
 const addMember = async (firestore, req, res) => {
   const { group_id, members } = req.body;
-  try{
-    await firestore.collection('grupo_conv').doc(group_id).update({
-      members: admin.firestore.FieldValue.arrayUnion(...members),
-    });
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .doc(group_id)
+      .update({
+        members: admin.firestore.FieldValue.arrayUnion(...members),
+      });
 
     return res.send({
       error: false,
     });
-
   } catch (e) {
     return res.send({
       error: true,
@@ -115,15 +121,19 @@ const addMember = async (firestore, req, res) => {
 
 const removeAdmin = async (firestore, req, res) => {
   const { group_id, administrators } = req.body;
-  try{
-    await firestore.collection('grupo_conv').doc(group_id).update({
-      administrators: admin.firestore.FieldValue.arrayRemove(...administrators),
-    });
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .doc(group_id)
+      .update({
+        administrators: admin.firestore.FieldValue.arrayRemove(
+          ...administrators
+        ),
+      });
 
     return res.send({
       error: false,
     });
-
   } catch (e) {
     return res.send({
       error: true,
@@ -134,15 +144,17 @@ const removeAdmin = async (firestore, req, res) => {
 
 const removeMember = async (firestore, req, res) => {
   const { group_id, members } = req.body;
-  try{
-    await firestore.collection('grupo_conv').doc(group_id).update({
-      members: admin.firestore.FieldValue.arrayRemove(...members),
-    });
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .doc(group_id)
+      .update({
+        members: admin.firestore.FieldValue.arrayRemove(...members),
+      });
 
     return res.send({
       error: false,
     });
-
   } catch (e) {
     return res.send({
       error: true,
@@ -152,13 +164,13 @@ const removeMember = async (firestore, req, res) => {
 };
 
 const getAllGroupsByUser = async (firestore, req, res) => {
-  const { id } = req.body; //get users' id
+  const { id } = req.params; //get users' id
   let dataRes = [];
   try {
     const userRef = await firestore.collection('users').doc(id);
     const user = await userRef.get();
 
-    if(user.exists){
+    if (user.exists) {
       const groupIds = user.data().groups;
       const groupsRef = firestore.collection('grupo-conv');
       const snapshot = await groupsRef.where('uid', 'in', groupIds).get();
@@ -189,5 +201,3 @@ module.exports = {
   removeMember: removeMember,
   getAllGroupsByUser: getAllGroupsByUser,
 };
-
-
