@@ -75,7 +75,7 @@ const authenticate = async (firestore, req, res) => {
 const verifyToken = (firestore) => {
   return (req, res, next) => {
     let token;
-    if (req.method === 'POST') {
+    if (req.method === 'POST' || req.method === 'PUT') {
       token = req.body.token;
     } else {
       token = req.query.token;
