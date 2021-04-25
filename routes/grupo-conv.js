@@ -28,7 +28,7 @@ Grupo conv ideal architecture:
 const add = async (firestore, req, res) => {
   const {
     group_name,
-    group_admin, //should be an object as the above description implies.
+    group_admins, //should be an object as the above description implies.
     group_members,
     group_channels,
   } = req.body;
@@ -50,7 +50,7 @@ const add = async (firestore, req, res) => {
   const collectionref = await firestore.collection('grupo_conv');
   const docref = await collectionref.add({
     group_name,
-    group_admin,
+    group_admins,
     group_members,
     group_channels,
   }); // add new grupo-conv to grupo-conv collection
@@ -185,6 +185,43 @@ const getAllGroupsByUser = async (firestore, req, res) => {
   }
 };
 
+const getAllGroupUsers = async (firestore, req, res) => {
+  const { id } = req.body; //gets group id from body
+  const dataRes = [];
+  try {
+    const groupRef = await firestore.collection('grupo_conv').doc(id);
+    const group = await groupRef.get();
+    if (group.exists) {
+      //checks for user id in users collection
+      const userIds = [
+        ...group.data().group_members,
+        ...group.data().group_admins,
+      ];
+      const usersRef = firestore.collection('users');
+      const snapshot = await usersRef.where('__name__', 'in', userIds).get();
+      if (!snapshot.empty) {
+        snapshot.forEach((doc) => {
+          dataRes.push(doc.data());
+        });
+      }
+      return res.send({
+        error: false,
+        users: dataRes,
+      });
+    } else {
+      return res.send({
+        error: true,
+        message: `No group with ID: ${id}`,
+      });
+    }
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
 module.exports = {
   add: add,
   addAdmin: addAdmin,
@@ -193,4 +230,5 @@ module.exports = {
   removeAdmin: removeAdmin,
   removeMember: removeMember,
   getAllGroupsByUser: getAllGroupsByUser,
+  getAllGroupUsers: getAllGroupUsers,
 };

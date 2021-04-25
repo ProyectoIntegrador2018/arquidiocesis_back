@@ -396,6 +396,9 @@ app.put('/api/groups/addAdmin', (req, res) =>
 app.put('/api/groups/removeAdmin', (req, res) =>
   grupos_conv.removeAdmin(firestore, req, res)
 );
+app.put('/api/groups/users', (req, res) =>
+  grupos_conv.getAllGroupUsers(firestore, req, res)
+);
 
 app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
 app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
