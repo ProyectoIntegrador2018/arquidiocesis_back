@@ -53,6 +53,9 @@ mockFirebase({
         name: 'user-1',
         groups: ['1', '2', '3'],
       },
+      { id: '1', name: 'user-1' },
+      { id: '2', name: 'user-2' },
+      { id: '3', name: 'user-3' },
     ],
   },
 });
@@ -183,6 +186,22 @@ describe('Testing "Grupo conversacion"', () => {
     expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
+    );
+  });
+
+  test('Testing getAllGroupUsers functionality', async () => {
+    const req = mockRequest({
+      id: '1',
+    });
+    const res = mockResponse();
+
+    await grupo.getAllGroupUsers(db, req, res);
+
+    expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: false,
+      })
     );
   });
 });
