@@ -1,4 +1,3 @@
-const Util = require('./util');
 /**
  * Module for managing Groups
  * @module Comentario
@@ -65,8 +64,8 @@ const add = async (firestore, req, res) => {
 };
 
 const getPostComments = async (firestore, req, res) => {
-  const { post_owner_id } = req.body;
-  if (post_owner_id === '' || post_owner_id === undefined) {
+  const { postID } = req.params;
+  if (postID === '' || postID === undefined) {
     return res.send({
       error: true,
       message: 'Field cannot be left blank',
@@ -74,19 +73,26 @@ const getPostComments = async (firestore, req, res) => {
   }
   const snapshot = await firestore
     .collection('comentario')
-    .where('post_owner_id', '==', req.body.post_owner_id)
+    .where('post_owner_id', '==', postID)
     .get();
+
   try {
-    const docs = snapshot.docs.map((doc) => {
-      return {
-        post_owner_id: post_owner_id,
-        comment_id: doc.id,
-        comments: doc.data(),
-      };
-    });
     return res.send({
       error: false,
-      data: docs,
+      data: await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const userSnapshot = await firestore
+            .collection('users')
+            .doc(doc.data().comment_author)
+            .get();
+
+          return {
+            id: doc.id,
+            authorInfo: userSnapshot.data(),
+            ...doc.data(),
+          };
+        })
+      ),
     });
   } catch (e) {
     return res.send({
@@ -97,6 +103,6 @@ const getPostComments = async (firestore, req, res) => {
 };
 
 module.exports = {
-  add: add,
-  getPostComments: getPostComments,
+  add,
+  getPostComments,
 };
