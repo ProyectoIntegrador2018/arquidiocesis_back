@@ -33,6 +33,7 @@ const add = async (firestore, req, res) => {
     group_channels,
   } = req.body;
 
+  let exists = false
   // check that current grupo-conv name is not already registered
   firestore
     .collection('grupo_conv')
@@ -40,25 +41,32 @@ const add = async (firestore, req, res) => {
     .get()
     .then((snapshot) => {
       if (!snapshot.empty) {
-        return res.send({
+        res.send({
           error: true,
           message: 'This title is already in use',
         });
+        return true
       }
-    });
-
-  const collectionref = await firestore.collection('grupo_conv');
-  const docref = await collectionref.add({
-    group_name,
-    group_admins,
-    group_members,
-    group_channels,
-  }); // add new grupo-conv to grupo-conv collection
-
-  return res.send({
-    error: false,
-    data: docref.id,
-  });
+      return false
+    })
+    .then(v => {
+      if(v) throw "used"
+    })
+    .then(async () => {
+      const collectionref = await firestore.collection('grupo_conv');
+      const docref = await collectionref.add({
+        group_name,
+        group_admins: group_admins ?? [],
+        group_members: group_members ?? [],
+        group_channels,
+      }); // add new grupo-conv to grupo-conv collection
+    
+      return res.send({
+        error: false,
+        data: docref.id,
+      });
+    })
+    .catch((e) => console.log(e));
 };
 
 const edit = async (firestore, req, res) => {
