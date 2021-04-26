@@ -13,6 +13,26 @@ roles: [string], roles id's
 
 */
 
+const getAllUsers = async (firestore, req, res) => {
+  const dataRes = {};
+  try {
+    const rolesRef = await firestore.collection('users');
+    const snapshot = await rolesRef.get();
+    snapshot.forEach((doc) => {
+      dataRes[doc.id] = doc.data();
+    });
+    res.send({
+      error: false,
+      users: dataRes,
+    });
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
 const removeRole = async (firestore, role_id, group_users) => {
   if (!role_id) return false;
   const snapshot = (
@@ -111,4 +131,5 @@ module.exports = {
   removeRoleMembers,
   addGroupMembers,
   removeGroupMembers,
+  getAllUsers,
 };

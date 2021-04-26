@@ -20,6 +20,7 @@ const acompanante = require('./routes/acompanantes');
 const participante = require('./routes/participante');
 const estadisticas = require('./routes/estadisticas');
 const roles = require('./routes/roles');
+const user = require('./routes/user');
 const channels = require('./routes/canal');
 const publicacion = require('./routes/publicacion');
 const comentario = require('./routes/comentario');
@@ -35,6 +36,7 @@ app.get('/', (req, res) => {
 
 //init firebase
 const admin = require('firebase-admin');
+const { getAllUsers } = require('./routes/user');
 
 // Check if environment variable for firebase
 // auth is available
@@ -440,6 +442,8 @@ app.put('/api/roles/revoke:id', (req, res) =>
   roles.revoke(firestore, req, res)
 );
 app.delete('/api/roles/:id', (req, res) => roles.remove(firestore, req, res));
+
+app.get('/api/users/all', (req, res) => user.getAllUsers(firestore, req, res));
 
 // No route found
 app.all('*', (req, res) => {
