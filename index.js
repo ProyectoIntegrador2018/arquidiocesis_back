@@ -443,7 +443,7 @@ app.put('/api/roles/revoke:id', (req, res) =>
 );
 app.delete('/api/roles/:id', (req, res) => roles.remove(firestore, req, res));
 
-app.get('/api/users/all', (req, res) => user.getAllUsers(firestorem, req, res));
+app.get('/api/users/all', (req, res) => user.getAllUsers(firestore, req, res));
 
 // No route found
 app.all('*', (req, res) => {
