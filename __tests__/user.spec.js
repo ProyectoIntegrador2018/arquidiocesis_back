@@ -6,6 +6,9 @@ const mockRequest = (users) => ({
   users,
 });
 
+const members_test = ['1', '2', '3'];
+const group_test = ['1'];
+
 //Creating fake firebase database with logins collection only
 mockFirebase({
   database: {
@@ -49,6 +52,12 @@ describe('User functionalities test suite', () => {
 
   test('Testing revoke role membership for all users', async () => {
     const res = await user.removeRole(db, 1);
+    expect(mockCollection).toHaveBeenCalledWith('users');
+    expect(res).toBe(true);
+  });
+
+  test('Testing addGroupMembers', async () => {
+    const res = await user.addGroupMembers(db, group_test, members_test);
     expect(mockCollection).toHaveBeenCalledWith('users');
     expect(res).toBe(true);
   });
