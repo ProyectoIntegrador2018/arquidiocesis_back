@@ -141,7 +141,7 @@ describe('Testing "Grupo conversacion"', () => {
   test('Testing addMember functionality', async () => {
     const req = mockRequest(
       {
-        members: ['1', '2'],
+        group_members: ['1', '2'],
         group_id: 1,
       } // role doc id
     );
@@ -175,7 +175,7 @@ describe('Testing "Grupo conversacion"', () => {
   test('Testing removeMember functionality', async () => {
     const req = mockRequest(
       {
-        members: ['1'],
+        group_members: ['1'],
         group_id: '1',
       } // role doc id
     );
