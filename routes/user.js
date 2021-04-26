@@ -54,6 +54,35 @@ const removeRoleMembers = async (firestore, role_id) => {
   return true;
 };
 
+const addGroupMembers = async (firestore, group_id, group_users) => {
+  if (!group_id) return false;
+  await firestore
+    .collection('users')
+    .where('__name__', 'in', group_users)
+    .get()
+    .then((snapshot) => {
+      if (!snapshot.empty) {
+        try {
+          snapshot.forEach((doc) => {
+            if (doc.get('groups') != null) {
+              doc.ref.update({
+                groups: admin.firestore.FieldValue.arrayUnion(group_id),
+              });
+            } else {
+              doc.ref.set({
+                groups: admin.firestore.FieldValue.arrayUnion(group_id),
+              });
+            }
+          });
+        } catch (e) {
+          console.error(e);
+          return false;
+        }
+      }
+    });
+  return true;
+};
+
 const removeGroupMembers = async (firestore, group_id, group_users) => {
   if (!group_id) return false;
   const snapshot = (
@@ -66,7 +95,7 @@ const removeGroupMembers = async (firestore, group_id, group_users) => {
     try {
       for (const s of snapshot) {
         await s.ref.update({
-          groups: admin.firestore.FieldValue.arrayRemove(...group_id),
+          groups: admin.firestore.FieldValue.arrayRemove(group_id),
         });
       }
     } catch (e) {
@@ -80,5 +109,6 @@ const removeGroupMembers = async (firestore, group_id, group_users) => {
 module.exports = {
   removeRole,
   removeRoleMembers,
+  addGroupMembers,
   removeGroupMembers,
 };

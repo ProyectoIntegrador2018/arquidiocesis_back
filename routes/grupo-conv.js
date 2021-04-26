@@ -85,7 +85,7 @@ const addAdmin = async (firestore, req, res) => {
           ...administrators
         ),
       });
-
+    userUtil.addGroupMembers(firestore, group_id, administrators);
     return res.send({
       error: false,
     });
@@ -106,7 +106,7 @@ const addMember = async (firestore, req, res) => {
       .update({
         members: admin.firestore.FieldValue.arrayUnion(...members),
       });
-
+    userUtil.addGroupMembers(firestore, group_id, members);
     return res.send({
       error: false,
     });
@@ -129,7 +129,7 @@ const removeAdmin = async (firestore, req, res) => {
           ...administrators
         ),
       });
-
+    userUtil.removeGroupMembers(firestore, group_id, administrators);
     return res.send({
       error: false,
     });
