@@ -16,7 +16,7 @@ Grupo conv ideal architecture:
  roles : hashtable of roles,
  eg. group-roles : {
    'group-administrators' : ['coordinator-parish-id-1', 'coordinator-zone-id-2'],
-   'members' : ['member-parish-id-3', 'member-zone-id-4'],
+   'group_members' : ['member-parish-id-3', 'member-zone-id-4'],
  }
  // channels adds communication control to groups
  // channels must have at least 1 channels documents; #General channel is a must
@@ -98,15 +98,15 @@ const addAdmin = async (firestore, req, res) => {
 };
 
 const addMember = async (firestore, req, res) => {
-  const { group_id, members } = req.body;
+  const { group_id, group_members } = req.body;
   try {
     await firestore
       .collection('grupo_conv')
       .doc(group_id)
       .update({
-        members: admin.firestore.FieldValue.arrayUnion(...members),
+        group_members: admin.firestore.FieldValue.arrayUnion(...group_members),
       });
-    userUtil.addGroupMembers(firestore, group_id, members);
+    userUtil.addGroupMembers(firestore, group_id, group_members);
     return res.send({
       error: false,
     });
@@ -142,15 +142,15 @@ const removeAdmin = async (firestore, req, res) => {
 };
 
 const removeMember = async (firestore, req, res) => {
-  const { group_id, members } = req.body;
+  const { group_id, group_members } = req.body;
   try {
     await firestore
       .collection('grupo_conv')
       .doc(group_id)
       .update({
-        members: admin.firestore.FieldValue.arrayRemove(...members),
+        group_members: admin.firestore.FieldValue.arrayRemove(...group_members),
       });
-    userUtil.removeGroupMembers(firestore, group_id, members);
+    userUtil.removeGroupMembers(firestore, group_id, group_members);
     return res.send({
       error: false,
     });
