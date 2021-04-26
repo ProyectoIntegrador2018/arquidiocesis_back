@@ -424,7 +424,7 @@ app.get('/api/posts/getChannelPosts/:channelID', (req, res) =>
 );
 
 app.post('/api/comment', (req, res) => comentario.add(firestore, req, res));
-app.get('/api/comment/getPostComments', (req, res) =>
+app.get('/api/comment/getPostComments/:postID', (req, res) =>
   comentario.getPostComments(firestore, req, res)
 );
 
