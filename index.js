@@ -432,7 +432,7 @@ app.get('/api/comment/getPostComments', (req, res) =>
 
 app.post('/api/roles', (req, res) => roles.add(firestore, req, res));
 app.get('/api/roles/all', (req, res) => roles.getAllRoles(firestore, req, res));
-app.get('/api/roles/users', (req, res) =>
+app.put('/api/roles/users', (req, res) =>
   roles.getAllRoleUsers(firestore, req, res)
 );
 app.put('/api/roles/:id', (req, res) =>

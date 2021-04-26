@@ -187,7 +187,7 @@ const getAllGroupsByUser = async (firestore, req, res) => {
 
 const getAllGroupUsers = async (firestore, req, res) => {
   const { id } = req.body; //gets group id from body
-  const dataRes = [];
+  let dataRes = [];
   try {
     const groupRef = await firestore.collection('grupo_conv').doc(id);
     const group = await groupRef.get();
@@ -198,12 +198,12 @@ const getAllGroupUsers = async (firestore, req, res) => {
         ...group.data().group_admins,
       ];
       const usersRef = firestore.collection('users');
-      const snapshot = await usersRef.where('__name__', 'in', userIds).get();
-      if (!snapshot.empty) {
-        snapshot.forEach((doc) => {
-          dataRes.push(doc.data());
-        });
-      }
+      const awaitsLocos = userIds.map(v => firestore.collection('users').doc(v).get());
+      dataRes = await Promise.all(awaitsLocos)
+      dataRes = dataRes.map(v => ({
+        id: v.id,
+        ...v.data()
+      }))
       return res.send({
         error: false,
         users: dataRes,
