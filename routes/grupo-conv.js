@@ -104,7 +104,7 @@ const addMember = async (firestore, req, res) => {
       .collection('grupo_conv')
       .doc(group_id)
       .update({
-        members: admin.firestore.FieldValue.arrayUnion(...members),
+        group_members: admin.firestore.FieldValue.arrayUnion(...members),
       });
     userUtil.addGroupMembers(firestore, group_id, members);
     return res.send({
@@ -194,7 +194,7 @@ const getAllGroupUsers = async (firestore, req, res) => {
     if (group.exists) {
       //checks for user id in users collection
       const userIds = [
-        ...group.data().group_members,
+        ...group.data().group_members ?? [],
         ...group.data().group_admins,
       ];
       const usersRef = firestore.collection('users');
