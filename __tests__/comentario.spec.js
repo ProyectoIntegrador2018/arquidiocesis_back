@@ -47,6 +47,7 @@ describe('Comentario functionalities test suite', () => {
 
     await comentario.add(db, req, res);
 
+    expect(mockCollection).toHaveBeenCalledWith('publicacion');
     expect(mockCollection).toHaveBeenCalledWith('comentario');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
