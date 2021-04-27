@@ -1,3 +1,4 @@
+const admin = require('firebase-admin');
 /**
  * Module for managing Groups
  * @module Comentario
@@ -50,6 +51,13 @@ const add = async (firestore, req, res) => {
       creation_timestamp,
       post_owner_id,
     }); // add new comentario to comentario collection
+
+    await firestore
+      .collection('publicacion')
+      .doc(post_owner_id)
+      .update({
+        post_comments: admin.firestore.FieldValue.arrayUnion(docref.id), // adding comment to publicacion comments array.
+      });
 
     res.send({
       error: false,
