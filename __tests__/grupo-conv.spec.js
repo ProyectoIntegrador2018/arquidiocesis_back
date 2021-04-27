@@ -64,9 +64,9 @@ mockFirebase({
 describe('Testing "Grupo conversacion"', () => {
   const admin = require('firebase-admin');
   const db = admin.firestore();
-  test('Testing correct "add" functionality', async () => {
+  test('Grupo conv testing correct "add" functionality', async () => {
     const request = mockRequest({
-      group_name: 'testing-input-1',
+      group_name: 'testing-input-4',
       group_channels: [],
       group_admins: [],
       group_members: [],

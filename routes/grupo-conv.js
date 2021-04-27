@@ -26,14 +26,21 @@ Grupo conv ideal architecture:
 */
 
 const add = async (firestore, req, res) => {
-  const {
+  let {
     group_name,
     group_admins, //should be an object as the above description implies.
     group_members,
     group_channels,
   } = req.body;
 
-  let exists = false
+  if (group_admins === undefined) {
+    group_admins = [];
+  }
+
+  if (group_members === undefined) {
+    group_members = [];
+  }
+
   // check that current grupo-conv name is not already registered
   firestore
     .collection('grupo_conv')
@@ -41,32 +48,25 @@ const add = async (firestore, req, res) => {
     .get()
     .then((snapshot) => {
       if (!snapshot.empty) {
-        res.send({
+        return res.send({
           error: true,
           message: 'This title is already in use',
         });
-        return true
       }
-      return false
-    })
-    .then(v => {
-      if(v) throw "used"
-    })
-    .then(async () => {
-      const collectionref = await firestore.collection('grupo_conv');
-      const docref = await collectionref.add({
-        group_name,
-        group_admins: group_admins ?? [],
-        group_members: group_members ?? [],
-        group_channels,
-      }); // add new grupo-conv to grupo-conv collection
-    
-      return res.send({
-        error: false,
-        data: docref.id,
-      });
-    })
-    .catch((e) => console.log(e));
+    });
+
+  const collectionref = await firestore.collection('grupo_conv');
+  const docref = await collectionref.add({
+    group_name,
+    group_admins,
+    group_members,
+    group_channels,
+  }); // add new grupo-conv to grupo-conv collection
+
+  return res.send({
+    error: false,
+    data: docref.id,
+  });
 };
 
 const edit = async (firestore, req, res) => {
@@ -201,17 +201,27 @@ const getAllGroupUsers = async (firestore, req, res) => {
     const group = await groupRef.get();
     if (group.exists) {
       //checks for user id in users collection
-      const userIds = [
-        ...(group.data().group_members ?? []),
-        ...group.data().group_admins,
-      ];
-      const usersRef = firestore.collection('users');
-      const awaitsLocos = userIds.map(v => firestore.collection('users').doc(v).get());
-      dataRes = await Promise.all(awaitsLocos)
-      dataRes = dataRes.map(v => ({
-        id: v.id,
-        ...v.data()
-      }))
+
+      const group_admins =
+        group.data().group_admins === undefined ||
+        group.data().group_admins === null
+          ? []
+          : group.data().group_admins;
+      const group_members =
+        group.data().group_members === undefined ||
+        group.data().group_members === null
+          ? []
+          : group.data().group_members;
+
+      const userIds = [...group_members, ...group_admins];
+      const awaitResults = userIds.map((id) =>
+        firestore.collection('users').doc(id).get()
+      );
+      dataRes = await Promise.all(awaitResults);
+      dataRes = dataRes.map((drItem) => ({
+        id: drItem.id,
+        ...drItem.data(),
+      }));
       return res.send({
         error: false,
         users: dataRes,
