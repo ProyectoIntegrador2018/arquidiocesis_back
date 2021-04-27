@@ -84,15 +84,9 @@ const addGroupMembers = async (firestore, group_id, group_users) => {
       if (!snapshot.empty) {
         try {
           snapshot.forEach((doc) => {
-            if (doc.get('groups') != null) {
-              doc.ref.update({
-                groups: admin.firestore.FieldValue.arrayUnion(group_id),
-              });
-            } else {
-              doc.ref.set({
-                groups: admin.firestore.FieldValue.arrayUnion(group_id),
-              });
-            }
+            doc.ref.update({
+              groups: admin.firestore.FieldValue.arrayUnion(group_id),
+            });
           });
         } catch (e) {
           console.error(e);

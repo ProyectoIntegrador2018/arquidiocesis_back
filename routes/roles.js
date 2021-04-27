@@ -86,7 +86,10 @@ const getAllRoleUsers = async (firestore, req, res) => {
       const snapshot = await usersRef.where('__name__', 'in', userIds).get();
       if (!snapshot.empty) {
         snapshot.forEach((doc) => {
-          dataRes.push(doc.data());
+          dataRes.push({
+            id: doc.id,
+            ...doc.data()
+          });
         });
       }
       return res.send({

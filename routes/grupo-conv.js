@@ -26,12 +26,20 @@ Grupo conv ideal architecture:
 */
 
 const add = async (firestore, req, res) => {
-  const {
+  let {
     group_name,
     group_admins, //should be an object as the above description implies.
     group_members,
     group_channels,
   } = req.body;
+
+  if (group_admins === undefined) {
+    group_admins = [];
+  }
+
+  if (group_members === undefined) {
+    group_members = [];
+  }
 
   // check that current grupo-conv name is not already registered
   firestore
@@ -187,23 +195,33 @@ const getAllGroupsByUser = async (firestore, req, res) => {
 
 const getAllGroupUsers = async (firestore, req, res) => {
   const { id } = req.body; //gets group id from body
-  const dataRes = [];
+  let dataRes = [];
   try {
     const groupRef = await firestore.collection('grupo_conv').doc(id);
     const group = await groupRef.get();
     if (group.exists) {
       //checks for user id in users collection
-      const userIds = [
-        ...group.data().group_members,
-        ...group.data().group_admins,
-      ];
-      const usersRef = firestore.collection('users');
-      const snapshot = await usersRef.where('__name__', 'in', userIds).get();
-      if (!snapshot.empty) {
-        snapshot.forEach((doc) => {
-          dataRes.push(doc.data());
-        });
-      }
+
+      const group_admins =
+        group.data().group_admins === undefined ||
+        group.data().group_admins === null
+          ? []
+          : group.data().group_admins;
+      const group_members =
+        group.data().group_members === undefined ||
+        group.data().group_members === null
+          ? []
+          : group.data().group_members;
+
+      const userIds = [...group_members, ...group_admins];
+      const awaitResults = userIds.map((id) =>
+        firestore.collection('users').doc(id).get()
+      );
+      dataRes = await Promise.all(awaitResults);
+      dataRes = dataRes.map((drItem) => ({
+        id: drItem.id,
+        ...drItem.data(),
+      }));
       return res.send({
         error: false,
         users: dataRes,
