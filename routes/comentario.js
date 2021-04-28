@@ -35,20 +35,12 @@ const add = async (firestore, req, res) => {
     });
   }
 
-  const today_date = new Date();
-  const creation_timestamp =
-    today_date.getFullYear() +
-    '-' +
-    (today_date.getMonth() + 1) +
-    '-' +
-    today_date.getDate();
-
   try {
     const collectionref = await firestore.collection('comentario');
     const docref = await collectionref.add({
       comment_author,
       comment_text,
-      creation_timestamp,
+      creation_timestamp: admin.firestore.Timestamp.fromDate(new Date()),
       post_owner_id,
     }); // add new comentario to comentario collection
 
