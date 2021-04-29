@@ -1,4 +1,4 @@
-const Util = require('./util');
+const admin = require('firebase-admin');
 /**
  * Module for managing Groups
  * @module Publicacion
@@ -15,7 +15,14 @@ post-comments: ['comment-id-1', 'comment-id-2', 'comment-id-3'],
 */
 
 const add = async (firestore, req, res) => {
-  const { post_text, post_author, post_files } = req.body;
+  const { post_text, post_author, post_files, channel_owner_id } = req.body;
+
+  if (channel_owner_id === '' || channel_owner_id === undefined) {
+    return res.send({
+      error: true,
+      message: 'Channel owner ID should not be left blank',
+    });
+  }
 
   if (
     post_text === '' ||
@@ -29,37 +36,146 @@ const add = async (firestore, req, res) => {
     });
   }
 
-  const collectionref = await firestore.collection('publicacion');
-  const docref = await collectionref.add({
-    post_text,
-    post_author,
-    post_files,
-  }); // add new publicacion to publicacion collection
+  try {
+    const collectionref = await firestore.collection('publicacion');
+    const docref = await collectionref.add({
+      post_author,
+      post_text,
+      post_files,
+      creation_timestamp: admin.firestore.Timestamp.fromDate(new Date()),
+      channel_owner_id,
+    }); // add new publicacion to publicacion collection
 
-  // --------- success ----------//
-  // ----------VVVVVVV-----------//
-  res.send({
-    error: false,
-    data: docref.id,
-  });
+    res.send({
+      error: false,
+      data: docref.id,
+    });
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
 };
 
 const edit = async (firestore, req, res) => {
   const { post_id, post_text, post_files } = req.body;
 
-  await firestore.collection('publicacion').doc(post_id).update({
-    post_text,
-    post_files,
-  });
+  try {
+    await firestore.collection('publicacion').doc(post_id).update({
+      post_text,
+      post_files,
+    });
 
-  // --------- success ----------//
-  // ----------VVVVVVV-----------//
-  return res.send({
-    error: false,
-  });
+    return res.send({
+      error: false,
+    });
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
 };
 
-const get_files = async (firestore, req, res) => {
+const get = async (firestore, req, res) => {
+  const { id } = req.params; //post ID
+
+  try {
+    const postRef = await firestore.collection('publicacion').doc(id);
+    const post = await postRef.get();
+    if (post.exists) {
+      return res.send({
+        error: false,
+        data: {
+          post: {
+            id: post.id,
+            ...post.data(),
+          },
+        },
+      });
+    }
+    return res.send({
+      error: true,
+      message: `No post with ID: ${id}`,
+    });
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
+const getChannelPosts = async (firestore, req, res) => {
+  const { channelID } = req.params;
+  if (channelID === '' || channelID === undefined) {
+    return res.send({
+      error: true,
+      message: 'Field cannot be left blank',
+    });
+  }
+  const snapshot = await firestore
+    .collection('publicacion')
+    .where('channel_owner_id', '==', channelID)
+    .get();
+
+  try {
+    return res.send({
+      error: false,
+      data: await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const userSnapshot = await firestore
+            .collection('users')
+            .doc(doc.data().post_author)
+            .get();
+          return {
+            id: doc.id,
+            authorInfo: userSnapshot.data(),
+            ...doc.data(),
+          };
+        })
+      ),
+    });
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
+const remove = async (firestore, req, res) => {
+  if (Object.keys(req.params).length === 0) {
+    res.send({
+      error: true,
+      message: 'ID field required',
+    });
+  }
+  const { id } = req.params; //post ID
+
+  if (id === '' || id === undefined) {
+    res.send({
+      error: true,
+      message: 'ID field required',
+    });
+  }
+
+  try {
+    await firestore.collection('publicacion').doc(id).delete();
+    res.send({
+      error: false,
+      message: 'Post deleted succesfuly',
+    });
+  } catch (e) {
+    res.send({
+      error: true,
+      message: `Unexpected error: ${e}`,
+    });
+  }
+};
+
+const get_post_files = async (firestore, req, res) => {
   const { post_id } = req.body;
 
   await firestore
@@ -79,5 +195,8 @@ const get_files = async (firestore, req, res) => {
 module.exports = {
   add: add,
   edit: edit,
-  retrieve_post_files: get_files,
+  get: get,
+  getChannelPosts: getChannelPosts,
+  get_post_files: get_post_files,
+  remove: remove,
 };

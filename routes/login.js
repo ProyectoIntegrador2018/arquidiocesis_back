@@ -11,7 +11,7 @@ const SECRET = 'R?<=2vYPXm)n*_kd,Hp.W2GG[hD3b2D/';
  * Authenticates the password and the email are matched
  */
 const authenticate = async (firestore, req, res) => {
-  var { password, email } = req.body;
+  const { password, email } = req.body;
   try {
     // get collection reference
     const collection = await firestore.collection('logins');
@@ -22,10 +22,23 @@ const authenticate = async (firestore, req, res) => {
     if (snapshot.exists) {
       // since id is email, this validates email
       const data = snapshot.data(); //read the doc data
+      const userData = await firestore
+        .collection('users')
+        .where('email', '==', `${email.toLowerCase()}`)
+        .get();
+      let data2 = null;
+      if (userData.size > 0) {
+        const doc = userData.docs[0];
+        data2 = {
+          id: doc.id,
+          ...doc.data(),
+        };
+      }
+      delete data2.password;
 
       if (bcrypt.compareSync(password, data.password)) {
         //validate password
-        var token = jwt.sign({ id: data.id }, SECRET);
+        const token = jwt.sign({ id: data.id }, SECRET);
         return res.send({
           error: false,
           data: {
@@ -34,6 +47,7 @@ const authenticate = async (firestore, req, res) => {
             type: data.tipo,
             id: data.id,
           },
+          userInfo: data2,
         });
       } else {
         return res.send({
@@ -60,8 +74,8 @@ const authenticate = async (firestore, req, res) => {
  */
 const verifyToken = (firestore) => {
   return (req, res, next) => {
-    var token;
-    if (req.method == 'POST') {
+    let token;
+    if (req.method === 'POST' || req.method === 'PUT') {
       token = req.body.token;
     } else {
       token = req.query.token;
@@ -81,15 +95,15 @@ const verifyToken = (firestore) => {
         req.user = user;
         // *** Falta ver donde van cada uno de los tipos nuevos ***
         req.user.admin =
-          user.tipo == 'admin' ||
-          user.tipo == 'superadmin' ||
-          user.tipo == 'coordinador' ||
-          user.tipo == 'acompañante_zona' ||
-          user.tipo == 'acompañanate_decanato';
+          user.tipo === 'admin' ||
+          user.tipo === 'superadmin' ||
+          user.tipo === 'coordinador' ||
+          user.tipo === 'acompañante_zona' ||
+          user.tipo === 'acompañanate_decanato';
         req.user.readonly =
-          user.tipo == 'coordinador' ||
-          user.tipo == 'acompañante_zona' ||
-          user.tipo == 'acompañanate_decanato';
+          user.tipo === 'coordinador' ||
+          user.tipo === 'acompañante_zona' ||
+          user.tipo === 'acompañanate_decanato';
         return next();
       } else
         return res.send({
@@ -106,11 +120,11 @@ const verifyToken = (firestore) => {
  */
 const verify = async (firestore, token) => {
   try {
-    var decoded = jwt.verify(token, SECRET);
+    const decoded = jwt.verify(token, SECRET);
     const collection = await firestore.collection('logins');
     const query = await (await collection.where('id', '==', decoded.id)).get();
     if (query.empty) return false;
-    var user = { ...query.docs[0].data(), email: query.docs[0].id };
+    const user = { ...query.docs[0].data(), email: query.docs[0].id };
     return user;
   } catch (err) {
     return false;
@@ -121,7 +135,7 @@ const verify = async (firestore, token) => {
  * Changes the password of a user
  */
 const changePassword = async (firestore, req, res) => {
-  var { old_password, new_password } = req.body;
+  const { old_password, new_password } = req.body;
   if (new_password.length < 5)
     return res.send({
       error: true,
@@ -132,12 +146,12 @@ const changePassword = async (firestore, req, res) => {
       .collection('logins')
       .where('id', '==', req.user.id)
       .get();
-    if (userSnap.size == 0)
+    if (userSnap.size === 0)
       return res.send({
         error: true,
         message: 'No existe un usuario con ese id.',
       });
-    var login = userSnap.docs[0].data();
+    const login = userSnap.docs[0].data();
     login.email = userSnap.docs[0].id;
     if (!bcrypt.compareSync(old_password, login.password)) {
       return res.send({
@@ -146,7 +160,7 @@ const changePassword = async (firestore, req, res) => {
         message: 'La contraseña actual es incorrecta.',
       });
     }
-    var passwordHash = bcrypt.hashSync(new_password);
+    const passwordHash = bcrypt.hashSync(new_password);
     await firestore
       .collection('logins')
       .doc(login.email)
