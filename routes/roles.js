@@ -6,6 +6,15 @@
 const admin = require('firebase-admin');
 const userUtil = require('./user');
 
+// Divide array into chunks of the specified size
+var chunks = function (array, size) {
+  var results = [];
+  while (array.length) {
+    results.push(array.splice(0, size));
+  }
+  return results;
+};
+
 const add = async (firestore, req, res) => {
   const { role_title } = req.body;
 
@@ -82,16 +91,20 @@ const getAllRoleUsers = async (firestore, req, res) => {
     if (role.exists) {
       //checks for user id in users collection
       const userIds = role.data().members;
-      const usersRef = firestore.collection('users');
-      const snapshot = await usersRef.where('__name__', 'in', userIds).get();
-      if (!snapshot.empty) {
-        snapshot.forEach((doc) => {
-          dataRes.push({
-            id: doc.id,
-            ...doc.data()
+      const userIdsChunks = chunks(userIds, 10);
+      for(const chunkIds of userIdsChunks){
+        const usersRef = firestore.collection('users');
+        const snapshot = await usersRef.where('__name__', 'in', chunkIds).get();
+        if (!snapshot.empty) {
+          snapshot.forEach((doc) => {
+            dataRes.push({
+              id: doc.id,
+              ...doc.data()
+            });
           });
-        });
+        }
       }
+      
       return res.send({
         error: false,
         users: dataRes,

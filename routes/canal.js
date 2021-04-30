@@ -21,6 +21,15 @@ publications :  [strings]
  }
 */
 
+// Divide array into chunks of the specified size
+var chunks = function (array, size) {
+  var results = [];
+  while (array.length) {
+    results.push(array.splice(0, size));
+  }
+  return results;
+};
+
 const add = async (firestore, req, res) => {
   const {
     canal_name,
@@ -82,11 +91,20 @@ const edit = async (firestore, req, res) => {
 const getAllChannelsByGroup = async (firestore, req, res) => {
   const { channel_ids } = req.body;
 
-  const canalesRef = firestore.collection('canales');
-  const snapshot = await canalesRef.where('__name__', 'in', channel_ids).get();
+  const channelIdsChunks = chunks(channel_ids, 10);
+  const channels = [];
+
+  for(const chunkIds of channelIdsChunks){
+    const canalesRef = firestore.collection('canales');
+    const snapshot = await canalesRef.where('__name__', 'in', chunkIds).get();
+    if(!snapshot.empty){
+      snapshot.docs.forEach((doc) => channels.push({ id: doc.id, ...doc.data()}));
+    }
+  }
+  
   return res.send({
     error: false,
-    channels: snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+    channels: channels,
   });
 };
 
