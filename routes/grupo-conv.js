@@ -25,6 +25,15 @@ Grupo conv ideal architecture:
  eg. channels : ['channel-general-id-1', 'channel-about-id-2']
 */
 
+// Divide array into chunks of the specified size
+var chunks = function (array, size) {
+  var results = [];
+  while (array.length) {
+    results.push(array.splice(0, size));
+  }
+  return results;
+};
+
 const add = async (firestore, req, res) => {
   let {
     group_name,
@@ -177,12 +186,20 @@ const getAllGroupsByUser = async (firestore, req, res) => {
     const user = await userRef.get();
 
     if (user.exists) {
+      const groups = [];
       const groupIds = user.data().groups;
-      const groupsRef = firestore.collection('grupo_conv');
-      const snapshot = await groupsRef.where('__name__', 'in', groupIds).get();
+      const groupIdsChunks = chunks(groupIds, 10);
+      for(const chunkIds of groupIdsChunks){
+        const groupsRef = firestore.collection('grupo_conv');
+        const snapshot = await groupsRef.where('__name__', 'in', chunkIds).get();
+        if(!snapshot.empty){
+          snapshot.docs.forEach((doc) => groups.push({ id: doc.id, ...doc.data() }));
+        }
+      }
+      
       return res.send({
         error: false,
-        groups: snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+        groups: groups,
       });
     }
   } catch (e) {
