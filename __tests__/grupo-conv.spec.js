@@ -110,7 +110,7 @@ describe('Testing "Grupo conversacion"', () => {
     );
   });
 
-  test('Testing correct "getAllGroupsByUser" functionality', async () => {
+  test('Testing correct getAllGroupsByUser functionality', async () => {
     const request = mockRequest({}, { id: '1' });
     const res = mockResponse();
 
