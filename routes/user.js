@@ -46,6 +46,7 @@ const getAllUsers = async (firestore, req, res) => {
 const removeRole = async (firestore, role_id, group_users) => {
   if (!role_id) return false;
 
+
   try {
     const groupUsersChunks = chunks(group_users, 10);
     for (const chunkGroupUsers of groupUsersChunks){
@@ -57,6 +58,7 @@ const removeRole = async (firestore, role_id, group_users) => {
 
     return true;
   } catch (e) {
+    console.log(e);
     console.error(e);
     return false;
   }
