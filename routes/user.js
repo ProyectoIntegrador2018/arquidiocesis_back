@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const { doc } = require('prettier');
 /**
  * Module for managing Groups
  * @module User
@@ -12,6 +13,15 @@ groups: [string], group_conv id's
 roles: [string], roles id's
 
 */
+
+// Divide array into chunks of the specified size
+var chunks = function (array, size) {
+  var results = [];
+  while (array.length) {
+    results.push(array.splice(0, size));
+  }
+  return results;
+};
 
 const getAllUsers = async (firestore, req, res) => {
   const dataRes = {};
@@ -35,25 +45,23 @@ const getAllUsers = async (firestore, req, res) => {
 
 const removeRole = async (firestore, role_id, group_users) => {
   if (!role_id) return false;
-  const snapshot = (
-    await firestore
-      .collection('users')
-      .where('__name__', 'in', group_users)
-      .get()
-  ).docs;
-  if (snapshot.length > 0) {
-    try {
-      for (const s of snapshot) {
-        await s.ref.update({
-          roles: admin.firestore.FieldValue.arrayRemove(role_id),
-        });
+
+
+  try {
+    const groupUsersChunks = chunks(group_users, 10);
+    for (const chunkGroupUsers of groupUsersChunks){
+      const snapshot = await firestore.collection('users').where('__name__', 'in', chunkGroupUsers).get();
+      if(!snapshot.empty){
+        snapshot.docs.forEach((doc) => doc.ref.update({roles: admin.firestore.FieldValue.arrayRemove(role_id)}));
       }
-    } catch (e) {
-      console.error(e);
-      return false;
     }
+
+    return true;
+  } catch (e) {
+    console.log(e);
+    console.error(e);
+    return false;
   }
-  return true;
 };
 
 const removeRoleMembers = async (firestore, role_id) => {
@@ -76,48 +84,41 @@ const removeRoleMembers = async (firestore, role_id) => {
 
 const addGroupMembers = async (firestore, group_id, group_users) => {
   if (!group_id) return false;
-  await firestore
-    .collection('users')
-    .where('__name__', 'in', group_users)
-    .get()
-    .then((snapshot) => {
-      if (!snapshot.empty) {
-        try {
-          snapshot.forEach((doc) => {
-            doc.ref.update({
-              groups: admin.firestore.FieldValue.arrayUnion(group_id),
-            });
-          });
-        } catch (e) {
-          console.error(e);
-          return false;
-        }
+
+  try {
+    const groupUsersChunks = chunks(group_users, 10);
+    for (const chunkGroupUsers of groupUsersChunks){
+      const snapshot = await firestore.collection('users').where('__name__', 'in', chunkGroupUsers).get();
+      if(!snapshot.empty){
+        snapshot.docs.forEach((doc) => doc.ref.update({groups: admin.firestore.FieldValue.arrayUnion(group_id)}));
       }
-    });
-  return true;
+    }
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
 };
 
 const removeGroupMembers = async (firestore, group_id, group_users) => {
   if (!group_id) return false;
-  const snapshot = (
-    await firestore
-      .collection('grupo_conv')
-      .where('__name__', 'in', group_users)
-      .get()
-  ).docs;
-  if (snapshot.length > 0) {
-    try {
-      for (const s of snapshot) {
-        await s.ref.update({
-          groups: admin.firestore.FieldValue.arrayRemove(group_id),
-        });
+
+  try {
+    const groupUsersChunks = chunks(group_users, 10);
+    for (const chunkGroupUsers of groupUsersChunks){
+      const snapshot = await firestore.collection('users').where('__name__', 'in', chunkGroupUsers).get();
+      if(!snapshot.empty){
+        snapshot.docs.forEach((doc) => doc.ref.update({groups: admin.firestore.FieldValue.arrayRemove(group_id)}));
       }
-    } catch (e) {
-      console.error(e);
-      return false;
     }
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
   }
-  return true;
+
 };
 
 module.exports = {
