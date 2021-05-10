@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 //init express
 const express = require('express');
 const app = express();
@@ -25,6 +27,8 @@ const channels = require('./routes/canal');
 const publicacion = require('./routes/publicacion');
 const comentario = require('./routes/comentario');
 const all = require('./routes/all');
+const webNotifications = require('./routes/web-notifications');
+const WebPushNotifications = require('./WebPushNotifications');
 
 app.use(cors());
 app.use(express.json());
@@ -36,7 +40,6 @@ app.get('/', (req, res) => {
 
 //init firebase
 const admin = require('firebase-admin');
-const { getAllUsers } = require('./routes/user');
 
 // Check if environment variable for firebase
 // auth is available
@@ -56,6 +59,10 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     credential: admin.credential.cert(serviceAccount),
   });
 }
+
+// init web push notifications
+WebPushNotifications.init();
+//WebPushNotifications.sendToUserByID('AlgYslUj7khP5JhfmVSA', {title: 'Hi', body: 'Hello World!'});
 
 const firestore = admin.firestore();
 app.get('/', (req, res) => {
@@ -444,6 +451,10 @@ app.put('/api/roles/revoke:id', (req, res) =>
 app.delete('/api/roles/:id', (req, res) => roles.remove(firestore, req, res));
 
 app.get('/api/users/all', (req, res) => user.getAllUsers(firestore, req, res));
+
+app.post('/api/web-notifications', (req, res) =>
+  webNotifications.subscribe(firestore, req, res)
+);
 
 // No route found
 app.all('*', (req, res) => {
