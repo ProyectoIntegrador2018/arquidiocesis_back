@@ -62,7 +62,6 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 // init web push notifications
 WebPushNotifications.init();
-//WebPushNotifications.sendToUserByID('AlgYslUj7khP5JhfmVSA', {title: 'Hi', body: 'Hello World!'});
 
 const firestore = admin.firestore();
 app.get('/', (req, res) => {
