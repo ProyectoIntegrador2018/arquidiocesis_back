@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const fUtil = require('./filesUtil');
 /**
  * Module for managing Groups
  * @module Publicacion
@@ -37,11 +38,12 @@ const add = async (firestore, req, res) => {
   }
 
   try {
+    const files = await fUtil.uploadFiles(post_files);
     const collectionref = await firestore.collection('publicacion');
     const docref = await collectionref.add({
       post_author,
       post_text,
-      post_files,
+      files,
       creation_timestamp: admin.firestore.Timestamp.fromDate(new Date()),
       channel_owner_id,
     }); // add new publicacion to publicacion collection
@@ -62,9 +64,10 @@ const edit = async (firestore, req, res) => {
   const { post_id, post_text, post_files } = req.body;
 
   try {
+    const files = await fUtil.uploadFiles(post_files);
     await firestore.collection('publicacion').doc(post_id).update({
       post_text,
-      post_files,
+      files,
     });
 
     return res.send({
@@ -175,28 +178,10 @@ const remove = async (firestore, req, res) => {
   }
 };
 
-const get_post_files = async (firestore, req, res) => {
-  const { post_id } = req.body;
-
-  await firestore
-    .collection('publicacion')
-    .doc(post_id)
-    .get()
-    .then((snapshot) => {
-      if (!snapshot.empty) {
-        return res.send({
-          error: false,
-          post_files: snapshot.data()['post_files'],
-        });
-      }
-    });
-};
-
 module.exports = {
   add: add,
   edit: edit,
   get: get,
   getChannelPosts: getChannelPosts,
-  get_post_files: get_post_files,
   remove: remove,
 };
