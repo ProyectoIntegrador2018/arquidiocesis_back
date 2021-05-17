@@ -1,5 +1,4 @@
 const admin = require('firebase-admin');
-const fUtil = require('./filesUtil');
 /**
  * Module for managing Groups
  * @module Publicacion
@@ -38,12 +37,11 @@ const add = async (firestore, req, res) => {
   }
 
   try {
-    const files = await fUtil.uploadFiles(post_files);
     const collectionref = await firestore.collection('publicacion');
     const docref = await collectionref.add({
       post_author,
       post_text,
-      files,
+      post_files,
       creation_timestamp: admin.firestore.Timestamp.fromDate(new Date()),
       channel_owner_id,
     }); // add new publicacion to publicacion collection
@@ -64,10 +62,9 @@ const edit = async (firestore, req, res) => {
   const { post_id, post_text, post_files } = req.body;
 
   try {
-    const files = await fUtil.uploadFiles(post_files);
     await firestore.collection('publicacion').doc(post_id).update({
       post_text,
-      files,
+      post_files,
     });
 
     return res.send({

@@ -5,15 +5,6 @@ const storage = new Storage({
 });
 const bucketName = 'arquidiocesis-38f49.appspot.com';
 
-/*
-
-file architectur
-
-file = {
-    file_name = string,
-    file_path = string,
-}
-*/
 async function uploadFiles(files) {
   const file_results = [];
   for (const file of files) {
@@ -34,6 +25,40 @@ async function uploadFiles(files) {
   }
 }
 
+const uploadBlobFiles = async (firestore, req, res) => {
+  if (!req.files) {
+    return res.send({
+      error: true,
+      message: 'files not found in req',
+    });
+  }
+  const url_results = [];
+  for (const file of req.files) {
+    const blob = storage.bucket(bucketName).file(file.originalName);
+    const blobStream = blob.createWriteStream();
+
+    blobStream.on('error', (err) => {
+      console.log(`Unexpected error in uploadBlobFiles: ${err}`);
+      return res.send({
+        error: true,
+        message: `Unexpected error in uploadBlobFiles: ${err}`,
+      });
+    });
+
+    blobStream.on('finish', () => {
+      url_results.push({
+        url: `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/files%2F${blob.name}?alt=media`,
+        filename: blob.name,
+      });
+    });
+  }
+
+  return res.send({
+    error: false,
+    files_url: url_results,
+  });
+};
+
 async function deleteFiles(filenames) {
   for (const filename in filenames) {
     try {
@@ -50,5 +75,6 @@ async function deleteFiles(filenames) {
 
 module.exports = {
   uploadFiles,
+  uploadBlobFiles,
   deleteFiles,
 };
