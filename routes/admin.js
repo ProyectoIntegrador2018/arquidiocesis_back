@@ -9,7 +9,8 @@ const bcrypt = require('bcrypt-nodejs');
  * Verifies that the account is an Administrador
  */
 const isAdmin = (req, res, next, redirect = false) => {
-  if (req.user.tipo == 'admin' || req.user.tipo == 'superadmin') return next();
+  if (req.user.tipo === 'admin' || req.user.tipo === 'superadmin')
+    return next();
   else {
     if (redirect) {
       return res.redirect('back');
@@ -167,14 +168,14 @@ const register = async (firestore, req, res) => {
       'acompañante_zona',
       'acompañante_decanato',
       'capacitacion',
-    ].indexOf(tipo) == -1
+    ].indexOf(tipo) === -1
   ) {
     return res.send({
       error: true,
       message: 'Tipo de usuario invalido',
     });
   }
-  if (['Masculino', 'Femenino', 'Sin especificar'].indexOf(sexo) == -1) {
+  if (['Masculino', 'Femenino', 'Sin especificar'].indexOf(sexo) === -1) {
     return res.send({
       error: true,
       message: 'Sexo invalido.',
@@ -210,6 +211,16 @@ const register = async (firestore, req, res) => {
       .collection('logins')
       .doc(email.toLowerCase().trim())
       .set(login);
+
+    await firestore.collection('users').add({
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      sexo,
+      tipo,
+      email,
+    });
+
     return res.send({
       error: false,
       data: {
@@ -232,7 +243,7 @@ const register = async (firestore, req, res) => {
  */
 const deleteAdmin = async (firestore, req, res) => {
   var { email } = req.body;
-  if (req.user.email.toLowerCase() == email.toLowerCase()) {
+  if (req.user.email.toLowerCase() === email.toLowerCase()) {
     return res.send({
       error: true,
       code: 682,
@@ -289,14 +300,14 @@ const editUserDetail = async (firestore, req, res) => {
       'acompañante_zona',
       'acompañante_decanato',
       'capacitacion',
-    ].indexOf(tipo) == -1
+    ].indexOf(tipo) === -1
   ) {
     return res.send({
       error: true,
       message: 'Tipo de usuario invalido',
     });
   }
-  if (['Masculino', 'Femenino', 'Sin especificar'].indexOf(sexo) == -1) {
+  if (['Masculino', 'Femenino', 'Sin especificar'].indexOf(sexo) === -1) {
     return res.send({
       error: true,
       message: 'Sexo invalido.',
