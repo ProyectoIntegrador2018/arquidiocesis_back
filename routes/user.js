@@ -139,10 +139,21 @@ const removeGroupMembers = async (firestore, group_id, group_users) => {
   }
 };
 
+//Add information to current user
+const addInformationToUser = async function (userEmail, data) {
+  const usersRef = admin.firestore.collection('users');
+  const snapshot = await usersRef.where('email', '==', userEmail).get();
+
+  snapshot.forEach(async (doc) => {
+    await usersRef.doc(doc.id).update(data);
+  });
+};
+
 module.exports = {
   removeRole,
   removeRoleMembers,
   addGroupMembers,
   removeGroupMembers,
   getAllUsers,
+  addInformationToUser,
 };
