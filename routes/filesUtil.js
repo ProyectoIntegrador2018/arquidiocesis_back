@@ -50,6 +50,8 @@ const uploadBlobFiles = async (firestore, req, res) => {
         url: `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/files%2F${blob.name}?alt=media`,
         filename: blob.name,
       });
+
+      blobStream.end(file.buffer);
     });
   }
 
