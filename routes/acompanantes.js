@@ -313,6 +313,19 @@ const addDecanato = async (firestore, req, res) => {
       .collection('logins')
       .doc(email.toLowerCase().trim())
       .set(login);
+
+    const new_user = await firestore.collection('users').add({
+      new_acompanante,
+    });
+    const role = await firestore
+      .collection('roles')
+      .doc('acompañante_decanato')
+      .get();
+
+    role.update({
+      members: firestore.FieldValue.arrayUnion(...new_user.id),
+    });
+
     return res.send({
       error: false,
       data: naRef.id,
