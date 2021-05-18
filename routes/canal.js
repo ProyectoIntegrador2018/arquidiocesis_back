@@ -113,7 +113,7 @@ const deleteChannels = async (firestore, req, res) => {
   const { channel_ids } = req.body;
   try {
     await firestore
-      .collection('roles')
+      .collection('canales')
       .where('__name__', 'in', channel_ids)
       .delete();
   } catch (e) {
