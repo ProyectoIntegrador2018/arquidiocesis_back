@@ -96,9 +96,11 @@ async function migrateAdmins() {
 }
 
 async function migrateRoles() {
+  let role_title = '';
+  new_id = '';
   const role = firestore.collection('roles');
-  const snap = await role.where('role_title', '==', '').get();
-  snap.docs.forEach(async (s) => await role.doc('').set(s.data()));
+  const snap = await role.where('role_title', '==', role_title).get();
+  await Promise.all(snap.docs.map(async (s) => role.doc(new_id).set(s.data())));
 }
 
 //execute this in case of any needed migration (backup suggested)

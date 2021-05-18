@@ -212,7 +212,7 @@ const addZona = async (firestore, req, res) => {
     const new_user = await firestore.collection('users').add(new_acompanante);
     const role = await firestore.collection('roles').doc('acompañante_zona');
 
-    role.update({
+    await role.update({
       members: admin.firestore.FieldValue.arrayUnion(...[new_user.id]),
     });
 
