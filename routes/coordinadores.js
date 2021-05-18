@@ -1,8 +1,9 @@
 const bcrypt = require('bcrypt-nodejs');
 const moment = require('moment');
+const admin = require('firebase-admin');
 
 const add = async (firestore, req, res) => {
-  var {
+  const {
     identificador,
     nombre,
     apellido_paterno,
@@ -25,14 +26,14 @@ const add = async (firestore, req, res) => {
     });
   }
 
-  var checkEmail = await firestore
+  const checkEmail = await firestore
     .collection('logins')
     .doc(email.toLowerCase())
     .get();
   if (checkEmail.exists)
     return res.send({ error: true, code: 1, message: 'Correo ya utilizado.' });
 
-  var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+  let fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
   if (!fn.isValid()) fn = moment();
 
   // Validate if a coordinador with identificador exists
@@ -48,7 +49,7 @@ const add = async (firestore, req, res) => {
     });
   }
 
-  var newCoordinador = {
+  const newCoordinador = {
     identificador,
     nombre,
     apellido_paterno,
@@ -62,7 +63,7 @@ const add = async (firestore, req, res) => {
     domicilio,
   };
 
-  var newLogin = {
+  const newLogin = {
     password: bcrypt.hashSync(password),
     tipo: 'coordinador',
     id: null,
@@ -73,18 +74,13 @@ const add = async (firestore, req, res) => {
       .collection('coordinadores')
       .add(newCoordinador);
     newLogin.id = docref.id;
-    const login = await firestore
-      .collection('logins')
-      .doc(email.toLowerCase())
-      .set(newLogin);
+    await firestore.collection('logins').doc(email.toLowerCase()).set(newLogin);
 
-    const new_user = await firestore.collection('users').add({
-      newCoordinador,
-    });
-    const role = await firestore.collection('roles').doc('coordinador').get();
+    const new_user = await firestore.collection('users').add(newCoordinador);
+    const role = await firestore.collection('roles').doc('coordinador');
 
-    role.update({
-      members: firestore.FieldValue.arrayUnion(...new_user.id),
+    await role.update({
+      members: admin.firestore.FieldValue.arrayUnion(...[new_user.id]),
     });
 
     return res.send({
@@ -106,9 +102,9 @@ const add = async (firestore, req, res) => {
 const getall = async (firestore, req, res) => {
   try {
     const snapshot = await firestore.collection('coordinadores').get();
-    var coordinadores = [];
+    const coordinadores = [];
     snapshot.forEach((doc) => {
-      var d = doc.data();
+      const d = doc.data();
       coordinadores.push({
         id: doc.id,
         nombre: d.nombre,
@@ -141,24 +137,24 @@ const getone = async (firestore, req, res) => {
         message: 'Coordinador no existe',
       });
 
-    var coordinador = snapshot.data();
+    const coordinador = snapshot.data();
     coordinador.id = snapshot.id;
     coordinador.grupos = [];
     coordinador.decanatos = [];
     coordinador.parroquias = [];
     coordinador.capillas = [];
-    var parroquias = new Set(),
+    let parroquias = new Set(),
       capillas = new Set(),
       decanatos = new Set();
 
-    var groupSnap = await firestore
+    const groupSnap = await firestore
       .collection('grupos')
       .where('coordinador', '==', snapshot.id)
       .get('nombre,parroquia,capilla');
-    for (var i of groupSnap.docs) {
+    for (const i of groupSnap.docs) {
       if (!i.exists) continue;
-      var d = i.data();
-      var g = {
+      const d = i.data();
+      const g = {
         id: i.id,
         nombre: d.nombre,
       };
@@ -173,18 +169,18 @@ const getone = async (firestore, req, res) => {
     }
 
     capillas = [...capillas];
-    var group_capillas = capillas;
-    var group_parroquias = [...parroquias];
+    const group_capillas = capillas;
+    const group_parroquias = [...parroquias];
 
     if (coordinador.grupos.length > 0) {
       if (capillas.length > 0) {
-        var capSnap = await firestore.getAll(
+        const capSnap = await firestore.getAll(
           ...capillas.map((a) => firestore.doc('capillas/' + a))
         );
         capSnap.forEach((a) => {
           if (!a.exists) return;
-          var d = a.data();
-          if (group_capillas.findIndex((b) => b == a.id) != -1) {
+          const d = a.data();
+          if (group_capillas.findIndex((b) => b === a.id) !== -1) {
             coordinador.capillas.push({
               id: a.id,
               nombre: d.nombre,
@@ -196,13 +192,13 @@ const getone = async (firestore, req, res) => {
 
       parroquias = [...parroquias];
 
-      var parrSnap = await firestore.getAll(
+      const parrSnap = await firestore.getAll(
         ...parroquias.map((a) => firestore.doc('parroquias/' + a))
       );
       parrSnap.forEach((a) => {
         if (!a.exists) return;
-        var d = a.data();
-        if (group_parroquias.findIndex((b) => b == a.id) != -1) {
+        const d = a.data();
+        if (group_parroquias.findIndex((b) => b === a.id) !== -1) {
           coordinador.parroquias.push({
             id: a.id,
             nombre: d.nombre,
@@ -212,7 +208,7 @@ const getone = async (firestore, req, res) => {
       });
       decanatos = [...decanatos];
 
-      var decSnap = await firestore.getAll(
+      const decSnap = await firestore.getAll(
         ...decanatos.map((a) => firestore.doc('decanatos/' + a))
       );
 
@@ -237,8 +233,8 @@ const getone = async (firestore, req, res) => {
   }
 };
 
-var chunks = function (array, size) {
-  var results = [];
+const chunks = function (array, size) {
+  const results = [];
   while (array.length) {
     results.push(array.splice(0, size));
   }
@@ -248,11 +244,11 @@ var chunks = function (array, size) {
 const getForAcompanante = async (firestore, req, res) => {
   try {
     const acom = req.params.id;
-    var decanatos = [];
-    var coordisIds = [];
-    var parroquias = [];
-    var coordinadores = [];
-    var decanRef, parroquiasRef, gruposRef;
+    let decanatos = [];
+    let coordisIds = [];
+    let parroquias = [];
+    const coordinadores = [];
+    let decanRef, parroquiasRef, gruposRef;
 
     const zonaRef = await firestore
       .collection('zonas')
@@ -275,7 +271,7 @@ const getForAcompanante = async (firestore, req, res) => {
     if (!decanRef.empty) {
       decanatos = decanRef.docs.map((d) => d.id);
       decanatos = chunks(decanatos, 10);
-      for (dec of decanatos) {
+      for (const dec of decanatos) {
         parroquiasRef = await firestore
           .collection('parroquias')
           .where('decanato', 'in', dec)
@@ -290,7 +286,7 @@ const getForAcompanante = async (firestore, req, res) => {
 
     if (parroquias.length > 0) {
       parroquias = chunks(parroquias, 10);
-      for (parr of parroquias) {
+      for (const parr of parroquias) {
         gruposRef = await firestore
           .collection('grupos')
           .where('parroquia', 'in', parr)
@@ -305,13 +301,13 @@ const getForAcompanante = async (firestore, req, res) => {
 
     if (coordisIds.length > 0) {
       coordisIds = chunks(coordisIds, 10);
-      for (coord of coordisIds) {
+      for (const coord of coordisIds) {
         const coordisRef = await firestore.getAll(
           ...coord.map((c) => firestore.doc('coordinadores/' + c))
         );
         if (!coordisRef.empty) {
           coordisRef.forEach((doc) => {
-            var d = doc.data();
+            const d = doc.data();
             coordinadores.push({
               id: doc.id,
               nombre: d.nombre,
@@ -339,8 +335,8 @@ const getForAcompanante = async (firestore, req, res) => {
 };
 
 const editCoordinador = async (firestore, req, res) => {
-  var id = req.params.id;
-  var {
+  const id = req.params.id;
+  const {
     identificador,
     apellido_paterno,
     apellido_materno,
@@ -361,11 +357,14 @@ const editCoordinador = async (firestore, req, res) => {
     });
   }
 
-  var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+  let fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
   if (!fn.isValid()) fn = moment();
 
   try {
-    var memberSnap = await firestore.collection('coordinadores').doc(id).get();
+    const memberSnap = await firestore
+      .collection('coordinadores')
+      .doc(id)
+      .get();
     if (!memberSnap.exists) {
       return res.send({
         error: true,
@@ -435,7 +434,7 @@ const editCoordinador = async (firestore, req, res) => {
 };
 
 const remove = async (firestore, req, res) => {
-  var { id } = req.params;
+  const { id } = req.params;
 
   if (!req.user.admin) {
     return res.send({
@@ -445,7 +444,7 @@ const remove = async (firestore, req, res) => {
     });
   }
   try {
-    var coordSnap = await firestore
+    const coordSnap = await firestore
       .collection('coordinadores')
       .doc(id)
       .get('nombre');
@@ -454,12 +453,12 @@ const remove = async (firestore, req, res) => {
         error: true,
         message: 'El coordinador no existe',
       });
-    var l = await firestore
+    const l = await firestore
       .collection('logins')
       .where('id', '==', coordSnap.id)
       .where('tipo', '==', 'coordinador')
       .get();
-    let batch = firestore.batch();
+    const batch = firestore.batch();
     l.docs.forEach((a) => {
       batch.delete(a.ref);
     });
