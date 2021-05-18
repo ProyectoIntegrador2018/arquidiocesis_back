@@ -415,6 +415,9 @@ app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
 app.post('/api/channels/getAll', (req, res) =>
   channels.getAllChannelsByGroup(firestore, req, res)
 );
+app.post('/api/channels/delete', (req, res) =>
+  channels.deleteChannels(firestore, req, res)
+);
 
 app.post('/api/posts', (req, res) => publicacion.add(firestore, req, res));
 app.get('/api/posts/:id', (req, res) => publicacion.get(firestore, req, res));
