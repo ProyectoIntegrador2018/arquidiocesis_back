@@ -78,6 +78,15 @@ const add = async (firestore, req, res) => {
       .doc(email.toLowerCase())
       .set(newLogin);
 
+    const new_user = await firestore.collection('users').add({
+      newCoordinador,
+    });
+    const role = await firestore.collection('roles').doc('coordinador').get();
+
+    role.update({
+      members: firestore.FieldValue.arrayUnion(...new_user.id),
+    });
+
     return res.send({
       error: false,
       data: {
