@@ -29,10 +29,20 @@ const comentario = require('./routes/comentario');
 const all = require('./routes/all');
 const webNotifications = require('./routes/web-notifications');
 const WebPushNotifications = require('./WebPushNotifications');
+const Multer = require('multer');
+const fUtil = require('./routes/filesUtil');
 
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// setting Multer to 100 mb size limit
+const multer = Multer({
+  storage: Multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+  },
+});
 
 app.get('/', (req, res) => {
   res.send('Arquidiocesis Backend');
@@ -453,6 +463,10 @@ app.get('/api/users/all', (req, res) => user.getAllUsers(firestore, req, res));
 
 app.post('/api/web-notifications', (req, res) =>
   webNotifications.subscribe(firestore, req, res)
+);
+
+app.post('/api/upload', multer.array('files', 10), (req, res) =>
+  fUtil.uploadBlobFiles(firestore, req, res)
 );
 
 // No route found

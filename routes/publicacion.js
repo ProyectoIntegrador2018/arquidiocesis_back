@@ -175,28 +175,10 @@ const remove = async (firestore, req, res) => {
   }
 };
 
-const get_post_files = async (firestore, req, res) => {
-  const { post_id } = req.body;
-
-  await firestore
-    .collection('publicacion')
-    .doc(post_id)
-    .get()
-    .then((snapshot) => {
-      if (!snapshot.empty) {
-        return res.send({
-          error: false,
-          post_files: snapshot.data()['post_files'],
-        });
-      }
-    });
-};
-
 module.exports = {
   add: add,
   edit: edit,
   get: get,
   getChannelPosts: getChannelPosts,
-  get_post_files: get_post_files,
   remove: remove,
 };

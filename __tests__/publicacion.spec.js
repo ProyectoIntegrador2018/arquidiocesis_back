@@ -119,23 +119,6 @@ describe('Publicacion functionalities test suite', () => {
     );
   });
 
-  test('Testing correct get_post_files functionality', async () => {
-    const req = mockRequest({
-      post_id: '1',
-    });
-    const res = mockResponse();
-
-    await publicacion.get_post_files(db, req, res);
-
-    expect(mockCollection).toHaveBeenCalledWith('publicacion');
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: false,
-        post_files: ['1', '2', '3'],
-      })
-    );
-  });
-
   test('Testing correct delete functionality', async () => {
     const req = mockRequest({}, { id: '1' });
     const res = mockResponse();
