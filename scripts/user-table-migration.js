@@ -95,6 +95,12 @@ async function migrateAdmins() {
   });
 }
 
+async function migrateRoles() {
+  const role = firestore.collection('roles');
+  const snap = await role.where('role_title', '==', '').get();
+  snap.docs.forEach(async (s) => await role.doc('').set(s.data()));
+}
+
 //execute this in case of any needed migration (backup suggested)
 /*
     In order to execute this script run: yarn users-migrate or node users-migrate.
