@@ -390,18 +390,38 @@ const editCoordinador = async (firestore, req, res) => {
       }
     }
 
-    await firestore.collection('coordinadores').doc(id).update({
-      identificador,
-      apellido_paterno,
-      apellido_materno,
-      domicilio,
-      escolaridad,
-      estado_civil,
-      fecha_nacimiento: fn.toDate(),
-      nombre,
-      oficio,
-      sexo,
-    });
+    const coordinador = await firestore
+      .collection('coordinadores')
+      .doc(id)
+      .update({
+        identificador,
+        apellido_paterno,
+        apellido_materno,
+        domicilio,
+        escolaridad,
+        estado_civil,
+        fecha_nacimiento: fn.toDate(),
+        nombre,
+        oficio,
+        sexo,
+      });
+
+    await firestore
+      .collection('users')
+      .where('email', '==', coordinador.data().email)
+      .update({
+        identificador,
+        apellido_paterno,
+        apellido_materno,
+        domicilio,
+        escolaridad,
+        estado_civil,
+        fecha_nacimiento: fn.toDate(),
+        nombre,
+        oficio,
+        sexo,
+      });
+
     return res.send({
       error: false,
       data: true,
