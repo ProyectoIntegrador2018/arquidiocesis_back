@@ -489,7 +489,17 @@ const edit = async (firestore, req, res) => {
   };
 
   try {
-    await firestore.collection('acompanantes').doc(id).update(new_acompanante);
+    const acompanante = await firestore
+      .collection('acompanantes')
+      .doc(id)
+      .update(new_acompanante);
+    await firestore
+      .collection('users')
+      .where('email', '==', acompanante.data().email)
+      .update({
+        new_acompanante,
+      });
+
     return res.send({
       error: false,
       data: true,
