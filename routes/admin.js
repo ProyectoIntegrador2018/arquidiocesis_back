@@ -3,7 +3,6 @@
  * @module Admin
  */
 const bcrypt = require('bcrypt-nodejs');
-
 /**
  * /
  * Verifies that the account is an Administrador
@@ -212,13 +211,21 @@ const register = async (firestore, req, res) => {
       .doc(email.toLowerCase().trim())
       .set(login);
 
-    await firestore.collection('users').add({
+    const new_user = await firestore.collection('users').add({
       nombre,
       apellido_paterno,
       apellido_materno,
       sexo,
       tipo,
       email,
+    });
+    const role = await firestore
+      .collection('roles')
+      .doc(tipo)
+      .get();
+
+    role.update({
+      members: firestore.FieldValue.arrayUnion(...new_user.id),
     });
 
     return res.send({
