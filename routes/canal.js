@@ -22,8 +22,8 @@ publications :  [strings]
 */
 
 // Divide array into chunks of the specified size
-var chunks = function (array, size) {
-  var results = [];
+const chunks = function (array, size) {
+  const results = [];
   while (array.length) {
     results.push(array.splice(0, size));
   }
@@ -94,17 +94,37 @@ const getAllChannelsByGroup = async (firestore, req, res) => {
   const channelIdsChunks = chunks(channel_ids, 10);
   const channels = [];
 
-  for(const chunkIds of channelIdsChunks){
+  for (const chunkIds of channelIdsChunks) {
     const canalesRef = firestore.collection('canales');
     const snapshot = await canalesRef.where('__name__', 'in', chunkIds).get();
-    if(!snapshot.empty){
-      snapshot.docs.forEach((doc) => channels.push({ id: doc.id, ...doc.data()}));
+    if (!snapshot.empty) {
+      snapshot.docs.forEach((doc) =>
+        channels.push({ id: doc.id, ...doc.data() })
+      );
     }
   }
-  
   return res.send({
     error: false,
     channels: channels,
+  });
+};
+
+const deleteChannels = async (firestore, req, res) => {
+  const { channel_ids } = req.body;
+  try {
+    await firestore
+      .collection('canales')
+      .where('__name__', 'in', channel_ids)
+      .delete();
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `Unexpected error in deleteChannels: ${e}`,
+    });
+  }
+
+  return res.send({
+    error: false,
   });
 };
 
@@ -112,4 +132,5 @@ module.exports = {
   add: add,
   edit: edit,
   getAllChannelsByGroup: getAllChannelsByGroup,
+  deleteChannels: deleteChannels,
 };

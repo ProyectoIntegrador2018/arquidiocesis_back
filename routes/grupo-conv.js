@@ -26,8 +26,8 @@ Grupo conv ideal architecture:
 */
 
 // Divide array into chunks of the specified size
-var chunks = function (array, size) {
-  var results = [];
+const chunks = function (array, size) {
+  const results = [];
   while (array.length) {
     results.push(array.splice(0, size));
   }
@@ -189,14 +189,18 @@ const getAllGroupsByUser = async (firestore, req, res) => {
       const groups = [];
       const groupIds = user.data().groups;
       const groupIdsChunks = chunks(groupIds, 10);
-      for(const chunkIds of groupIdsChunks){
+      for (const chunkIds of groupIdsChunks) {
         const groupsRef = firestore.collection('grupo_conv');
-        const snapshot = await groupsRef.where('__name__', 'in', chunkIds).get();
-        if(!snapshot.empty){
-          snapshot.docs.forEach((doc) => groups.push({ id: doc.id, ...doc.data() }));
+        const snapshot = await groupsRef
+          .where('__name__', 'in', chunkIds)
+          .get();
+        if (!snapshot.empty) {
+          snapshot.docs.forEach((doc) =>
+            groups.push({ id: doc.id, ...doc.data() })
+          );
         }
       }
-      
+
       return res.send({
         error: false,
         groups: groups,
@@ -257,6 +261,25 @@ const getAllGroupUsers = async (firestore, req, res) => {
   }
 };
 
+const deleteGrupoConv = async (firestore, req, res) => {
+  const { group_ids } = req.body;
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .where('__name__', 'in', group_ids)
+      .delete();
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `Unexpected error in deleteGrupoConv: ${e}`,
+    });
+  }
+
+  return res.send({
+    error: false,
+  });
+};
+
 module.exports = {
   add: add,
   addAdmin: addAdmin,
@@ -266,4 +289,5 @@ module.exports = {
   removeMember: removeMember,
   getAllGroupsByUser: getAllGroupsByUser,
   getAllGroupUsers: getAllGroupUsers,
+  deleteGrupoConv: deleteGrupoConv,
 };
