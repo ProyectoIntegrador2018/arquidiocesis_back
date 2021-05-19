@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const util = require('./util');
 /**
  * Module for managing Groups
  * @module Canal
@@ -48,7 +49,7 @@ const add = async (firestore, req, res) => {
     if (!snapshot.exists) {
       return res.send({
         error: true,
-        message: 'couldn\'t find publication with the given id',
+        message: "couldn't find publication with the given id",
         error_id: publication,
       });
     }
@@ -68,6 +69,37 @@ const add = async (firestore, req, res) => {
     .update({
       group_channels: admin.firestore.FieldValue.arrayUnion(docref.id), // adding channel to group comments array.
     });
+
+  //Notification process
+  const groupRef = await firestore
+    .collection('grupo_conv')
+    .doc(grupo_conv_owner_id);
+  const group = await groupRef.get();
+  let userIds = [];
+
+  if (group.exists) {
+    //checks for user id in users collection
+
+    const group_admins =
+      group.data().group_admins === undefined ||
+      group.data().group_admins === null
+        ? []
+        : group.data().group_admins;
+    const group_members =
+      group.data().group_members === undefined ||
+      group.data().group_members === null
+        ? []
+        : group.data().group_members;
+
+    userIds = [...group_members, ...group_admins];
+  }
+
+  util.triggerNotification(
+    userIds,
+    'Se ha creado un nuevo canal',
+    `/chat/channel/${docref.id}`,
+    `Se ha creado el canal: ${canal_name}`
+  );
 
   res.send({
     error: false,
@@ -94,14 +126,16 @@ const getAllChannelsByGroup = async (firestore, req, res) => {
   const channelIdsChunks = chunks(channel_ids, 10);
   const channels = [];
 
-  for(const chunkIds of channelIdsChunks){
+  for (const chunkIds of channelIdsChunks) {
     const canalesRef = firestore.collection('canales');
     const snapshot = await canalesRef.where('__name__', 'in', chunkIds).get();
-    if(!snapshot.empty){
-      snapshot.docs.forEach((doc) => channels.push({ id: doc.id, ...doc.data()}));
+    if (!snapshot.empty) {
+      snapshot.docs.forEach((doc) =>
+        channels.push({ id: doc.id, ...doc.data() })
+      );
     }
   }
-  
+
   return res.send({
     error: false,
     channels: channels,

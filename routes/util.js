@@ -83,9 +83,26 @@ function flattenObject(ob) {
   return toReturn;
 }
 
+async function triggerNotification(ids, title, path, message) {
+  try {
+    for (const id in ids) {
+      await WebPushNotifications.sendToUserByID(id, {
+        title: title,
+        body: {
+          path: path,
+          message: message,
+        },
+      });
+    }
+  } catch (e) {
+    console.log(`Unexpected error in triggerNotification: ${e}`);
+  }
+}
+
 module.exports = {
   toCSV,
   toXLS,
   toXLS2sheets,
   flattenObject,
+  triggerNotification,
 };

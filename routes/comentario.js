@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const util = require('./util');
 /**
  * Module for managing Groups
  * @module Comentario
@@ -50,6 +51,45 @@ const add = async (firestore, req, res) => {
       .update({
         post_comments: admin.firestore.FieldValue.arrayUnion(docref.id), // adding comment to publicacion comments array.
       });
+
+    //Notification process
+    const postRef = await firestore
+      .collection('publicacion')
+      .doc(post_owner_id);
+    const post = await postRef.get();
+    const channelRef = await firestore
+      .collection('canales')
+      .doc(post.channel_owner_id);
+    const channel = await channelRef.get();
+    const groupRef = await firestore
+      .collection('grupo_conv')
+      .doc(channel.grupo_conv_owner_id);
+    const group = await groupRef.get();
+    let userIds = [];
+
+    if (group.exists) {
+      //checks for user id in users collection
+
+      const group_admins =
+        group.data().group_admins === undefined ||
+        group.data().group_admins === null
+          ? []
+          : group.data().group_admins;
+      const group_members =
+        group.data().group_members === undefined ||
+        group.data().group_members === null
+          ? []
+          : group.data().group_members;
+
+      userIds = [...group_members, ...group_admins];
+    }
+
+    util.triggerNotification(
+      userIds,
+      'Nuevo comentario',
+      `/chat/post/${post_owner_id}`,
+      'Se ha anadido un nuevo comentario a una publicacion que sigues'
+    );
 
     res.send({
       error: false,
