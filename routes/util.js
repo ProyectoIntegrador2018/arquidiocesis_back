@@ -83,6 +83,7 @@ function flattenObject(ob) {
   return toReturn;
 }
 
+// this function will be triggered by any db update.
 async function triggerNotification(ids, title, path, message) {
   try {
     await Promise.all(
