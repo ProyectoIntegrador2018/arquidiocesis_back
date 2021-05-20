@@ -85,15 +85,15 @@ function flattenObject(ob) {
 
 async function triggerNotification(ids, title, path, message) {
   try {
-    for (const id in ids) {
-      await WebPushNotifications.sendToUserByID(id, {
-        title: title,
-        body: {
-          path: path,
-          message: message,
+    await Promise.all(
+      ids.map(id => WebPushNotifications.sendToUserByID(id, {
+        title,
+        body: message,
+        data: {
+          path,
         },
-      });
-    }
+      })
+    ));
   } catch (e) {
     console.log(`Unexpected error in triggerNotification: ${e}`);
   }
