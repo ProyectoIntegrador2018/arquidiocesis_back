@@ -27,8 +27,8 @@ Grupo conv ideal architecture:
 */
 
 // Divide array into chunks of the specified size
-var chunks = function (array, size) {
-  var results = [];
+const chunks = function (array, size) {
+  const results = [];
   while (array.length) {
     results.push(array.splice(0, size));
   }
@@ -315,6 +315,25 @@ const getAllGroupUsers = async (firestore, req, res) => {
   }
 };
 
+const deleteGrupoConv = async (firestore, req, res) => {
+  const { group_ids } = req.body;
+  try {
+    await firestore
+      .collection('grupo_conv')
+      .where('__name__', 'in', group_ids)
+      .delete();
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `Unexpected error in deleteGrupoConv: ${e}`,
+    });
+  }
+
+  return res.send({
+    error: false,
+  });
+};
+
 module.exports = {
   add: add,
   addAdmin: addAdmin,
@@ -324,4 +343,5 @@ module.exports = {
   removeMember: removeMember,
   getAllGroupsByUser: getAllGroupsByUser,
   getAllGroupUsers: getAllGroupUsers,
+  deleteGrupoConv: deleteGrupoConv,
 };
