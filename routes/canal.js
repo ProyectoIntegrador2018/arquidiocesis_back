@@ -152,7 +152,7 @@ const deleteChannels = async (firestore, req, res) => {
         .get()
     ).docs;
 
-    await Promise.all(snapshot.map(async (s) => s.delete()));
+    await Promise.all(snapshot.map(async (s) => s.ref.delete()));
   } catch (e) {
     return res.send({
       error: true,
