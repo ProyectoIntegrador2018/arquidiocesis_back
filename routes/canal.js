@@ -49,7 +49,7 @@ const add = async (firestore, req, res) => {
     if (!snapshot.exists) {
       return res.send({
         error: true,
-        message: "couldn't find publication with the given id",
+        message: 'couldn\'t find publication with the given id',
         error_id: publication,
       });
     }
@@ -145,10 +145,14 @@ const getAllChannelsByGroup = async (firestore, req, res) => {
 const deleteChannels = async (firestore, req, res) => {
   const { channel_ids } = req.body;
   try {
-    await firestore
-      .collection('canales')
-      .where('__name__', 'in', channel_ids)
-      .delete();
+    const snapshot = (
+      await firestore
+        .collection('canales')
+        .where('__name__', 'in', channel_ids)
+        .get()
+    ).docs;
+
+    await Promise.all(snapshot.map(async (s) => s.delete()));
   } catch (e) {
     return res.send({
       error: true,

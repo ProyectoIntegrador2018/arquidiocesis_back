@@ -318,10 +318,14 @@ const getAllGroupUsers = async (firestore, req, res) => {
 const deleteGrupoConv = async (firestore, req, res) => {
   const { group_ids } = req.body;
   try {
-    await firestore
-      .collection('grupo_conv')
-      .where('__name__', 'in', group_ids)
-      .delete();
+    const snapshot = (
+      await firestore
+        .collection('grupo_conv')
+        .where('__name__', 'in', group_ids)
+        .get()
+    ).docs;
+
+    await Promise.all(snapshot.map(async (s) => s.delete()));
   } catch (e) {
     return res.send({
       error: true,

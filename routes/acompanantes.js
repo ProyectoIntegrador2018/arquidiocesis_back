@@ -492,12 +492,18 @@ const edit = async (firestore, req, res) => {
       .collection('acompanantes')
       .doc(id)
       .update(new_acompanante);
-    await firestore
-      .collection('users')
-      .where('email', '==', acompanante.data().email)
-      .update({
-        new_acompanante,
-      });
+    const user = (
+      await firestore
+        .collection('users')
+        .where('email', '==', acompanante.data().email)
+        .get()
+    ).docs[0];
+    if (user == null) {
+      throw Error('Usuario no encontrado');
+    }
+    await user.ref.update({
+      new_acompanante,
+    });
 
     return res.send({
       error: false,
