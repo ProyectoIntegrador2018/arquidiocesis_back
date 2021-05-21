@@ -44,6 +44,8 @@ const multer = Multer({
   },
 });
 
+fUtil.configureCors().catch(console.error);
+
 app.get('/', (req, res) => {
   res.send('Arquidiocesis Backend');
 });
