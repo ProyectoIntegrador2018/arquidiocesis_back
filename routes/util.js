@@ -83,9 +83,27 @@ function flattenObject(ob) {
   return toReturn;
 }
 
+// this function will be triggered by any db update.
+async function triggerNotification(ids, title, path, message) {
+  try {
+    await Promise.all(
+      ids.map(id => WebPushNotifications.sendToUserByID(id, {
+        title,
+        body: message,
+        data: {
+          path,
+        },
+      })
+    ));
+  } catch (e) {
+    console.log(`Unexpected error in triggerNotification: ${e}`);
+  }
+}
+
 module.exports = {
   toCSV,
   toXLS,
   toXLS2sheets,
   flattenObject,
+  triggerNotification,
 };

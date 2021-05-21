@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const userUtil = require('./user');
+const util = require('./util');
 /**
  * Module for managing Groups
  * @module Grupo-conv
@@ -72,6 +73,32 @@ const add = async (firestore, req, res) => {
     group_channels,
   }); // add new grupo-conv to grupo-conv collection
 
+  //Notification process
+  const groupRef = await firestore.collection('grupo_conv').doc(docref.id);
+  const group = await groupRef.get();
+  let userIds = [];
+
+  if (group.exists) {
+    const group_admins =
+      group.data().group_admins === undefined ||
+      group.data().group_admins === null
+        ? []
+        : group.data().group_admins;
+    const group_members =
+      group.data().group_members === undefined ||
+      group.data().group_members === null
+        ? []
+        : group.data().group_members;
+
+    userIds = [...group_members, ...group_admins];
+  }
+
+  util.triggerNotification(
+    userIds,
+    'Se ha creado un nuevo grupo',
+    `/chat/group/${docref.id}`,
+    `Se ha creado el grupo: ${group_name}`
+  );
   return res.send({
     error: false,
     data: docref.id,
@@ -85,6 +112,33 @@ const edit = async (firestore, req, res) => {
     group_name,
     group_description,
   });
+
+  //Notification process
+  const groupRef = await firestore.collection('grupo_conv').doc(group_id);
+  const group = await groupRef.get();
+  let userIds = [];
+
+  if (group.exists) {
+    const group_admins =
+      group.data().group_admins === undefined ||
+      group.data().group_admins === null
+        ? []
+        : group.data().group_admins;
+    const group_members =
+      group.data().group_members === undefined ||
+      group.data().group_members === null
+        ? []
+        : group.data().group_members;
+
+    userIds = [...group_members, ...group_admins];
+  }
+
+  util.triggerNotification(
+    userIds,
+    'Se ha modificado un grupo',
+    `/chat/group/${group_id}`,
+    `Se ha modificado el grupo: ${group_name}`
+  );
 
   return res.send({
     error: false,
