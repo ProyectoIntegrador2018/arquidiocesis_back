@@ -5,6 +5,18 @@ const storage = new Storage({
 });
 const bucketName = 'arquidiocesis-38f49.appspot.com';
 
+async function configureCors() {
+  await storage.bucket(bucketName).setCorsConfiguration([
+    {
+      method: ['*'],
+      origin: ['*'],
+      maxAgeSeconds: 3600,
+    },
+  ]);
+
+  console.log('Cors configuration updated');
+}
+
 async function uploadFiles(files) {
   const file_results = [];
   for (const file of files) {
@@ -79,4 +91,5 @@ module.exports = {
   uploadFiles,
   uploadBlobFiles,
   deleteFiles,
+  configureCors,
 };
