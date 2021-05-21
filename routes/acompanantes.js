@@ -5,14 +5,14 @@
 
 const bcrypt = require('bcrypt-nodejs');
 const moment = require('moment');
-
+const admin = require('firebase-admin');
 /**
  * /
  * Gets all data in the acompañantes collection
  */
 const getAll = async (firestore, req, res) => {
   const acompanantes_snap = await firestore.collection('acompanantes').get();
-  var acompanantes = acompanantes_snap.docs.map((doc) => {
+  const acompanantes = acompanantes_snap.docs.map((doc) => {
     return { id: doc.id, ...doc.data() };
   });
   acompanantes.forEach((a) => {
@@ -97,9 +97,12 @@ const getZonaOrDecanato = async (firestore, req, res) => {
  * Gets data from an specific acompanante
  */
 const getone = async (firestore, req, res) => {
-  var { id } = req.params;
+  const { id } = req.params;
   try {
-    var acompanante = await firestore.collection('acompanantes').doc(id).get();
+    const acompanante = await firestore
+      .collection('acompanantes')
+      .doc(id)
+      .get();
     if (!acompanante.exists)
       return res.send({
         error: true,
@@ -127,7 +130,7 @@ const getone = async (firestore, req, res) => {
  */
 const addZona = async (firestore, req, res) => {
   console.log('addZona start', req.body);
-  var {
+  const {
     zona,
     nombre,
     apellido_paterno,
@@ -150,14 +153,14 @@ const addZona = async (firestore, req, res) => {
     });
   }
 
-  const fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+  let fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
   if (!fn.isValid()) fn = moment().toDate();
 
   try {
-    var zonaSnap = await firestore.collection('zonas').doc(zona).get();
+    const zonaSnap = await firestore.collection('zonas').doc(zona).get();
     if (!zonaSnap.exists)
       return res.send({ error: true, message: 'Zona no existe.' });
-    var zona_data = zonaSnap.data();
+    const zona_data = zonaSnap.data();
     if (zona_data.acompanante)
       return res.send({
         error: true,
@@ -165,7 +168,7 @@ const addZona = async (firestore, req, res) => {
         code: 1283,
       });
 
-    var prev_login = await firestore
+    const prev_login = await firestore
       .collection('logins')
       .doc(email.toLowerCase().trim())
       .get();
@@ -177,7 +180,7 @@ const addZona = async (firestore, req, res) => {
       });
     }
 
-    var new_acompanante = {
+    const new_acompanante = {
       nombre,
       apellido_paterno,
       apellido_materno,
@@ -190,11 +193,13 @@ const addZona = async (firestore, req, res) => {
       email,
     };
 
-    var naRef = await firestore.collection('acompanantes').add(new_acompanante);
+    const naRef = await firestore
+      .collection('acompanantes')
+      .add(new_acompanante);
     await firestore.collection('zonas').doc(zona).update({
       acompanante: naRef.id,
     });
-    var login = {
+    const login = {
       id: naRef.id,
       password: bcrypt.hashSync(password),
       tipo: 'acompañante_zona',
@@ -203,6 +208,14 @@ const addZona = async (firestore, req, res) => {
       .collection('logins')
       .doc(email.toLowerCase().trim())
       .set(login);
+
+    const new_user = await firestore.collection('users').add(new_acompanante);
+    const role = await firestore.collection('roles').doc('acompañante_zona');
+
+    await role.update({
+      members: admin.firestore.FieldValue.arrayUnion(...[new_user.id]),
+    });
+
     return res.send({
       error: false,
       data: naRef.id,
@@ -221,7 +234,7 @@ const addZona = async (firestore, req, res) => {
  * Assigns the acompanante to an specific decanato
  */
 const addDecanato = async (firestore, req, res) => {
-  var {
+  const {
     decanato,
     nombre,
     apellido_paterno,
@@ -244,17 +257,17 @@ const addDecanato = async (firestore, req, res) => {
     });
   }
 
-  const fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+  let fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
   if (!fn.isValid()) fn = moment().toDate();
 
   try {
-    var decanatoSnap = await firestore
+    const decanatoSnap = await firestore
       .collection('decanatos')
       .doc(decanato)
       .get();
     if (!decanatoSnap.exists)
       return res.send({ error: true, message: 'Decanato no existe.' });
-    var decanato_data = decanatoSnap.data();
+    const decanato_data = decanatoSnap.data();
     if (decanato_data.acompanante)
       return res.send({
         error: true,
@@ -262,7 +275,7 @@ const addDecanato = async (firestore, req, res) => {
         code: 1283,
       });
 
-    var prev_login = await firestore
+    const prev_login = await firestore
       .collection('logins')
       .doc(email.toLowerCase().trim())
       .get();
@@ -274,7 +287,7 @@ const addDecanato = async (firestore, req, res) => {
       });
     }
 
-    var new_acompanante = {
+    const new_acompanante = {
       nombre,
       apellido_paterno,
       apellido_materno,
@@ -287,11 +300,13 @@ const addDecanato = async (firestore, req, res) => {
       email,
     };
 
-    var naRef = await firestore.collection('acompanantes').add(new_acompanante);
+    const naRef = await firestore
+      .collection('acompanantes')
+      .add(new_acompanante);
     await firestore.collection('decanatos').doc(decanato).update({
       acompanante: naRef.id,
     });
-    var login = {
+    const login = {
       id: naRef.id,
       password: bcrypt.hashSync(password),
       tipo: 'acompañante_decanato',
@@ -300,6 +315,16 @@ const addDecanato = async (firestore, req, res) => {
       .collection('logins')
       .doc(email.toLowerCase().trim())
       .set(login);
+
+    const new_user = await firestore.collection('users').add(new_acompanante);
+    const role = await firestore
+      .collection('roles')
+      .doc('acompañante_decanato');
+
+    await role.update({
+      members: admin.firestore.FieldValue.arrayUnion(...[new_user.id]),
+    });
+
     return res.send({
       error: false,
       data: naRef.id,
@@ -318,7 +343,7 @@ const addDecanato = async (firestore, req, res) => {
  * Unassings the acompanante to an specific zone
  */
 const removeZona = async (firestore, req, res) => {
-  var { id } = req.params;
+  const { id } = req.params;
 
   if (!req.user.admin) {
     return res.send({
@@ -329,19 +354,19 @@ const removeZona = async (firestore, req, res) => {
   }
 
   try {
-    var zonaSnap = await firestore.collection('zonas').doc(id).get();
+    const zonaSnap = await firestore.collection('zonas').doc(id).get();
     if (!zonaSnap.exists)
       return res.send({ error: true, message: 'Zona no existe.' });
-    var zona_data = zonaSnap.data();
+    const zona_data = zonaSnap.data();
     if (!zona_data.acompanante) return res.send({ error: false, data: true });
 
-    var logins = await firestore
+    const logins = await firestore
       .collection('logins')
       .where('id', '==', zona_data.acompanante)
       .where('tipo', '==', 'acompañante_zona')
       .get();
 
-    let batch = firestore.batch();
+    const batch = firestore.batch();
     logins.docs.forEach((a) => {
       batch.delete(a.ref);
     });
@@ -372,7 +397,7 @@ const removeZona = async (firestore, req, res) => {
  * Unassings the acompanante to an specific decanato
  */
 const removeDecanato = async (firestore, req, res) => {
-  var { id } = req.params;
+  const { id } = req.params;
 
   if (!req.user.admin) {
     return res.send({
@@ -383,19 +408,19 @@ const removeDecanato = async (firestore, req, res) => {
   }
 
   try {
-    var decanatoSnap = await firestore.collection('decanatos').doc(id).get();
+    const decanatoSnap = await firestore.collection('decanatos').doc(id).get();
     if (!decanatoSnap.exists)
       return res.send({ error: true, message: 'Decanato no existe.' });
-    var dec_data = decanatoSnap.data();
+    const dec_data = decanatoSnap.data();
     if (!dec_data.acompanante) return res.send({ error: false, data: true });
 
-    var logins = await firestore
+    const logins = await firestore
       .collection('logins')
       .where('id', '==', dec_data.acompanante)
       .where('tipo', '==', 'acompañante_decanato')
       .get();
 
-    let batch = firestore.batch();
+    const batch = firestore.batch();
     logins.docs.forEach((a) => {
       batch.delete(a.ref);
     });
@@ -426,7 +451,7 @@ const removeDecanato = async (firestore, req, res) => {
  * Edits data from an specific acompanante
  */
 const edit = async (firestore, req, res) => {
-  var {
+  const {
     id,
     nombre,
     apellido_paterno,
@@ -447,10 +472,10 @@ const edit = async (firestore, req, res) => {
     });
   }
 
-  var fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
+  let fn = moment(fecha_nacimiento, 'YYYY-MM-DD');
   if (!fn.isValid()) fn = moment().toDate();
 
-  var new_acompanante = {
+  const new_acompanante = {
     nombre,
     apellido_paterno,
     apellido_materno,
@@ -463,7 +488,17 @@ const edit = async (firestore, req, res) => {
   };
 
   try {
-    await firestore.collection('acompanantes').doc(id).update(new_acompanante);
+    const acompanante = await firestore
+      .collection('acompanantes')
+      .doc(id)
+      .update(new_acompanante);
+    await firestore
+      .collection('users')
+      .where('email', '==', acompanante.data().email)
+      .update({
+        new_acompanante,
+      });
+
     return res.send({
       error: false,
       data: true,
