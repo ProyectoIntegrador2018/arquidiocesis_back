@@ -414,7 +414,7 @@ const editCoordinador = async (firestore, req, res) => {
     if (user == null) {
       throw Error('Usuario no encontrado');
     }
-    user.ref.update({
+    await user.ref.update({
       identificador,
       apellido_paterno,
       apellido_materno,
