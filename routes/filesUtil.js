@@ -46,10 +46,6 @@ const uploadBlobFiles = async (firestore, req, res) => {
   }
 
   try {
-    console.log(req.files);
-    if (typeof req.files === 'string') {
-      req.files = JSON.parse(req.files);
-    }
     const files = await Promise.all(
       req.files.map((file) => {
         const fileName = file.originalname;
