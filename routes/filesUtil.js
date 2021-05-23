@@ -44,33 +44,38 @@ const uploadBlobFiles = async (firestore, req, res) => {
       message: 'files not found in req',
     });
   }
-  const url_results = [];
-  for (const file of req.files) {
-    const blob = storage.bucket(bucketName).file(file.originalName);
-    const blobStream = blob.createWriteStream();
 
-    blobStream.on('error', (err) => {
-      console.log(`Unexpected error in uploadBlobFiles: ${err}`);
-      return res.send({
-        error: true,
-        message: `Unexpected error in uploadBlobFiles: ${err}`,
-      });
+  try {
+    const files = await Promise.all(
+      req.files.map((file) => {
+        const fileName = file.originalname;
+        return new Promise((resolve, reject) =>
+          storage
+            .bucket(bucketName)
+            .file(fileName)
+            .createWriteStream()
+            .on('error', reject)
+            .on('finish', () =>
+              resolve({
+                url: `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${fileName}?alt=media`,
+                fileName,
+              })
+            )
+            .end(file.buffer)
+        );
+      })
+    );
+
+    return res.send({
+      error: false,
+      files,
     });
-
-    blobStream.on('finish', () => {
-      url_results.push({
-        url: `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/files%2F${blob.name}?alt=media`,
-        filename: blob.name,
-      });
-
-      blobStream.end(file.buffer);
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `${e}`,
     });
   }
-
-  return res.send({
-    error: false,
-    files_url: url_results,
-  });
 };
 
 async function deleteFiles(filenames) {
