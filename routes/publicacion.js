@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const util = require('./util');
 /**
  * Module for managing Groups
  * @module Publicacion
@@ -46,6 +47,39 @@ const add = async (firestore, req, res) => {
       channel_owner_id,
     }); // add new publicacion to publicacion collection
 
+    //Notification process
+    const channelRef = await firestore
+      .collection('canales')
+      .doc(channel_owner_id);
+    const channel = await channelRef.get();
+    const groupRef = await firestore
+      .collection('grupo_conv')
+      .doc(channel.grupo_conv_owner_id);
+    const group = await groupRef.get();
+    let userIds = [];
+
+    if (group.exists) {
+      const group_admins =
+        group.data().group_admins === undefined ||
+        group.data().group_admins === null
+          ? []
+          : group.data().group_admins;
+      const group_members =
+        group.data().group_members === undefined ||
+        group.data().group_members === null
+          ? []
+          : group.data().group_members;
+
+      userIds = [...group_members, ...group_admins];
+    }
+
+    util.triggerNotification(
+      userIds,
+      'Se ha añadido una nueva publicacion',
+      `/chat/post/${docref.id}`,
+      'Una nueva publicacion ha sido añadida'
+    );
+
     res.send({
       error: false,
       data: docref.id,
@@ -66,6 +100,43 @@ const edit = async (firestore, req, res) => {
       post_text,
       post_files,
     });
+
+    //Notification process
+    const postRef = await firestore.collection('publicacion').doc(post_id);
+    const post = await postRef.get();
+    const channelRef = await firestore
+      .collection('canales')
+      .doc(post.channel_owner_id);
+    const channel = await channelRef.get();
+    const groupRef = await firestore
+      .collection('grupo_conv')
+      .doc(channel.grupo_conv_owner_id);
+    const group = await groupRef.get();
+    let userIds = [];
+
+    if (group.exists) {
+      //checks for user id in users collection
+
+      const group_admins =
+        group.data().group_admins === undefined ||
+        group.data().group_admins === null
+          ? []
+          : group.data().group_admins;
+      const group_members =
+        group.data().group_members === undefined ||
+        group.data().group_members === null
+          ? []
+          : group.data().group_members;
+
+      userIds = [...group_members, ...group_admins];
+    }
+
+    util.triggerNotification(
+      userIds,
+      'Se ha modificado una publicacion que sigues',
+      `/chat/channel/${post_id}`,
+      'Se ha modificado una publicacion'
+    );
 
     return res.send({
       error: false,
@@ -175,28 +246,10 @@ const remove = async (firestore, req, res) => {
   }
 };
 
-const get_post_files = async (firestore, req, res) => {
-  const { post_id } = req.body;
-
-  await firestore
-    .collection('publicacion')
-    .doc(post_id)
-    .get()
-    .then((snapshot) => {
-      if (!snapshot.empty) {
-        return res.send({
-          error: false,
-          post_files: snapshot.data()['post_files'],
-        });
-      }
-    });
-};
-
 module.exports = {
   add: add,
   edit: edit,
   get: get,
   getChannelPosts: getChannelPosts,
-  get_post_files: get_post_files,
   remove: remove,
 };

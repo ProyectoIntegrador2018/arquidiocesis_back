@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const userUtil = require('./user');
+const util = require('./util');
 /**
  * Module for managing Groups
  * @module Grupo-conv
@@ -26,8 +27,8 @@ Grupo conv ideal architecture:
 */
 
 // Divide array into chunks of the specified size
-var chunks = function (array, size) {
-  var results = [];
+const chunks = function (array, size) {
+  const results = [];
   while (array.length) {
     results.push(array.splice(0, size));
   }
@@ -72,6 +73,32 @@ const add = async (firestore, req, res) => {
     group_channels,
   }); // add new grupo-conv to grupo-conv collection
 
+  //Notification process
+  const groupRef = await firestore.collection('grupo_conv').doc(docref.id);
+  const group = await groupRef.get();
+  let userIds = [];
+
+  if (group.exists) {
+    const group_admins =
+      group.data().group_admins === undefined ||
+      group.data().group_admins === null
+        ? []
+        : group.data().group_admins;
+    const group_members =
+      group.data().group_members === undefined ||
+      group.data().group_members === null
+        ? []
+        : group.data().group_members;
+
+    userIds = [...group_members, ...group_admins];
+  }
+
+  util.triggerNotification(
+    userIds,
+    'Se ha creado un nuevo grupo',
+    `/chat/group/${docref.id}`,
+    `Se ha creado el grupo: ${group_name}`
+  );
   return res.send({
     error: false,
     data: docref.id,
@@ -85,6 +112,33 @@ const edit = async (firestore, req, res) => {
     group_name,
     group_description,
   });
+
+  //Notification process
+  const groupRef = await firestore.collection('grupo_conv').doc(group_id);
+  const group = await groupRef.get();
+  let userIds = [];
+
+  if (group.exists) {
+    const group_admins =
+      group.data().group_admins === undefined ||
+      group.data().group_admins === null
+        ? []
+        : group.data().group_admins;
+    const group_members =
+      group.data().group_members === undefined ||
+      group.data().group_members === null
+        ? []
+        : group.data().group_members;
+
+    userIds = [...group_members, ...group_admins];
+  }
+
+  util.triggerNotification(
+    userIds,
+    'Se ha modificado un grupo',
+    `/chat/group/${group_id}`,
+    `Se ha modificado el grupo: ${group_name}`
+  );
 
   return res.send({
     error: false,
@@ -189,14 +243,18 @@ const getAllGroupsByUser = async (firestore, req, res) => {
       const groups = [];
       const groupIds = user.data().groups;
       const groupIdsChunks = chunks(groupIds, 10);
-      for(const chunkIds of groupIdsChunks){
+      for (const chunkIds of groupIdsChunks) {
         const groupsRef = firestore.collection('grupo_conv');
-        const snapshot = await groupsRef.where('__name__', 'in', chunkIds).get();
-        if(!snapshot.empty){
-          snapshot.docs.forEach((doc) => groups.push({ id: doc.id, ...doc.data() }));
+        const snapshot = await groupsRef
+          .where('__name__', 'in', chunkIds)
+          .get();
+        if (!snapshot.empty) {
+          snapshot.docs.forEach((doc) =>
+            groups.push({ id: doc.id, ...doc.data() })
+          );
         }
       }
-      
+
       return res.send({
         error: false,
         groups: groups,
@@ -257,6 +315,29 @@ const getAllGroupUsers = async (firestore, req, res) => {
   }
 };
 
+const deleteGrupoConv = async (firestore, req, res) => {
+  const { group_ids } = req.body;
+  try {
+    const snapshot = (
+      await firestore
+        .collection('grupo_conv')
+        .where('__name__', 'in', group_ids)
+        .get()
+    ).docs;
+
+    await Promise.all(snapshot.map(async (s) => s.ref.delete()));
+  } catch (e) {
+    return res.send({
+      error: true,
+      message: `Unexpected error in deleteGrupoConv: ${e}`,
+    });
+  }
+
+  return res.send({
+    error: false,
+  });
+};
+
 module.exports = {
   add: add,
   addAdmin: addAdmin,
@@ -266,4 +347,5 @@ module.exports = {
   removeMember: removeMember,
   getAllGroupsByUser: getAllGroupsByUser,
   getAllGroupUsers: getAllGroupUsers,
+  deleteGrupoConv: deleteGrupoConv,
 };

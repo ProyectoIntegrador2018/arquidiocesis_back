@@ -1,9 +1,10 @@
+require('dotenv').config();
+
 //init express
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8000;
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const parroquias = require('./routes/parroquia');
 const decanato = require('./routes/decanato');
 const login = require('./routes/login');
@@ -25,10 +26,24 @@ const channels = require('./routes/canal');
 const publicacion = require('./routes/publicacion');
 const comentario = require('./routes/comentario');
 const all = require('./routes/all');
+const webNotifications = require('./routes/web-notifications');
+const WebPushNotifications = require('./WebPushNotifications');
+const Multer = require('multer');
+const fUtil = require('./routes/filesUtil');
 
 app.use(cors());
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
+
+// setting Multer to 100 mb size limit
+const multer = Multer({
+  storage: Multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+  },
+});
+
+fUtil.configureCors().catch(console.error);
 
 app.get('/', (req, res) => {
   res.send('Arquidiocesis Backend');
@@ -36,7 +51,6 @@ app.get('/', (req, res) => {
 
 //init firebase
 const admin = require('firebase-admin');
-const { getAllUsers } = require('./routes/user');
 
 // Check if environment variable for firebase
 // auth is available
@@ -56,6 +70,9 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     credential: admin.credential.cert(serviceAccount),
   });
 }
+
+// init web push notifications
+WebPushNotifications.init();
 
 const firestore = admin.firestore();
 app.get('/', (req, res) => {
@@ -403,11 +420,17 @@ app.put('/api/groups/users', (req, res) =>
 );
 
 app.put('/api/groups/:id', (req, res) => grupos_conv.edit(firestore, req, res));
+app.post('/api/groups/delete', (req, res) =>
+  grupos_conv.deleteGrupoConv(firestore, req, res)
+);
 
 app.post('/api/channels', (req, res) => channels.add(firestore, req, res));
 app.put('/api/channels/:id', (req, res) => channels.add(firestore, req, res));
 app.post('/api/channels/getAll', (req, res) =>
   channels.getAllChannelsByGroup(firestore, req, res)
+);
+app.post('/api/channels/delete', (req, res) =>
+  channels.deleteChannels(firestore, req, res)
 );
 
 app.post('/api/posts', (req, res) => publicacion.add(firestore, req, res));
@@ -444,6 +467,14 @@ app.put('/api/roles/revoke:id', (req, res) =>
 app.delete('/api/roles/:id', (req, res) => roles.remove(firestore, req, res));
 
 app.get('/api/users/all', (req, res) => user.getAllUsers(firestore, req, res));
+
+app.post('/api/web-notifications', (req, res) =>
+  webNotifications.subscribe(firestore, req, res)
+);
+
+app.post('/api/upload', multer.array('files', 10), (req, res) =>
+  fUtil.uploadBlobFiles(firestore, req, res)
+);
 
 // No route found
 app.all('*', (req, res) => {

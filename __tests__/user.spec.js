@@ -29,31 +29,19 @@ describe('User functionalities test suite', () => {
   const db = admin.firestore();
 
   test('Testing revoke role membership', async () => {
-    const req = mockRequest({
-      users: ['1'],
-    });
 
-    const res = await user.removeRole(db, 1, req);
+    const res = await user.removeRole(db, 1, members_test);
 
     expect(mockCollection).toHaveBeenCalledWith('users');
     expect(res).toBe(true);
   });
 
   test('Testing revoke role membership without role id', async () => {
-    const req = mockRequest({
-      users: [1],
-    });
 
-    const res = await user.removeRole(db, null, req);
+    const res = await user.removeRole(db, null, members_test);
 
     expect(mockCollection).toHaveBeenCalledWith('users');
     expect(res).toBe(false);
-  });
-
-  test('Testing revoke role membership for all users', async () => {
-    const res = await user.removeRole(db, 1);
-    expect(mockCollection).toHaveBeenCalledWith('users');
-    expect(res).toBe(true);
   });
 
   test('Testing addGroupMembers', async () => {
