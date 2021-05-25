@@ -73,7 +73,7 @@ const add = async (firestore, req, res) => {
       userIds = [...group_members, ...group_admins];
     }
 
-    util.triggerNotification(
+    await util.triggerNotification(
       userIds,
       'Se ha añadido una nueva publicacion',
       `/chat/post/${docref.id}`,
@@ -131,7 +131,7 @@ const edit = async (firestore, req, res) => {
       userIds = [...group_members, ...group_admins];
     }
 
-    util.triggerNotification(
+    await util.triggerNotification(
       userIds,
       'Se ha modificado una publicacion que sigues',
       `/chat/channel/${post_id}`,

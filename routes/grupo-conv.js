@@ -93,7 +93,7 @@ const add = async (firestore, req, res) => {
     userIds = [...group_members, ...group_admins];
   }
 
-  util.triggerNotification(
+  await util.triggerNotification(
     userIds,
     'Se ha creado un nuevo grupo',
     `/chat/group/${docref.id}`,
@@ -133,7 +133,7 @@ const edit = async (firestore, req, res) => {
     userIds = [...group_members, ...group_admins];
   }
 
-  util.triggerNotification(
+  await util.triggerNotification(
     userIds,
     'Se ha modificado un grupo',
     `/chat/group/${group_id}`,
