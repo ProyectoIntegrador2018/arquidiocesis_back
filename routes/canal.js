@@ -94,7 +94,7 @@ const add = async (firestore, req, res) => {
     userIds = [...group_members, ...group_admins];
   }
 
-  util.triggerNotification(
+  await util.triggerNotification(
     userIds,
     'Se ha creado un nuevo canal',
     `/chat/channel/${docref.id}`,
