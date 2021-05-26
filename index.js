@@ -40,7 +40,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     process.env.FIREBASE_SERVICE_ACCOUNT,
     'base64'
   ).toString();
-  fs.writeFileSync('./ServiceAccountKey.json', serviceAccount);
+  fs.writeFileSync('./ServiceAccountKey.json', serviceJson);
   const serviceAccount = JSON.parse(serviceJson);
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
