@@ -48,33 +48,21 @@ const add = async (firestore, req, res) => {
     }); // add new publicacion to publicacion collection
 
     //Notification process
-    const channelRef = await firestore
-      .collection('canales')
-      .doc(channel_owner_id);
+    const channelRef = firestore.collection('canales').doc(channel_owner_id);
     const channel = await channelRef.get();
-    const groupRef = await firestore
+    const groupRef = firestore
       .collection('grupo_conv')
-      .doc(channel.grupo_conv_owner_id);
+      .doc(channel.data().grupo_conv_owner_id);
     const group = await groupRef.get();
-    let userIds = [];
-
-    if (group.exists) {
-      const group_admins =
-        group.data().group_admins === undefined ||
-        group.data().group_admins === null
-          ? []
-          : group.data().group_admins;
-      const group_members =
-        group.data().group_members === undefined ||
-        group.data().group_members === null
-          ? []
-          : group.data().group_members;
-
-      userIds = [...group_members, ...group_admins];
-    }
+    const userIDs = group.exists
+      ? [
+        ...(group.data().group_admins ?? []),
+        ...(group.data().group_members ?? []),
+      ]
+      : [];
 
     await util.triggerNotification(
-      userIds,
+      userIDs,
       'Se ha añadido una nueva publicacion',
       `/chat/post/${docref.id}`,
       'Una nueva publicacion ha sido añadida'
@@ -134,7 +122,7 @@ const edit = async (firestore, req, res) => {
     await util.triggerNotification(
       userIds,
       'Se ha modificado una publicacion que sigues',
-      `/chat/channel/${post_id}`,
+      `/chat/post?${post_id}`,
       'Se ha modificado una publicacion'
     );
 
