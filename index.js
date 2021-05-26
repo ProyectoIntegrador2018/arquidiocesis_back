@@ -28,8 +28,33 @@ const comentario = require('./routes/comentario');
 const all = require('./routes/all');
 const webNotifications = require('./routes/web-notifications');
 const WebPushNotifications = require('./WebPushNotifications');
+
+//init firebase
+const admin = require('firebase-admin');
+
+// Check if environment variable for firebase
+// auth is available
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  const serviceJson = Buffer.from(
+    process.env.FIREBASE_SERVICE_ACCOUNT,
+    'base64'
+  ).toString();
+  fs.writeFileSync('./ServiceAccountKey.json', serviceAccount);
+  const serviceAccount = JSON.parse(serviceJson);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+} else {
+  // Check if firebase auth file is present
+  const serviceAccount = require('./ServiceAccountKey');
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
 const Multer = require('multer');
 const fUtil = require('./routes/filesUtil');
+const fs = require('fs');
 
 app.use(cors());
 app.use(express.json({ limit: '100mb' }));
@@ -48,28 +73,6 @@ fUtil.configureCors().catch(console.error);
 app.get('/', (req, res) => {
   res.send('Arquidiocesis Backend');
 });
-
-//init firebase
-const admin = require('firebase-admin');
-
-// Check if environment variable for firebase
-// auth is available
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  const serviceJson = Buffer.from(
-    process.env.FIREBASE_SERVICE_ACCOUNT,
-    'base64'
-  ).toString();
-  const serviceAccount = JSON.parse(serviceJson);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-} else {
-  // Check if firebase auth file is present
-  const serviceAccount = require('./ServiceAccountKey');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
 
 // init web push notifications
 WebPushNotifications.init();
