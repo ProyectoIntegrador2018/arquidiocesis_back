@@ -64,7 +64,7 @@ const add = async (firestore, req, res) => {
     await util.triggerNotification(
       userIDs,
       'Se ha añadido una nueva publicacion',
-      `/chat/post/${docref.id}`,
+      `/chat/post?id=${docref.id}`,
       'Una nueva publicacion ha sido añadida'
     );
 
@@ -144,13 +144,16 @@ const get = async (firestore, req, res) => {
     const postRef = await firestore.collection('publicacion').doc(id);
     const post = await postRef.get();
     if (post.exists) {
+      const userSnapshot = await firestore
+        .collection('users')
+        .doc(post.data().post_author)
+        .get();
       return res.send({
         error: false,
         data: {
-          post: {
-            id: post.id,
-            ...post.data(),
-          },
+          id: post.id,
+          authorInfo: userSnapshot.data(),
+          ...post.data(),
         },
       });
     }
