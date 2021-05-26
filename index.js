@@ -28,6 +28,7 @@ const comentario = require('./routes/comentario');
 const all = require('./routes/all');
 const webNotifications = require('./routes/web-notifications');
 const WebPushNotifications = require('./WebPushNotifications');
+const fs = require('fs');
 
 //init firebase
 const admin = require('firebase-admin');
@@ -54,7 +55,6 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 const Multer = require('multer');
 const fUtil = require('./routes/filesUtil');
-const fs = require('fs');
 
 app.use(cors());
 app.use(express.json({ limit: '100mb' }));
