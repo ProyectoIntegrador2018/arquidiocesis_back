@@ -23,6 +23,13 @@ mockFirebase({
         post_text: 'dummy post text',
         post_files: ['1', '2', '3'],
         channel_owner_id: '1',
+        grupo_conv_owner_id: '1',
+      },
+    ],
+    canales: [
+      {
+        id: '1',
+        group_conv_owner_id: '1',
       },
     ],
   },
@@ -38,6 +45,7 @@ describe('Publicacion functionalities test suite', () => {
       post_author: '2',
       post_files: [],
       channel_owner_id: 1,
+      grupo_conv_owner_id: '1',
     });
     const res = mockResponse();
 
