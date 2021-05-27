@@ -84,11 +84,11 @@ const add = async (firestore, req, res) => {
       userIds = [...group_members, ...group_admins];
     }
 
-    util.triggerNotification(
+    await util.triggerNotification(
       userIds,
       'Nuevo comentario',
-      `/chat/post/${post_owner_id}`,
-      'Se ha anadido un nuevo comentario a una publicacion que sigues'
+      `/chat/post?id=${post_owner_id}`,
+      'Se ha añadido un nuevo comentario a una publicación que sigues'
     );
 
     res.send({

@@ -5,6 +5,7 @@
 const Readable = require('stream').Readable;
 const iconv = require('iconv-lite');
 const xlsx = require('xlsx');
+const WebPushNotifications = require('../WebPushNotifications');
 
 /**
  * Turns data to CSV
@@ -12,7 +13,7 @@ const xlsx = require('xlsx');
  * @param {Array<String>} values  - Conains all the values for each row
  */
 function toCSV(header, values) {
-  var csv =
+  const csv =
     header.join(',') +
     '\n' +
     values
@@ -26,7 +27,7 @@ function toCSV(header, values) {
           .join(',')
       )
       .join('\n');
-  var stream = new Readable();
+  const stream = new Readable();
   stream.setEncoding('UTF8');
   stream.push(Buffer.from(csv, 'utf8'));
   stream.push(null);
@@ -38,8 +39,8 @@ function toXLS(header, values) {
   const book = xlsx.utils.book_new();
   const sheet = xlsx.utils.aoa_to_sheet([header, ...values]);
   xlsx.utils.book_append_sheet(book, sheet, 'sheet1');
-  var buf = xlsx.write(book, { type: 'buffer', bookType: 'xls' });
-  var stream = new Readable();
+  const buf = xlsx.write(book, { type: 'buffer', bookType: 'xls' });
+  const stream = new Readable();
   stream.push(buf);
   stream.push(null);
 
@@ -52,8 +53,8 @@ function toXLS2sheets(header1, values1, header2, values2) {
   xlsx.utils.book_append_sheet(book, sheet1, 'sheet1');
   const sheet2 = xlsx.utils.aoa_to_sheet([header2, ...values2]);
   xlsx.utils.book_append_sheet(book, sheet2, 'sheet2');
-  var buf = xlsx.write(book, { type: 'buffer', bookType: 'xls' });
-  var stream = new Readable();
+  const buf = xlsx.write(book, { type: 'buffer', bookType: 'xls' });
+  const stream = new Readable();
   stream.push(buf);
   stream.push(null);
 
@@ -66,15 +67,19 @@ function toXLS2sheets(header1, values1, header2, values2) {
  * @param {Object} ob Object to flatten
  */
 function flattenObject(ob) {
-  var toReturn = {};
-  for (var i in ob) {
-    if (!ob.hasOwnProperty(i)) continue;
+  const toReturn = {};
+  for (const i in ob) {
+    if (!Object.prototype.hasOwnProperty.call(ob, i)) {
+      continue;
+    }
     if (typeof ob[i] == 'object' && ob[i] !== null) {
-      var flatObject = flattenObject(ob[i]);
-      for (var x in flatObject) {
-        if (!flatObject.hasOwnProperty(x)) continue;
+      const flatObject = flattenObject(ob[i]);
+      for (const x in flatObject) {
+        if (!Object.prototype.hasOwnProperty.call(flatObject, x)) {
+          continue;
+        }
 
-        toReturn[i == x ? i : i + '_' + x] = flatObject[x];
+        toReturn[i === x ? i : i + '_' + x] = flatObject[x];
       }
     } else {
       toReturn[i] = ob[i];
@@ -87,14 +92,16 @@ function flattenObject(ob) {
 async function triggerNotification(ids, title, path, message) {
   try {
     await Promise.all(
-      ids.map(id => WebPushNotifications.sendToUserByID(id, {
-        title,
-        body: message,
-        data: {
-          path,
-        },
-      })
-    ));
+      ids.map((id) =>
+        WebPushNotifications.sendToUserByID(id, {
+          title,
+          body: message,
+          data: {
+            path,
+          },
+        })
+      )
+    );
   } catch (e) {
     console.log(`Unexpected error in triggerNotification: ${e}`);
   }

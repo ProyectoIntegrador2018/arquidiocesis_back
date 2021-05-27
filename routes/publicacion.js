@@ -48,36 +48,24 @@ const add = async (firestore, req, res) => {
     }); // add new publicacion to publicacion collection
 
     //Notification process
-    const channelRef = await firestore
-      .collection('canales')
-      .doc(channel_owner_id);
+    const channelRef = firestore.collection('canales').doc(channel_owner_id);
     const channel = await channelRef.get();
-    const groupRef = await firestore
+    const groupRef = firestore
       .collection('grupo_conv')
-      .doc(channel.grupo_conv_owner_id);
+      .doc(channel.data().grupo_conv_owner_id);
     const group = await groupRef.get();
-    let userIds = [];
+    const userIDs = group.exists
+      ? [
+        ...(group.data().group_admins ?? []),
+        ...(group.data().group_members ?? []),
+      ]
+      : [];
 
-    if (group.exists) {
-      const group_admins =
-        group.data().group_admins === undefined ||
-        group.data().group_admins === null
-          ? []
-          : group.data().group_admins;
-      const group_members =
-        group.data().group_members === undefined ||
-        group.data().group_members === null
-          ? []
-          : group.data().group_members;
-
-      userIds = [...group_members, ...group_admins];
-    }
-
-    util.triggerNotification(
-      userIds,
-      'Se ha añadido una nueva publicacion',
-      `/chat/post/${docref.id}`,
-      'Una nueva publicacion ha sido añadida'
+    await util.triggerNotification(
+      userIDs,
+      'Se ha añadido una nueva publicación',
+      `/chat/post?id=${docref.id}`,
+      'Una nueva publicación ha sido añadida'
     );
 
     res.send({
@@ -131,11 +119,11 @@ const edit = async (firestore, req, res) => {
       userIds = [...group_members, ...group_admins];
     }
 
-    util.triggerNotification(
+    await util.triggerNotification(
       userIds,
-      'Se ha modificado una publicacion que sigues',
-      `/chat/channel/${post_id}`,
-      'Se ha modificado una publicacion'
+      'Se ha modificado una publicación que sigues',
+      `/chat/post?id=${post_id}`,
+      'Se ha modificado una publicación'
     );
 
     return res.send({
@@ -156,13 +144,16 @@ const get = async (firestore, req, res) => {
     const postRef = await firestore.collection('publicacion').doc(id);
     const post = await postRef.get();
     if (post.exists) {
+      const userSnapshot = await firestore
+        .collection('users')
+        .doc(post.data().post_author)
+        .get();
       return res.send({
         error: false,
         data: {
-          post: {
-            id: post.id,
-            ...post.data(),
-          },
+          id: post.id,
+          authorInfo: userSnapshot.data(),
+          ...post.data(),
         },
       });
     }
