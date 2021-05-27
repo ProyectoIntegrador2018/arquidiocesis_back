@@ -30,6 +30,25 @@ mockFirebase({
         post_owner_id: '1',
       },
     ],
+    publicacion: [
+      {
+        id: '1',
+        channel_owner_id: '1',
+      },
+    ],
+    canales: [
+      {
+        id: '1',
+        grupo_conv_owner_id: '1',
+      },
+    ],
+    grupo_conv: [
+      {
+        id: '1',
+        group_admins: ['1', '2'],
+        group_members: ['3', '4'],
+      },
+    ],
   },
 });
 
@@ -49,6 +68,8 @@ describe('Comentario functionalities test suite', () => {
 
     expect(mockCollection).toHaveBeenCalledWith('publicacion');
     expect(mockCollection).toHaveBeenCalledWith('comentario');
+    expect(mockCollection).toHaveBeenCalledWith('grupo_conv');
+    expect(mockCollection).toHaveBeenCalledWith('canales');
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: false })
     );
