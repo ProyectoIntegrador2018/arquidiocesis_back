@@ -41,6 +41,7 @@ const add = async (firestore, req, res) => {
     group_admins, //should be an object as the above description implies.
     group_members,
     group_channels,
+    group_icon,
   } = req.body;
 
   if (group_admins === undefined) {
@@ -71,6 +72,7 @@ const add = async (firestore, req, res) => {
     group_admins,
     group_members,
     group_channels,
+    group_icon,
   }); // add new grupo-conv to grupo-conv collection
 
   //Notification process
