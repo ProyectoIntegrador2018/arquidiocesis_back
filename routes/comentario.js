@@ -53,39 +53,26 @@ const add = async (firestore, req, res) => {
       });
 
     //Notification process
-    const postRef = await firestore
+    const post = await firestore
       .collection('publicacion')
-      .doc(post_owner_id);
-    const post = await postRef.get();
-    const channelRef = await firestore
+      .doc(post_owner_id)
+      .get();
+    const channel = await firestore
       .collection('canales')
-      .doc(post.channel_owner_id);
-    const channel = await channelRef.get();
-    const groupRef = await firestore
+      .doc(post.data().channel_owner_id)
+      .get();
+    const group = await firestore
       .collection('grupo_conv')
-      .doc(channel.grupo_conv_owner_id);
-    const group = await groupRef.get();
-    let userIds = [];
-
-    if (group.exists) {
-      //checks for user id in users collection
-
-      const group_admins =
-        group.data().group_admins === undefined ||
-        group.data().group_admins === null
-          ? []
-          : group.data().group_admins;
-      const group_members =
-        group.data().group_members === undefined ||
-        group.data().group_members === null
-          ? []
-          : group.data().group_members;
-
-      userIds = [...group_members, ...group_admins];
-    }
+      .doc(channel.data().grupo_conv_owner_id)
+      .get();
 
     await util.triggerNotification(
-      userIds,
+      group.exists
+        ? [
+          ...(group.data().group_admins ?? []),
+          ...(group.data().group_members ?? []),
+        ]
+        : [],
       'Nuevo comentario',
       `/chat/post?id=${post_owner_id}`,
       'Se ha añadido un nuevo comentario a una publicación que sigues'
