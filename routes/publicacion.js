@@ -63,9 +63,9 @@ const add = async (firestore, req, res) => {
 
     await util.triggerNotification(
       userIDs,
-      'Se ha añadido una nueva publicacion',
+      'Se ha añadido una nueva publicación',
       `/chat/post?id=${docref.id}`,
-      'Una nueva publicacion ha sido añadida'
+      'Una nueva publicación ha sido añadida'
     );
 
     res.send({
@@ -121,9 +121,9 @@ const edit = async (firestore, req, res) => {
 
     await util.triggerNotification(
       userIds,
-      'Se ha modificado una publicacion que sigues',
-      `/chat/post?${post_id}`,
-      'Se ha modificado una publicacion'
+      'Se ha modificado una publicación que sigues',
+      `/chat/post?id=${post_id}`,
+      'Se ha modificado una publicación'
     );
 
     return res.send({
