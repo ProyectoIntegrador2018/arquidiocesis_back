@@ -85,6 +85,10 @@ app.post('/api/login', (req, res) => {
   login.authenticate(firestore, req, res);
 });
 
+app.post('/api/users/reg', (req, res) =>
+  admins.register(firestore, req, res, true)
+);
+
 // Check valid token
 app.all('*', login.verifyToken(firestore));
 

@@ -145,10 +145,14 @@ const changePassword = async (firestore, req, res) => {
 };
 
 /**
- * /
  * Registers a new admin
+ * @param {*} firestore
+ * @param {*} req
+ * @param {*} res
+ * @param {boolean} isUser
+ * @returns
  */
-const register = async (firestore, req, res) => {
+const register = async (firestore, req, res, isUser = false) => {
   const {
     nombre,
     apellido_paterno,
@@ -159,27 +163,27 @@ const register = async (firestore, req, res) => {
     password,
   } = req.body;
 
-  if (
-    [
-      'admin',
-      'coordinador',
-      'integrante_chm',
-      'acompañante_zona',
-      'acompañante_decanato',
-      'capacitacion',
-    ].indexOf(tipo) === -1
-  ) {
+  const valids = [
+    'admin',
+    'coordinador',
+    'integrante_chm',
+    'acompañante_zona',
+    'acompañante_decanato',
+    'capacitacion',
+  ];
+  if (isUser && tipo !== 'integrante_chm') {
     return res.send({
       error: true,
       message: 'Tipo de usuario invalido',
     });
   }
-  if (['Masculino', 'Femenino', 'Sin especificar'].indexOf(sexo) === -1) {
-    return res.send({
-      error: true,
-      message: 'Sexo invalido.',
-    });
-  }
+  if (!isUser && valids.indexOf(tipo) === -1)
+    if (['Masculino', 'Femenino', 'Sin especificar'].indexOf(sexo) === -1) {
+      return res.send({
+        error: true,
+        message: 'Sexo invalido.',
+      });
+    }
   if (password.length < 5)
     return res.send({ error: true, message: 'Contraseña invalida.' });
   const miembro = { nombre, apellido_paterno, sexo };
